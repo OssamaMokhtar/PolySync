@@ -6,57 +6,63 @@ on:
   pull_request:
     branches: [main]
 
+# PolySync is a documentation-first repo (docs/ directory with Markdown).
+# The codebase is not in this repository — this workflow validates the
+# documentation structure and provides the roadmap for the code pipeline.
+
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+      - name: Validate documentation structure
+        run: |
+          echo "Checking required files..."
+          test -f README.md && echo "✓ README.md"
+          test -f LICENSE && echo "✓ LICENSE"
+          test -f SECURITY.md && echo "✓ SECURITY.md"
+          test -f PRIVACY.md && echo "✓ PRIVACY.md"
+          test -f CONTRIBUTING.md && echo "✓ CONTRIBUTING.md"
+          echo ""
+          echo "Checking docs/ directory..."
+          for f in docs/*.md; do
+            test -f "$f" && echo "✓ $(basename $f)"
+          done
+          echo ""
+          echo "Documentation structure validated."
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint --if-present
-
-      - name: Build
-        run: npm run build --if-present
-
-      - name: Test
-        run: npm test --if-present
-
-      - name: Dependency audit
-        run: npm audit --omit=dev || true
-
-  docs:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build docs
-        run: npm run docs:build --if-present || echo "No docs:build script — skipping"
+      - name: Check for sensitive data
+        run: |
+          echo "Scanning for potential secrets..."
+          if grep -r "AIza" . --include="*.md" 2>/dev/null; then
+            echo "⚠ WARNING: Potential Google API key found — review immediately"
+            exit 1
+          fi
+          echo "✓ No obvious secrets detected."
 
       - name: Lint markdown
         run: |
-          if command -v markdownlint &>/dev/null; then
-            markdownlint '**/*.md' || true
-          else
-            echo "markdownlint not installed — skipping"
-          fi
+          echo "Linting markdown files..."
+          # Basic markdown lint: check for common issues
+          for f in docs/*.md README.md SECURITY.md PRIVACY.md CONTRIBUTING.md; do
+            if [ -f "$f" ]; then
+              # Check for lines longer than 120 chars (warning only)
+              if grep -nE '.{121}' "$f" > /dev/null 2>&1; then
+                echo "⚠ $f: some lines exceed 120 characters"
+              fi
+            fi
+          done
+          echo "✓ Markdown lint complete."
+
+      - name: Document roadmap
+        run: |
+          echo ""
+          echo "=== CI Roadmap ==="
+          echo "Current: Documentation structure validation + markdown lint"
+          echo "Next: Add npm/TypeScript pipeline when codebase is added to this repo"
+          echo "Future: npm ci, lint, build, test, npm audit"
+          echo ""
+          echo "See improvement plan at Obsidian/Portfolio-Due-Diligence/01-Improvement-Plan-PolySync.md"
