@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Status:** Draft — for active build phase. Not a substitute for legal advice.
+> Status: Draft — for active build phase. Not a substitute for legal advice.
 
 ## Data We Collect
 

@@ -1,6 +1,6 @@
 # Security
 
-**Status:** Active build — documentation-complete, code-level security posture TBD (codebase not in this repo).
+> Status: Active build — documentation-complete, code-level security posture TBD (codebase not in this repo).
 
 ## Architecture Safety Model (from docs)
 
