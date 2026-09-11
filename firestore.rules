@@ -22,7 +22,7 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\\\-]+$');
     }
 
     function incoming() {
@@ -33,8 +33,7 @@ service cloud.firestore {
       return resource.data;
     }
 
-    // --- VALIDATION BLUEPRINTS ---
-
+    // --- POLYVERSES VALIDATION BLUEPRINTS ---
     function isValidUser(data) {
       return data.uid is string && data.uid.size() <= 128 &&
              data.email is string && data.email.size() <= 256 &&
@@ -54,7 +53,66 @@ service cloud.firestore {
              (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
-    // --- COLLECTIONS ---
+    // --- POLYSYNC FITNESS VALIDATION BLUEPRINTS ---
+    function isValidFitnessProfile(data) {
+      return data.uid is string && data.uid.size() <= 128 &&
+             data.goal is string && data.goal.size() <= 32 &&
+             data.fitnessLevel is string && data.fitnessLevel.size() <= 16 &&
+             data.injuries is list && data.injuries.size() <= 20 &&
+             data.equipment is list && data.equipment.size() <= 20 &&
+             data.daysPerWeek is number &&
+             data.sessionDuration is number &&
+             data.primaryFocus is string && data.primaryFocus.size() <= 128 &&
+             data.healthDataConsent is bool &&
+             data.specialMode is string && data.specialMode.size() <= 16 &&
+             (!('weight' in data) || data.weight is number) &&
+             (!('height' in data) || data.height is number) &&
+             (!('age' in data) || data.age is number) &&
+             (!('gender' in data) || data.gender is string) &&
+             (!('createdAt' in data) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidWorkoutLog(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.date is timestamp &&
+             data.planId is string && data.planId.size() <= 128 &&
+             data.exercises is list && data.exercises.size() <= 50 &&
+             data.duration is number &&
+             data.overallRpe is number &&
+             data.notes is string && data.notes.size() <= 500 &&
+             data.createdFromPlanId is string && data.createdFromPlanId.size() <= 128;
+    }
+
+    function isValidWeeklyPlan(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.weekNumber is number &&
+             data.startDate is timestamp &&
+             data.days is list && data.days.size() <= 7 &&
+             data.version is number;
+    }
+
+    function isValidChatSession(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.messages is list && data.messages.size() <= 200;
+    }
+
+    function isValidCheckIn(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.date is timestamp &&
+             data.energyLevel is number &&
+             data.motivationLevel is number &&
+             data.sleepQuality is number &&
+             (!('workoutId' in data) || data.workoutId is string) &&
+             (!('mood' in data) || data.mood is string) &&
+             (!('painOrIssues' in data) || data.painOrIssues is string);
+    }
+
+    // --- POLYVERSES COLLECTIONS ---
 
     // Collection: users/{userId}
     match /users/{userId} {
@@ -98,6 +156,63 @@ service cloud.firestore {
                        incoming().userId == existing().userId &&
                        incoming().createdAt == existing().createdAt;
                        
+      allow delete: if isOwner(userId);
+    }
+
+    // --- POLYSYNC FITNESS COLLECTIONS ---
+
+    // users/{userId}/profile
+    match /users/{userId}/profile {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isEmailVerified() && isValidFitnessProfile(incoming());
+      allow update: if isOwner(userId) && isEmailVerified() && isValidFitnessProfile(incoming());
+      allow delete: if isOwner(userId);
+    }
+
+    // users/{userId}/workouts/{workoutId}
+    match /users/{userId}/workouts/{workoutId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && isEmailVerified() && isValidWorkoutLog(incoming());
+      allow update: if isOwner(userId) && isEmailVerified();
+      allow delete: if isOwner(userId);
+    }
+
+    // users/{userId}/plans/{planId}
+    match /users/{userId}/plans/{planId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && isEmailVerified() && isValidWeeklyPlan(incoming());
+      allow update: if isOwner(userId) && isEmailVerified() && existing().userId == incoming().userId;
+      allow delete: if isOwner(userId);
+    }
+
+    // users/{userId}/wearableData/{source}
+    match /users/{userId}/wearableData/{source} {
+      // Health data requires explicit consent
+      allow read, write: if isOwner(userId) && isEmailVerified() && 
+        get(/databases/$(database)/documents/users/$(userId)/profile).data.healthDataConsent == true;
+      allow create: if isOwner(userId) && isEmailVerified();
+      allow delete: if isOwner(userId);
+    }
+
+    // users/{userId}/chatSessions/{sessionId}
+    match /users/{userId}/chatSessions/{sessionId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && isEmailVerified() && isValidChatSession(incoming());
+      allow update: if isOwner(userId) && isEmailVerified();
+      allow delete: if isOwner(userId);
+    }
+
+    // users/{userId}/checkIns/{checkInId}
+    match /users/{userId}/checkIns/{checkInId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && isEmailVerified() && isValidCheckIn(incoming());
+      allow delete: if isOwner(userId);
+    }
+
+    // users/{userId}/subscriptions/{subscriptionId}
+    match /users/{userId}/subscriptions/{subscriptionId} {
+      allow get: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isEmailVerified();
       allow delete: if isOwner(userId);
     }
   }

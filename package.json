@@ -1,7 +1,7 @@
 {
-  "name": "react-example",
+  "name": "polysync-ai-fitness-coach",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -35,5 +35,18 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3"
-  }
+  },
+  "description": "PolySync — AI-powered personal fitness coach with adaptive workout plans, conversational coaching, wearable integration, and recovery analysis. Built on the PolyVerses multi-agent orchestration architecture.",
+  "keywords": [
+    "fitness",
+    "AI",
+    "coach",
+    "workout",
+    "health",
+    "multi-agent",
+    "Gemini",
+    "adaptive",
+    "personal-training"
+  ],
+  "license": "MIT"
 }
