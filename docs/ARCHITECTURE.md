@@ -1,6 +1,6 @@
 # PolySync — Architecture
 
-> **AI Fitness Coach · Multi-Agent Orchestration Platform · v1.0 · 2026-09-11**
+> **AI Fitness Coach · Multi-Agent Orchestration Platform · v1.1 · 2026-09-12**
 
 ---
 

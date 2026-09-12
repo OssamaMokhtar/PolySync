@@ -7,9 +7,9 @@ export interface FitnessProfile {
   displayName: string;
 
   // Goals & level
-  goal: 'strength' | 'hypertrophy' | 'endurance' | 'weight_loss' | 'general_fitness' | 'sport_specific';
-  fitnessLevel: 'beginner' | 'intermediate' | 'advanced';
-  primaryFocus: string;              // free-text, e.g. "build upper body strength"
+  goal: 'strength' | 'hypertrophy' | 'endurance' | 'weight_loss' | 'general_fitness' | 'maintain' | 'sport_specific';
+  level: 'beginner' | 'intermediate' | 'advanced';
+  focus: string[];
 
   // Constraints
   injuries: string[];                // e.g. ['left knee pain', 'lower back tightness']
@@ -458,7 +458,117 @@ export interface PlanChange {
   affectedExerciseId?: string;
 }
 
-// ─── Subscription / Tier Types ─────────────────────────────────────────
+export interface ExerciseInput {
+  id: string;
+  name: string;
+  category: string;
+  targetMuscles: string[];
+  secondaryMuscles: string[];
+  equipment: string[];
+  difficulty: string;
+  instructions: string;
+  commonMistakes: string[];
+  substitutionIds: string[];
+  videoUrl?: string;
+}
+
+export interface Workout {
+  workoutId: string;
+  workoutName: string;
+  focus: string;
+  duration: number;
+  exercises: ExerciseInput[];
+}
+
+export interface DailyWorkout {
+  dayIndex: number;
+  date: string;
+  recoveryRecommendation?: string;
+  workouts: Workout[];
+}
+
+export interface PlanOutput {
+  weekNumber: number;
+  startDate: string;
+  endDate: string;
+  days: DailyWorkout[];
+  version: number;
+  userId?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface WorkoutLogEntry {
+  userId?: string;
+  planId: string;
+  dayIndex: number;
+  workoutName: string;
+  focus: string;
+  exercises: WorkoutExercise[];
+  totalDuration?: number;
+  rpe?: number;
+  notes?: string;
+  completed: boolean;
+  skipped: boolean;
+  modified: boolean;
+  substitutions?: { exerciseId: string; reason: string }[];
+  createdAt: any;
+}
+
+export interface ExerciseSubstitute {
+  exerciseId: string;
+  name: string;
+  targetMuscles: string[];
+  equipment: string[];
+  difficulty: string;
+  reason: string;
+}
+
+export interface RecoveryInput {
+  sleepDuration?: number;          // hours
+  sleepQuality?: number;           // 1-5
+  hrv?: number;                    // ms
+  restingHeartRate?: number;       // bpm
+  steps?: number;
+  activeCalories?: number;
+  workoutFrequency?: number;       // workouts in last 7 days
+  energyLevel?: number;            // 1-5
+  mood?: number;                   // 1-5
+  motivationLevel?: number;        // 1-5
+}
+
+export interface ChatRequest {
+  message: string;
+  sessionId?: string;
+}
+
+export interface ChatResponse {
+  response: string;
+  sandbox: boolean;
+}
+
+export interface NutritionRequest {
+  query: string;
+  profile?: FitnessProfile;
+}
+
+export interface NutritionResponse {
+  guidance: string;
+  disclaimer: string;
+  sandbox: boolean;
+}
+
+export interface CheckInInput {
+  workoutId?: string;
+  energyLevel?: number;       // 1-5
+  mood?: number;              // 1-5
+  painOrIssues?: string;
+  sleepQuality?: number;      // 1-5
+  sleepDuration?: number;     // minutes
+  motivationLevel?: number;   // 1-5
+  workoutCompleted?: boolean;
+  notes?: string;
+}
 
 export type SubscriptionTier = 'free' | 'premium' | 'elite';
 
