@@ -16,7 +16,7 @@ import {
   RecoveryInput, ChatRequest, ChatResponse, NutritionRequest,
   NutritionResponse, CheckInInput, HealthDataConsent
 } from "./src/types";
-import { findExerciseSubstitution, ExerciseLibrary } from "./src/ExerciseLibrary";
+import { findExerciseSubstitution, EXERCISE_LIBRARY } from "./src/ExerciseLibrary";
 
 dotenv.config();
 
@@ -609,12 +609,10 @@ async function startServer() {
     const uid = requireAuth(req, res);
     if (!uid) return;
     try {
-      // Delete all fitness data for this user
+      // Delete all fitness data for this user (simplified batch delete)
       const collections = ["profile", "workouts", "plans", "wearableData", "chatSessions", "checkIns", "recovery", "subscription", "settings", "dailyDigest"];
       for (const col of collections) {
         const colSnap = await getDocs(collection(db, "users", uid, col));
-        const batch = require("firebase-admin").firestore?.batch?.() as any;
-        // Note: In production, use proper batch deletes. This is a simplified version.
         for (const docSnap of colSnap.docs) {
           await doc(db, "users", uid, col, docSnap.id).delete();
         }

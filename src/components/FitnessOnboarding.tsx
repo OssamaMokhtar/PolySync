@@ -217,7 +217,7 @@ export function FitnessOnboarding({ currentUser, onComplete }: FitnessOnboarding
         uid: currentUser.uid,
         email: currentUser.email || '',
         displayName: currentUser.displayName || '',
-        goal: selectedGoal asFitnessProfile['goal'],
+        goal: selectedGoal as FitnessProfile['goal'],
         level: selectedLevel as FitnessProfile['level'],
         injuries: injuries.filter(i => i !== 'none'),
         equipment: selectedEquipment,

@@ -9,7 +9,7 @@ import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { FitnessProfile, WeeklyPlan, WorkoutLogEntry } from './types';
-import { ExerciseLibrary } from './ExerciseLibrary';
+import { EXERCISE_LIBRARY, EXERCISE_BY_ID } from './ExerciseLibrary';
 
 type FitnessTab = 'today' | 'weekly' | 'progress' | 'coach' | 'settings';
 
@@ -141,7 +141,7 @@ export default function App() {
         focus: todayWorkout.workout.focus,
         exercises: Object.entries(exerciseLogs).map(([exId, sets]) => ({
           exerciseId: exId,
-          name: ExerciseLibrary.getExercise(parseInt(exId))?.name || exId,
+          name: EXERCISE_BY_ID[exId]?.name || exId,
           category: '',
           primaryMuscles: [],
           prescribedSets: sets.length,
@@ -209,7 +209,7 @@ export default function App() {
     }
 
     const { day, workout } = todayWorkout;
-    const exercises = workout.exercises || ExerciseLibrary.getAllExercises().slice(0, 5).map((ex, i) => ({
+    const exercises = workout.exercises || EXERCISE_LIBRARY.slice(0, 5).map((ex, i) => ({
       exerciseId: i.toString(),
       name: ex.name,
       category: ex.category,
@@ -530,14 +530,14 @@ export default function App() {
         </div>
 
         <div className="mt-4 p-4 bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl text-xs text-[#71717A]">
-          <div className="font-medium text-[#E4E4E7] mb-2">About PolySync</div>
-          <div>
-            AI Fitness Coach Platform · Version 1.0<br>
-            Built with React + Firebase + Gemini AI<br>
+          <p className="font-medium text-[#E4E4E7] mb-2">About PolySync</p>
+          <p className="leading-relaxed">
+            AI Fitness Coach Platform · Version 1.0<br />
+            Built with React + Firebase + Gemini AI<br />
             <a href="https://github.com/OssamaMokhtar/PolyVerses" className="text-[#00A3FF] hover:underline" target="_blank" rel="noopener noreferrer">
               View on GitHub →
             </a>
-          </div>
+          </p>
         </div>
 
         <button
