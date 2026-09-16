@@ -1,1608 +1,192 @@
 # PLOS Agent Skills Index
 
-Total: 183 specialist agent skills from Product Leadership OS
-
-## Categories
-
-### AI
-
-
-### Adoption
-
-
-### Consultant.md
-
-
-### AI
-
-
-### Agent
-
-
-### Ecosystem
-
-
-### Architect.md
-
-
-### AI
-
-
-### Benchmark
-
-
-### Designer.md
-
-
-### AI
-
-
-### Capability
-
-
-### Evaluator.md
-
-
-### AI
-
-
-### Center
-
-
-### Of
-
-
-### Excellence
-
-
-### Architect.md
-
-
-### AI
-
-
-### Change
-
-
-### Management
-
-
-### Specialist.md
-
-
-### AI
-
-
-### Economics
-
-
-### Advisor.md
-
-
-### AI
-
-
-### Evaluation
-
-
-### Scientist.md
-
-
-### AI
-
-
-### Executive
-
-
-### Advisor.md
-
-
-### AI
-
-
-### Governance
-
-
-### Architect.md
-
-
-### AI
-
-
-### Infrastructure
-
-
-### Strategist.md
-
-
-### AI
-
-
-### Innovation
-
-
-### Discovery
-
-
-### Engine.md
-
-
-### AI
-
-
-### Investment
-
-
-### Advisor.md
-
-
-### AI
-
-
-### Operating
-
-
-### Model
-
-
-### Designer.md
-
-
-### AI
-
-
-### Opportunity
-
-
-### Discovery.md
-
-
-### AI
-
-
-### Platform
-
-
-### Architect.md
-
-
-### AI
-
-
-### Portfolio
-
-
-### Optimizer.md
-
-
-### AI
-
-
-### Product
-
-
-### Analytics
-
-
-### Expert.md
-
-
-### AI
-
-
-### Product
-
-
-### Auditor.md
-
-
-### AI
-
-
-### Product
-
-
-### Coach.md
-
-
-### AI
-
-
-### Product
-
-
-### Governance
-
-
-### Advisor.md
-
-
-### AI
-
-
-### Product
-
-
-### Manager.md
-
-
-### AI
-
-
-### Product
-
-
-### Reviewer.md
-
-
-### AI
-
-
-### Product
-
-
-### Strategist.md
-
-
-### AI
-
-
-### ROI
-
-
-### Evaluator.md
-
-
-### AI
-
-
-### Readiness
-
-
-### Assessor.md
-
-
-### AI
-
-
-### Reliability
-
-
-### Architect.md
-
-
-### AI
-
-
-### Risk
-
-
-### Assessor.md
-
-
-### AI
-
-
-### Safety
-
-
-### Reviewer.md
-
-
-### AI
-
-
-### Security
-
-
-### Architect.md
-
-
-### AI
-
-
-### Use
-
-
-### Case
-
-
-### Evaluator.md
-
-
-### AI
-
-
-### Venture
-
-
-### Analyst.md
-
-
-### API
-
-
-### Strategy
-
-
-### Consultant.md
-
-
-### Accessibility
-
-
-### Auditor.md
-
-
-### Accessibility
-
-
-### Reviewer.md
-
-
-### Activation
-
-
-### Expert.md
-
-
-### Agent
-
-
-### Designer.md
-
-
-### Agent
-
-
-### Orchestration
-
-
-### Architect.md
-
-
-### Agent
-
-
-### Product
-
-
-### Manager.md
-
-
-### Agent
-
-
-### Reliability
-
-
-### Engineer.md
-
-
-### Agent
-
-
-### Workflow
-
-
-### Designer.md
-
-
-### Agentic
-
-
-### Systems
-
-
-### Advisor.md
-
-
-### Board
-
-
-### Advisor.md
-
-
-### Business
-
-
-### Case
-
-
-### Builder.md
-
-
-### Business
-
-
-### Intelligence
-
-
-### Advisor.md
-
-
-### Business
-
-
-### Model
-
-
-### Designer.md
-
-
-### Capability
-
-
-### Mapping
-
-
-### Expert.md
-
-
-### Causal
-
-
-### Inference
-
-
-### Specialist.md
-
-
-### Chief
-
-
-### AI
-
-
-### Product
-
-
-### Officer.md
-
-
-### Chief
-
-
-### Product
-
-
-### Officer
-
-
-### Advisor.md
-
-
-### Cloud
-
-
-### Solution
-
-
-### Architect.md
-
-
-### Commercial
-
-
-### Strategy
-
-
-### Advisor.md
-
-
-### Competitive
-
-
-### Intelligence
-
-
-### Strategist.md
-
-
-### Competitive
-
-
-### Moat
-
-
-### Analyzer.md
-
-
-### Compliance
-
-
-### Reviewer.md
-
-
-### Conversion
-
-
-### Design
-
-
-### Advisor.md
-
-
-### Corporate
-
-
-### Strategy
-
-
-### Consultant.md
-
-
-### Customer
-
-
-### Problem
-
-
-### Discovery.md
-
-
-### Customer
-
-
-### Segmentation
-
-
-### Expert.md
-
-
-### Data
-
-
-### Platform
-
-
-### Architect.md
-
-
-### Decision
-
-
-### Quality
-
-
-### Coach.md
-
-
-### Delivery
-
-
-### Management
-
-
-### Advisor.md
-
-
-### Design
-
-
-### Critique
-
-
-### Expert.md
-
-
-### Design
-
-
-### System
-
-
-### Architect.md
-
-
-### Design
-
-
-### System
-
-
-### Reviewer.md
-
-
-### Design
-
-
-### Thinking
-
-
-### Coach.md
-
-
-### Digital
-
-
-### Transformation
-
-
-### Advisor.md
-
-
-### Director
-
-
-### Product
-
-
-### Advisor.md
-
-
-### Distinguished
-
-
-### Systems
-
-
-### Architect.md
-
-
-### Distributed
-
-
-### Systems
-
-
-### Strategist.md
-
-
-### Due
-
-
-### Diligence
-
-
-### Partner.md
-
-
-### Ecosystem
-
-
-### Architect.md
-
-
-### Engineering
-
-
-### Productivity
-
-
-### Advisor.md
-
-
-### Enterprise
-
-
-### AI
-
-
-### Transformation
-
-
-### Advisor.md
-
-
-### Enterprise
-
-
-### Architect.md
-
-
-### Event
-
-
-### Driven
-
-
-### Systems
-
-
-### Architect.md
-
-
-### Executive
-
-
-### Communication
-
-
-### Coach.md
-
-
-### Executive
-
-
-### Dashboard
-
-
-### Architect.md
-
-
-### Experiment
-
-
-### Designer.md
-
-
-### Experimentation
-
-
-### Expert.md
-
-
-### Financial
-
-
-### Modeling
-
-
-### Expert.md
-
-
-### Frontend
-
-
-### UX
-
-
-### Auditor.md
-
-
-### Future
-
-
-### Trends
-
-
-### Analyst.md
-
-
-### Goal
-
-
-### Setting
-
-
-### Advisor.md
-
-
-### Growth
-
-
-### Analytics
-
-
-### Advisor.md
-
-
-### Growth
-
-
-### Strategy
-
-
-### Advisor.md
-
-
-### Head
-
-
-### Of
-
-
-### Product
-
-
-### Advisor.md
-
-
-### Identity
-
-
-### Architect.md
-
-
-### Information
-
-
-### Architect.md
-
-
-### Infrastructure
-
-
-### Advisor.md
-
-
-### Innovation
-
-
-### Portfolio
-
-
-### Manager.md
-
-
-### Integration
-
-
-### Architect.md
-
-
-### Interaction
-
-
-### Designer.md
-
-
-### JTBD
-
-
-### Specialist.md
-
-
-### Journey
-
-
-### Mapping
-
-
-### Expert.md
-
-
-### KPI
-
-
-### Tree
-
-
-### Architect.md
-
-
-### LLM
-
-
-### Product
-
-
-### Designer.md
-
-
-### LLM
-
-
-### Systems
-
-
-### Architect.md
-
-
-### Lean
-
-
-### Discovery
-
-
-### Coach.md
-
-
-### M&A
-
-
-### Product
-
-
-### Evaluator.md
-
-
-### MLOps
-
-
-### Architect.md
-
-
-### Management
-
-
-### Consultant.md
-
-
-### Market
-
-
-### Entry
-
-
-### Strategist.md
-
-
-### Market
-
-
-### Expansion
-
-
-### Advisor.md
-
-
-### Market
-
-
-### Intelligence
-
-
-### Researcher.md
-
-
-### Market
-
-
-### Sizing
-
-
-### Specialist.md
-
-
-### Market
-
-
-### Validation
-
-
-### Specialist.md
-
-
-### Measurement
-
-
-### Framework
-
-
-### Designer.md
-
-
-### Microservices
-
-
-### Architect.md
-
-
-### Model
-
-
-### Evaluation
-
-
-### Architect.md
-
-
-### Model
-
-
-### Selection
-
-
-### Advisor.md
-
-
-### Multi-Agent
-
-
-### Architect.md
-
-
-### North
-
-
-### Star
-
-
-### Metric
-
-
-### Designer.md
-
-
-### OKR
-
-
-### Architect.md
-
-
-### Observability
-
-
-### Architect.md
-
-
-### Operating
-
-
-### Model
-
-
-### Architect.md
-
-
-### Operating
-
-
-### Model
-
-
-### Consultant.md
-
-
-### Operational
-
-
-### Excellence
-
-
-### Auditor.md
-
-
-### Opportunity
-
-
-### Solution
-
-
-### Tree
-
-
-### Expert.md
-
-
-### Performance
-
-
-### Testing
-
-
-### Advisor.md
-
-
-### Persona
-
-
-### Architect.md
-
-
-### Platform
-
-
-### Architect.md
-
-
-### Platform
-
-
-### Strategy
-
-
-### Architect.md
-
-
-### Portfolio
-
-
-### Review
-
-
-### Manager.md
-
-
-### Pricing
-
-
-### Strategy
-
-
-### Consultant.md
-
-
-### Principal
-
-
-### Product
-
-
-### Architect.md
-
-
-### Principal
-
-
-### Software
-
-
-### Architect.md
-
-
-### Principal
-
-
-### UX
-
-
-### Researcher.md
-
-
-### Prioritization
-
-
-### Expert.md
-
-
-### Problem
-
-
-### Prioritization
-
-
-### Advisor.md
-
-
-### Product
-
-
-### Analytics
-
-
-### Architect.md
-
-
-### Product
-
-
-### Architecture
-
-
-### Architect.md
-
-
-### Product
-
-
-### Budget
-
-
-### Planner.md
-
-
-### Product
-
-
-### Capability
-
-
-### Designer.md
-
-
-### Product
-
-
-### Data
-
-
-### Scientist.md
-
-
-### Product
-
-
-### Discovery
-
-
-### Expert.md
-
-
-### Product
-
-
-### Experience
-
-
-### Reviewer.md
-
-
-### Product
-
-
-### Governance
-
-
-### Advisor.md
-
-
-### Product
-
-
-### Hiring
-
-
-### Advisor.md
-
-
-### Product
-
-
-### Investment
-
-
-### Committee.md
-
-
-### Product
-
-
-### Leadership
-
-
-### Coach.md
-
-
-### Product
-
-
-### Maturity
-
-
-### Assessor.md
-
-
-### Product
-
-
-### Operating
-
-
-### Model
-
-
-### Designer.md
-
-
-### Product
-
-
-### Ops
-
-
-### Director.md
-
-
-### Product
-
-
-### Organization
-
-
-### Designer.md
-
-
-### Product
-
-
-### P&L
-
-
-### Advisor.md
-
-
-### Product
-
-
-### Portfolio
-
-
-### Manager.md
-
-
-### Product
-
-
-### Portfolio
-
-
-### Strategist.md
-
-
-### Product
-
-
-### Review
-
-
-### Facilitator.md
-
-
-### Product
-
-
-### Risk
-
-
-### Assessor.md
-
-
-### Product
-
-
-### Strategy
-
-
-### Advisor.md
-
-
-### Product
-
-
-### Systems
-
-
-### Thinker.md
-
-
-### Product
-
-
-### Talent
-
-
-### Evaluator.md
-
-
-### Product
-
-
-### Vision
-
-
-### Strategist.md
-
-
-### Program
-
-
-### Management
-
-
-### Advisor.md
-
-
-### Prompt
-
-
-### Engineering
-
-
-### Expert.md
-
-
-### QA
-
-
-### Strategy
-
-
-### Advisor.md
-
-
-### RAG
-
-
-### Architect.md
-
-
-### RAG
-
-
-### Strategist.md
-
-
-### README.md
-
-
-### Release
-
-
-### Readiness
-
-
-### Auditor.md
-
-
-### Reliability
-
-
-### Reviewer.md
-
-
-### Retention
-
-
-### Analyst.md
-
-
-### Revenue
-
-
-### Optimization
-
-
-### Advisor.md
-
-
-### Roadmap
-
-
-### Governance
-
-
-### Expert.md
-
-
-### Scalability
-
-
-### Strategist.md
-
-
-### Scenario
-
-
-### Planner.md
-
-
-### Security
-
-
-### Architect.md
-
-
-### Security
-
-
-### Reviewer.md
-
-
-### Service
-
-
-### Designer.md
-
-
-### Staff
-
-
-### Software
-
-
-### Architect.md
-
-
-### Strategic
-
-
-### Planning
-
-
-### Consultant.md
-
-
-### Technical
-
-
-### Risk
-
-
-### Advisor.md
-
-
-### Technical
-
-
-### Risk
-
-
-### Assessor.md
-
-
-### Technical
-
-
-### Tradeoff
-
-
-### Advisor.md
-
-
-### UX
-
-
-### Review
-
-
-### Expert.md
-
-
-### Usability
-
-
-### Testing
-
-
-### Expert.md
-
-
-### User
-
-
-### Behavior
-
-
-### Analyst.md
-
-
-### User
-
-
-### Research
-
-
-### Synthesizer.md
-
-
-### VP
-
-
-### Product
-
-
-### Advisor.md
-
-
-### Vector
-
-
-### Database
-
-
-### Architect.md
-
-
-### Venture
-
-
-### Capital
-
-
-### Analyst.md
-
-
-### Visual
-
-
-### Design
-
-
-### Reviewer.md
-
-
-### Voice
-
-
-### Of
-
-
-### Customer
-
-
-### Analyst.md
-
-
+Total: 183 specialist agent skills from Product Leadership OS, merged into PolyVerses as a skill library.
+
+## All Skills (A–Z)
+
+- AI Adoption Consultant
+- AI Agent Ecosystem Architect
+- AI Benchmark Designer
+- AI Capability Evaluator
+- AI Center Of Excellence Architect
+- AI Change Management Specialist
+- AI Economics Advisor
+- AI Evaluation Scientist
+- AI Executive Advisor
+- AI Governance Architect
+- AI Infrastructure Strategist
+- AI Innovation Discovery Engine
+- AI Investment Advisor
+- AI Operating Model Designer
+- AI Opportunity Discovery
+- AI Platform Architect
+- AI Portfolio Optimizer
+- AI Product Analytics Expert
+- AI Product Auditor
+- AI Product Coach
+- AI Product Governance Advisor
+- AI Product Manager
+- AI Product Reviewer
+- AI Product Strategist
+- AI ROI Evaluator
+- AI Readiness Assessor
+- AI Reliability Architect
+- AI Risk Assessor
+- AI Safety Reviewer
+- AI Security Architect
+- AI Use Case Evaluator
+- AI Venture Analyst
+- API Strategy Consultant
+- Accessibility Auditor
+- Accessibility Reviewer
+- Activation Expert
+- Agent Designer
+- Agent Orchestration Architect
+- Agent Product Manager
+- Agent Reliability Engineer
+- Agent Workflow Designer
+- Agentic Systems Advisor
+- Board Advisor
+- Business Case Builder
+- Business Intelligence Advisor
+- Business Model Designer
+- Capability Mapping Expert
+- Causal Inference Specialist
+- Chief AI Product Officer
+- Chief Product Officer Advisor
+- Cloud Solution Architect
+- Commercial Strategy Advisor
+- Competitive Intelligence Strategist
+- Competitive Moat Analyzer
+- Compliance Reviewer
+- Conversion Design Advisor
+- Corporate Strategy Consultant
+- Customer Problem Discovery
+- Customer Segmentation Expert
+- Data Platform Architect
+- Decision Quality Coach
+- Delivery Management Advisor
+- Design Critique Expert
+- Design System Architect
+- Design System Reviewer
+- Design Thinking Coach
+- Digital Transformation Advisor
+- Director Product Advisor
+- Distinguished Systems Architect
+- Distributed Systems Strategist
+- Due Diligence Partner
+- Ecosystem Architect
+- Engineering Productivity Advisor
+- Enterprise AI Transformation Advisor
+- Enterprise Architect
+- Event Driven Systems Architect
+- Executive Communication Coach
+- Executive Dashboard Architect
+- Experiment Designer
+- Experimentation Expert
+- Financial Modeling Expert
+- Frontend UX Auditor
+- Future Trends Analyst
+- Goal Setting Advisor
+- Growth Analytics Advisor
+- Growth Strategy Advisor
+- Head Of Product Advisor
+- Identity Architect
+- Information Architect
+- Infrastructure Advisor
+- Innovation Portfolio Manager
+- Integration Architect
+- Interaction Designer
+- JTBD Specialist
+- Journey Mapping Expert
+- KPI Tree Architect
+- LLM Product Designer
+- LLM Systems Architect
+- Lean Discovery Coach
+- M&A Product Evaluator
+- MLOps Architect
+- Management Consultant
+- Market Entry Strategist
+- Market Expansion Advisor
+- Market Intelligence Researcher
+- Market Sizing Specialist
+- Market Validation Specialist
+- Measurement Framework Designer
+- Microservices Architect
+- Model Evaluation Architect
+- Model Selection Advisor
+- Multi-Agent Architect
+- North Star Metric Designer
+- OKR Architect
+- Observability Architect
+- Operating Model Architect
+- Operating Model Consultant
+- Operational Excellence Auditor
+- Opportunity Solution Tree Expert
+- Performance Testing Advisor
+- Persona Architect
+- Platform Architect
+- Platform Strategy Architect
+- Portfolio Review Manager
+- Pricing Strategy Consultant
+- Principal Product Architect
+- Principal Software Architect
+- Principal UX Researcher
+- Prioritization Expert
+- Problem Prioritization Advisor
+- Product Analytics Architect
+- Product Architecture Architect
+- Product Budget Planner
+- Product Capability Designer
+- Product Data Scientist
+- Product Discovery Expert
+- Product Experience Reviewer
+- Product Governance Advisor
+- Product Hiring Advisor
+- Product Investment Committee
+- Product Leadership Coach
+- Product Maturity Assessor
+- Product Operating Model Designer
+- Product Ops Director
+- Product Organization Designer
+- Product P&L Advisor
+- Product Portfolio Manager
+- Product Portfolio Strategist
+- Product Review Facilitator
+- Product Risk Assessor
+- Product Strategy Advisor
+- Product Systems Thinker
+- Product Talent Evaluator
+- Product Vision Strategist
+- Program Management Advisor
+- Prompt Engineering Expert
+- QA Strategy Advisor
+- RAG Architect
+- RAG Strategist
+- README
+- Release Readiness Auditor
+- Reliability Reviewer
+- Retention Analyst
+- Revenue Optimization Advisor
+- Roadmap Governance Expert
+- Scalability Strategist
+- Scenario Planner
+- Security Architect
+- Security Reviewer
+- Service Designer
+- Staff Software Architect
+- Strategic Planning Consultant
+- Technical Risk Advisor
+- Technical Risk Assessor
+- Technical Tradeoff Advisor
+- UX Review Expert
+- Usability Testing Expert
+- User Behavior Analyst
+- User Research Synthesizer
+- VP Product Advisor
+- Vector Database Architect
+- Venture Capital Analyst
+- Visual Design Reviewer
+- Voice Of Customer Analyst
+
+---\n*Imported from Product Leadership OS (now archived)*
