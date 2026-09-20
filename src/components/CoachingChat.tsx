@@ -6,6 +6,7 @@ interface CoachChatProps {
   currentPlan: WeeklyPlanData | null;
   onSendMessage: (message: string) => Promise<ChatResponse>;
   loading?: boolean;
+  chatLanguage?: string;
 }
 
 interface FitnessProfile {
@@ -65,16 +66,18 @@ interface ChatResponse {
   responseTime?: number;
 }
 
-export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage, loading }: CoachChatProps) {
+export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage, loading, chatLanguage }: CoachChatProps) {
   const [messages, setMessages] = useState<{ role: 'user' | 'coach'; text: string; timestamp: string; suggestions?: string[]; responseTime?: number }[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [streamingText, setStreamingText] = useState('');
+  const [streamingStart, setStreamingStart] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, streamingText]);
 
   const quickQuestions = [
     "How should I adjust my workout today?",
@@ -85,6 +88,7 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
     "How do I improve my form?",
   ];
 
+  // Non-streaming send (existing behavior)
   const handleSend = useCallback(async () => {
     if (!input.trim() || sending) return;
     const userMessage = input.trim();
@@ -93,7 +97,6 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
 
     const start = performance.now();
 
-    // Optimistic: add user message immediately
     setMessages(prev => [...prev, { role: 'user', text: userMessage, timestamp: new Date().toISOString() }]);
 
     try {
@@ -120,10 +123,107 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
     }
   }, [input, sending, onSendMessage]);
 
+  // Streaming send via SSE
+  const handleStreamSend = useCallback(async () => {
+    if (!input.trim() || sending) return;
+    const userMessage = input.trim();
+    setInput('');
+    setSending(true);
+    setStreamingText('');
+
+    const start = performance.now();
+    setStreamingStart(start);
+
+    setMessages(prev => [...prev, { role: 'user', text: userMessage, timestamp: new Date().toISOString() }]);
+
+    try {
+      const controller = new AbortController();
+      const response = await fetch('/api/fitness/chat?stream=true', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': 'stream-user' },
+        body: JSON.stringify({ message: userMessage, lang: chatLanguage }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) throw new Error('Stream failed');
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No stream');
+
+      const decoder = new TextDecoder();
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        // Parse SSE format: "data: {...}\n\n"
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.done) {
+                // Final message — save with suggestions + timing
+                const elapsed = data.responseTime || Math.round(performance.now() - start);
+                const coachMsg = {
+                  role: 'coach' as const,
+                  text: data.response || fullText,
+                  timestamp: new Date().toISOString(),
+                  suggestions: data.suggestions,
+                  responseTime: elapsed,
+                };
+                setMessages(prev => [...prev, coachMsg]);
+                setStreamingText('');
+                setStreamingStart(null);
+              } else if (data.text !== undefined) {
+                fullText += data.text;
+                setStreamingText(fullText);
+              }
+            } catch {
+              // Skip malformed chunks
+            }
+          }
+        }
+      }
+
+      // Fallback if no done event
+      if (fullText && streamingStart) {
+        const elapsed = Math.round(performance.now() - streamingStart);
+        const coachMsg = {
+          role: 'coach' as const,
+          text: fullText,
+          timestamp: new Date().toISOString(),
+          responseTime: elapsed,
+        };
+        setMessages(prev => [...prev, coachMsg]);
+        setStreamingText('');
+        setStreamingStart(null);
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        role: 'coach' as const,
+        text: "I'm sorry, I couldn't reach the AI coach right now. Please try again in a moment.",
+        timestamp: new Date().toISOString(),
+      }]);
+      setStreamingText('');
+      setStreamingStart(null);
+    } finally {
+      setSending(false);
+      inputRef.current?.focus();
+    }
+  }, [input, sending, chatLanguage]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      // Use streaming if user wants it
+      if ((chatLanguage || 'stream') === 'stream') {
+        handleStreamSend();
+      } else {
+        handleSend();
+      }
     }
   };
 
@@ -132,7 +232,6 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
     return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Build context summary for display
   const contextSummary = (() => {
     const parts: string[] = [];
     if (profile) {
@@ -152,7 +251,6 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
     return parts.join(' · ');
   })();
 
-  // Get follow-up suggestions from the most recent coach message
   const followUpSuggestions = messages.length > 0 && messages[messages.length - 1].role === 'coach'
     ? messages[messages.length - 1].suggestions
     : undefined;
@@ -160,6 +258,9 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
   const lastResponseTime = messages.length > 0 && messages[messages.length - 1].role === 'coach'
     ? messages[messages.length - 1].responseTime
     : undefined;
+
+  // Show streaming indicator
+  const isStreaming = sending && streamingText !== '';
 
   return (
     <div className="flex flex-col h-full">
@@ -175,6 +276,12 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
               <p className="text-xs text-[#71717A]">{contextSummary}</p>
             )}
           </div>
+          {/* Language indicator */}
+          {chatLanguage && chatLanguage !== 'en' && (
+            <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20">
+              {chatLanguage.toUpperCase()}
+            </span>
+          )}
         </div>
       </div>
 
@@ -189,7 +296,7 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
             </div>
             <h4 className="text-[#E4E4E7] font-semibold mb-2">Your AI Fitness Coach</h4>
             <p className="text-sm text-[#71717A] max-w-sm mb-4">
-              Ask me anything about your workouts, nutrition, recovery, form, or programming. I have full context of your profile, recent workouts, and current plan.
+              Ask me anything about your workouts, nutrition, recovery, form, or programming. Responses stream in real-time.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {quickQuestions.map(q => (
@@ -231,8 +338,22 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
             </div>
           ))
         )}
+
+        {/* Streaming message */}
+        {isStreaming && (
+          <div className="flex justify-start">
+            <div className="bg-[#1A1A20] border border-[#27272A] rounded-2xl rounded-bl-md p-4">
+              <div className="p-3 text-sm leading-relaxed text-[#E4E4E7]">
+                {streamingText}
+                <span className="inline-block w-0.5 h-4 bg-[#6366F1] ml-0.5 animate-pulse" />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
-        {sending && (
+
+        {sending && !isStreaming && (
           <div className="flex justify-start">
             <div className="bg-[#1A1A20] border border-[#27272A] rounded-2xl rounded-bl-md p-4">
               <div className="flex gap-1.5">
@@ -245,7 +366,7 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
         )}
       </div>
 
-      {/* Follow-up suggestion chips — shown after coach responds */}
+      {/* Follow-up suggestion chips */}
       {followUpSuggestions && followUpSuggestions.length > 0 && !sending && (
         <div className="px-4 py-2 border-t border-[#27272A] bg-[#121215]/50">
           <div className="flex flex-wrap gap-2">
@@ -273,9 +394,10 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
             placeholder="Ask your coach anything..."
             rows={2}
             className="flex-1 bg-[#0D0D14] border border-[#27272A] rounded-xl px-4 py-3 text-sm text-[#E4E4E7] placeholder-[#52525B] focus:border-[#6366F1] focus:outline-none resize-none max-h-32"
+            disabled={sending}
           />
           <button
-            onClick={handleSend}
+            onClick={() => { handleStreamSend(); }}
             disabled={!input.trim() || sending}
             className={`px-4 py-3 rounded-xl transition-all ${
               input.trim() && !sending
@@ -283,13 +405,20 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
                 : 'bg-[#27272A] text-[#71717A] cursor-not-allowed'
             }`}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
+            {sending ? (
+              <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            )}
           </button>
         </div>
         <p className="text-xs text-[#52525B] mt-2 text-center">
+          {chatLanguage && chatLanguage !== 'en' ? `Responding in ${chatLanguage.toUpperCase()}. ` : ''}
           AI responses are generated by Gemini 3.5. I'm an AI fitness coach, not a medical professional.
         </p>
       </div>

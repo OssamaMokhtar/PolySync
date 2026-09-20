@@ -1591,6 +1591,45 @@ Be encouraging and actionable. Keep each section concise.`;
     });
   }
 
+  // 6.2b — Weight entry logging endpoint
+  app.post("/api/fitness/weight", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      const { weight, note } = req.body as { weight?: number; note?: string };
+      if (weight == null || weight <= 0 || weight > 300) {
+        res.status(400).json({ error: "Valid weight (1-300 kg/lbs) is required" });
+        return;
+      }
+      await setDoc(doc(db, "users", uid, "weightEntries", Date.now().toString()), {
+        userId: uid,
+        weight: Math.round(weight * 10) / 10,
+        note: note || "",
+        date: Date.now(),
+        createdAt: serverTimestamp(),
+      } as any);
+      res.json({ success: true, message: "Weight logged successfully" });
+    } catch (err) {
+      console.error("Weight log error:", err);
+      res.status(500).json({ error: "Failed to log weight" });
+    }
+  });
+
+  app.get("/api/fitness/weight/history", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      const entriesSnap = await getDocs(
+        query(collection(db, "users", uid, "weightEntries"), orderBy("date", "desc"), limit(30))
+      );
+      const entries = entriesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      res.json({ entries });
+    } catch (err) {
+      console.error("Weight history error:", err);
+      res.status(500).json({ error: "Failed to get weight history" });
+    }
+  });
+
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server standing by on port ${PORT}`);
   });

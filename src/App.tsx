@@ -3,12 +3,12 @@ import { FitnessOnboarding } from './components/FitnessOnboarding';
 import {
   Target, Dumbbell, Activity, Heart, Clock, BarChart3, Users, Zap,
   ChevronUp, ChevronDown, Pause, Play, Plus, Minus, Clock as ClockIcon,
-  Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2, TrendingUp
+  Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2, TrendingUp, Globe, ChevronRight
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { FitnessProfile, WeeklyPlan, WorkoutLogEntry } from './types';
+import { FitnessProfile, WeeklyPlan, WorkoutLogEntry, SupportedLanguage, LANGUAGE_CONFIG, ChatResponse } from './types';
 import { EXERCISE_LIBRARY, EXERCISE_BY_ID } from './ExerciseLibrary';
 import { CoachChat } from './components/CoachingChat';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -18,6 +18,32 @@ import { InsightsDashboard } from './components/InsightsDashboard';
 import { SubscriptionStatus, ExportButton, DeleteAccountButton } from './components/SettingsComponents';
 
 type FitnessTab = 'today' | 'weekly' | 'progress' | 'insights' | 'coach' | 'settings';
+
+const LANGUAGES: { code: SupportedLanguage; flag: string; name: string }[] = [
+  { code: 'en', flag: '🇬🇧', name: 'English' },
+  { code: 'es', flag: '🇪🇸', name: 'Español' },
+  { code: 'fr', flag: '🇫🇷', name: 'Français' },
+  { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+  { code: 'ar', flag: '🇸🇦', name: 'العربية' },
+  { code: 'zh', flag: '🇨🇳', name: '中文' },
+];
+
+async function promptForWeight(userId: string): Promise<number | null> {
+  const weight = window.prompt ? window.prompt('Enter your current body weight (kg):') : null;
+  if (weight === null || weight === '') return null;
+  const parsed = parseFloat(weight);
+  return isNaN(parsed) || parsed <= 0 ? null : parsed;
+}
+
+async function logWeightEntry(userId: string, weight: number) {
+  const entry: WeightEntry = { userId, date: Date.now(), weight };
+  const res = await fetch('/api/fitness/weight', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+    body: JSON.stringify(entry),
+  });
+  if (!res.ok) console.error('Failed to log weight:', await res.text());
+}
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(false);
@@ -137,12 +163,17 @@ export default function App() {
   const handleSubmitWorkout = async (completed: boolean) => {
     if (!currentUser || !plan || !todayWorkout) return;
     try {
+      // If completing, show weight entry prompt first
+      if (completed) {
+        const weight = await promptForWeight(currentUser.uid);
+        if (weight !== null) {
+          await logWeightEntry(currentUser.uid, weight);
+        }
+      }
       const workoutData: WorkoutLogEntry = {
         userId: currentUser.uid,
         planId: plan.id || plan.weekNumber.toString(),
         dayIndex: todayWorkout.day.dayIndex,
-        workoutName: todayWorkout.workout.workoutName,
-        focus: todayWorkout.workout.focus,
         exercises: Object.entries(exerciseLogs).map(([exId, sets]) => ({
           exerciseId: exId,
           name: EXERCISE_BY_ID[exId]?.name || exId,
@@ -170,11 +201,10 @@ export default function App() {
       const res = await fetch('/api/fitness/log-workout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
-        body: JSON.stringify(workoutData as any)
+        body: JSON.stringify(workoutData)
       });
       if (res.ok) {
         if (completed) {
-          // Show check-in form after completing workout
           setCheckInWorkoutId(todayWorkout.workout.workoutName);
           setShowCheckIn(true);
         } else {
@@ -237,8 +267,7 @@ export default function App() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-xs text-[#71717A] uppercase tracking-wide">
-                {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()]
-                }
+                {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()]}
               </div>
               <h2 className="text-xl font-bold mt-1">{workout.workoutName}</h2>
               <div className="flex items-center gap-2 mt-1">
@@ -370,7 +399,6 @@ export default function App() {
           AI-generated fitness guidance. Listen to your body and consult a professional for injuries.
         </div>
 
-        {/* Post-workout check-in */}
         {showCheckIn && (
           <div className="mt-4">
             <CheckInForm
@@ -550,16 +578,54 @@ export default function App() {
   const handleSendMessage = async (message: string): Promise<ChatResponse> => {
     if (!currentUser) throw new Error('Not authenticated');
     const lang = (profile as any)?.language as SupportedLanguage || 'en';
-    const res = await fetch('/api/fitness/chat', {
+    const res = await fetch('/api/fitness/chat?stream=true', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
       body: JSON.stringify({ message, lang, context: { profile, recentWorkouts: [], currentPlan: plan } }),
     });
     if (!res.ok) throw new Error('Chat request failed');
-    return res.json();
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error('No stream');
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let suggestions: string[] = [];
+    let responseTime: number | undefined;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.done) {
+              fullText = data.response || fullText;
+              suggestions = data.suggestions || [];
+              responseTime = data.responseTime;
+            } else if (data.text !== undefined) {
+              fullText += data.text;
+            }
+          } catch {}
+        }
+      }
+    }
+    return { reply: fullText, agentId: 'F06', suggestions, responseTime };
+  };
+
+  const updateProfileLanguage = async (lang: SupportedLanguage) => {
+    if (!currentUser || !profile) return;
+    try {
+      const profileRef = doc(db, 'users', currentUser.uid, 'profile', 'current');
+      await setDoc(profileRef, { ...profile, language: lang }, { merge: true });
+      setProfile({ ...profile, language: lang });
+    } catch (err) {
+      console.error('Failed to update language:', err);
+    }
   };
 
   const renderCoachChat = () => {
+    const chatLanguage = (profile as any)?.language as string || 'en';
     return (
       <div className="flex flex-col h-full">
         <div className="bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl p-4 flex-1">
@@ -573,7 +639,39 @@ export default function App() {
             currentPlan={plan}
             onSendMessage={handleSendMessage}
             loading={false}
+            chatLanguage={chatLanguage}
           />
+
+        {/* Language selector */}
+        <div className="mt-4 p-4 bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <Globe className="w-4 h-4 text-[#00A3FF]" />
+            Coach Language
+          </h3>
+          <p className="text-xs text-[#71717A] mb-3">
+            Choose the language the AI coach will use to respond to you.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {LANGUAGES.map(lang => (
+              <button
+                key={lang.code}
+                onClick={() => updateProfileLanguage(lang.code)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+                  (profile as any)?.language === lang.code
+                    ? 'bg-[#00A3FF]/20 border-[#00A3FF]/40 text-[#00A3FF]'
+                    : 'bg-[#1A1A20] border-[#27272A] text-[#A1A1AA] hover:border-[#3f3f46]'
+                }`}
+              >
+                {lang.flag} {lang.name}
+              </button>
+            ))}
+          </div>
+          {(profile as any)?.language && (
+            <p className="text-xs text-[#71717A] mt-2">
+              Coach will respond in {(profile as any).language.toUpperCase()}.
+            </p>
+          )}
+        </div>
         </div>
       </div>
     );

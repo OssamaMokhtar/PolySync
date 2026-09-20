@@ -334,6 +334,8 @@ export interface UserProgressSnapshot {
 }
 
 export interface WeightEntry {
+  id?: string;
+  userId?: string;
   date: number;
   weight: number;
   note?: string;
@@ -429,7 +431,8 @@ export interface ChatRequest {
 export interface ChatResponse {
   reply: string;
   agentId: FitnessAgentId;
-  suggestions?: string[];            // follow-up prompts the coach suggests
+  suggestions?: string[];
+  responseTime?: number;            // server-side response time in ms
 }
 
 export type SubscriptionTier = 'free' | 'premium' | 'elite';
