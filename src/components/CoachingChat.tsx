@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface CoachChatProps {
   profile: FitnessProfile | null;
@@ -59,12 +59,14 @@ interface WorkoutPreview {
 }
 
 interface ChatResponse {
-  response: string;
-  timestamp: string;
+  reply: string;
+  agentId: string;
+  suggestions?: string[];
+  responseTime?: number;
 }
 
 export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage, loading }: CoachChatProps) {
-  const [messages, setMessages] = useState<{ role: 'user' | 'coach'; text: string; timestamp: string }[]>([]);
+  const [messages, setMessages] = useState<{ role: 'user' | 'coach'; text: string; timestamp: string; suggestions?: string[]; responseTime?: number }[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -83,19 +85,32 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
     "How do I improve my form?",
   ];
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || sending) return;
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: userMessage, timestamp: new Date().toISOString() }]);
     setSending(true);
+
+    const start = performance.now();
+
+    // Optimistic: add user message immediately
+    setMessages(prev => [...prev, { role: 'user', text: userMessage, timestamp: new Date().toISOString() }]);
 
     try {
       const response = await onSendMessage(userMessage);
-      setMessages(prev => [...prev, { role: 'coach', text: response.reply, timestamp: new Date().toISOString() }]);
+      const elapsed = Math.round(performance.now() - start);
+
+      const coachMsg = {
+        role: 'coach' as const,
+        text: response.reply,
+        timestamp: new Date().toISOString(),
+        suggestions: response.suggestions,
+        responseTime: response.responseTime || elapsed,
+      };
+      setMessages(prev => [...prev, coachMsg]);
     } catch (err) {
       setMessages(prev => [...prev, {
-        role: 'coach',
+        role: 'coach' as const,
         text: "I'm sorry, I couldn't reach the AI coach right now. Please try again in a moment.",
         timestamp: new Date().toISOString(),
       }]);
@@ -103,7 +118,7 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
       setSending(false);
       inputRef.current?.focus();
     }
-  };
+  }, [input, sending, onSendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -137,6 +152,15 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
     return parts.join(' · ');
   })();
 
+  // Get follow-up suggestions from the most recent coach message
+  const followUpSuggestions = messages.length > 0 && messages[messages.length - 1].role === 'coach'
+    ? messages[messages.length - 1].suggestions
+    : undefined;
+
+  const lastResponseTime = messages.length > 0 && messages[messages.length - 1].role === 'coach'
+    ? messages[messages.length - 1].responseTime
+    : undefined;
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -155,12 +179,12 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ background: 'var(--bg-primary)' }}>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 rounded-full bg-[#6366F1]/10 flex items-center justify-center mb-4">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="1.5">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
             </div>
             <h4 className="text-[#E4E4E7] font-semibold mb-2">Your AI Fitness Coach</h4>
@@ -196,6 +220,12 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
                   msg.role === 'user' ? 'bg-[#52525B] text-white rounded-br-md' : 'bg-[#0D0D14] text-[#71717A] rounded-bl-md'
                 }`}>
                   {formatTime(msg.timestamp)}
+                  {msg.role === 'coach' && msg.responseTime != null && (
+                    <span className="ml-2 text-[#52525B]">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#52525B] mr-1" />
+                      {msg.responseTime}ms
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -214,6 +244,23 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
           </div>
         )}
       </div>
+
+      {/* Follow-up suggestion chips — shown after coach responds */}
+      {followUpSuggestions && followUpSuggestions.length > 0 && !sending && (
+        <div className="px-4 py-2 border-t border-[#27272A] bg-[#121215]/50">
+          <div className="flex flex-wrap gap-2">
+            {followUpSuggestions.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => { setInput(s); inputRef.current?.focus(); }}
+                className="px-3 py-1.5 rounded-lg bg-[#6366F1]/10 border border-[#6366F1]/20 text-xs text-[#A5B4FC] hover:bg-[#6366F1]/20 hover:border-[#6366F1]/40 transition-all"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Input */}
       <div className="border-t border-[#27272A] p-4">
@@ -237,8 +284,8 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
             }`}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
             </svg>
           </button>
         </div>

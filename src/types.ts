@@ -400,10 +400,23 @@ export interface GeneratePlanResponse {
   warnings?: string[];               // e.g. 'Injury noted: left knee — avoid deep squats'
 }
 
+// Supported languages for multilingual coaching
+export type SupportedLanguage = 'en' | 'es' | 'fr' | 'de' | 'ar' | 'zh';
+
+export const LANGUAGE_CONFIG: Record<SupportedLanguage, { name: string; direction: 'ltr' | 'rtl'; greeting: string }> = {
+  en: { name: 'English', direction: 'ltr', greeting: "Welcome! Let's train together." },
+  es: { name: 'Español', direction: 'ltr', greeting: '¡Bienvenido! Entrenemos juntos.' },
+  fr: { name: 'Français', direction: 'ltr', greeting: 'Bienvenue! Entraînons-nous ensemble.' },
+  de: { name: 'Deutsch', direction: 'ltr', greeting: 'Willkommen! Wir trainieren zusammen.' },
+  ar: { name: 'العربية', direction: 'rtl', greeting: 'مرحباً! لنتدرب معاً.' },
+  zh: { name: '中文', direction: 'ltr', greeting: '欢迎！我们一起训练。' },
+};
+
 export interface ChatRequest {
   userId: string;
   message: string;
   chatSessionId?: string;
+  lang?: SupportedLanguage;
   context: {
     profile: FitnessProfile;
     currentPlanId?: string;

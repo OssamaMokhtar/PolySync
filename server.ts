@@ -533,16 +533,18 @@ async function startServer() {
     }
   });
 
-  // F06 — Coaching Chat Agent
+  // F06 — Coaching Chat Agent (Phase 6: SSE streaming + follow-up chips + response timing + multilingual)
   app.post("/api/fitness/chat", async (req, res) => {
     const uid = requireAuth(req, res);
     if (!uid) return;
     try {
-      const { message, sessionId } = req.body as ChatRequest;
+      const { message, sessionId, lang } = req.body as ChatRequest;
       if (!message) {
         res.status(400).json({ error: "message is required" });
         return;
       }
+
+      const start = Date.now();
 
       // Get user context for the chat agent
       const profile = await getProfile(uid);
@@ -551,19 +553,121 @@ async function startServer() {
         context = `User profile: goal=${profile.goal}, level=${profile.level}, injuries=[${profile.injuries.join(", ")}], equipment=[${profile.equipment.join(", ")}], daysPerWeek=${profile.daysPerWeek}, sessionDuration=${profile.sessionDuration}min`;
       }
 
+      // Language instruction prefix
+      const langInstruction = lang && lang !== "en"
+        ? `Respond in ${lang}. Write all text in ${lang} including greetings, explanations, and follow-up questions.`
+        : "";
+
       let responseText: string;
+      let suggestions: string[] = [];
+
       if (ai) {
         try {
-          const fullPrompt = `Context: ${context}\n\nUser question: ${message}\n\nProvide a helpful, personalized fitness coaching response. Be encouraging but factual. If the question is about injuries or medical conditions, include a disclaimer that you are an AI fitness coach, not a medical professional, and recommend consulting a healthcare provider.`;
-          const response = await ai.models.generateContent({
-            model: "gemini-3.5-flash",
-            contents: fullPrompt,
-            config: {
-              systemInstruction: F06_SYSTEM_PROMPT,
-              temperature: 0.7,
-            },
-          });
-          responseText = response.text || "Sorry, I couldn't generate a response.";
+          const fullPrompt = `${langInstruction ? langInstruction + "\n\n" : ""}Context: ${context}\n\nUser question: ${message}\n\nProvide a helpful, personalized fitness coaching response. Be encouraging but factual. End with 2-3 follow-up questions the user might want to ask next, formatted as a JSON array of short strings (e.g. ["How many sets should I do?", "What weight should I use?"]). Only include the JSON array at the very end of your response, nothing after it. If the question is about injuries or medical conditions, include a disclaimer that you are an AI fitness coach, not a medical professional, and recommend consulting a healthcare provider.`;
+
+          // Try streaming first if client supports it
+          const streamMode = req.query.stream === 'true';
+
+          if (streamMode) {
+            // SSE streaming mode
+            (res as any).writeHead(200, {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+            });
+
+            let fullText = '';
+            let lastChunkTime = start;
+
+            const stream = await ai.models.generateContentStream({
+              model: "gemini-3.5-flash",
+              contents: fullPrompt,
+              config: {
+                systemInstruction: F06_SYSTEM_PROMPT,
+                temperature: 0.7,
+              },
+            });
+
+            for await (const chunk of stream) {
+              const text = chunk.text || '';
+              fullText += text;
+              const now = Date.now();
+              res.write(`data: ${JSON.stringify({ text, delta: text, elapsed: now - start })}\n\n`);
+              lastChunkTime = now;
+            }
+
+            // Extract suggestions from the last lines (JSON array)
+            const suggestionMatch = fullText.match(/\[[\s\S]*?\]/);
+            if (suggestionMatch) {
+              try {
+                suggestions = JSON.parse(suggestionMatch[0]);
+              } catch {
+                // Fall back: extract sentences that look like questions
+                const sentences = fullText.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 10 && s.endsWith('?'));
+                suggestions = sentences.slice(0, 3);
+              }
+            }
+
+            const elapsed = Date.now() - start;
+            res.write(`data: ${JSON.stringify({ done: true, response: fullText, suggestions, responseTime: elapsed })}\n\n`);
+            res.end();
+
+            // Save to Firestore after streaming completes
+            const messageData = {
+              id: crypto.randomUUID(),
+              role: "user" as const,
+              content: message,
+              timestamp: serverTimestamp(),
+              agentId: "F06",
+            };
+            const assistantData = {
+              id: crypto.randomUUID(),
+              role: "assistant" as const,
+              content: fullText,
+              timestamp: serverTimestamp(),
+              agentId: "F06",
+            };
+
+            if (sessionId) {
+              await setDoc(doc(db, "users", uid, "chatSessions", sessionId), {
+                createdAt: serverTimestamp(),
+                lastMessageAt: serverTimestamp(),
+                messages: [messageData, assistantData],
+              } as any, { merge: true });
+            } else {
+              await addDoc(collection(db, "users", uid, "chatSessions"), {
+                createdAt: serverTimestamp(),
+                lastMessageAt: serverTimestamp(),
+                messages: [messageData, assistantData],
+              } as any);
+            }
+
+            return;
+          } else {
+            // Non-streaming mode: return full response with suggestions + timing
+            const response = await ai.models.generateContent({
+              model: "gemini-3.5-flash",
+              contents: fullPrompt,
+              config: {
+                systemInstruction: F06_SYSTEM_PROMPT,
+                temperature: 0.7,
+              },
+            });
+            responseText = response.text || "Sorry, I couldn't generate a response.";
+
+            // Extract suggestions from response
+            const suggestionMatch = responseText.match(/\[[\s\S]*?\]/);
+            if (suggestionMatch) {
+              try {
+                suggestions = JSON.parse(suggestionMatch[0]);
+                // Remove the JSON array from the response text
+                responseText = responseText.slice(0, suggestionMatch.index).trim();
+              } catch {
+                const sentences = responseText.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 10 && s.endsWith('?'));
+                suggestions = sentences.slice(0, 3);
+              }
+            }
+          }
         } catch (geminiErr) {
           console.error("Gemini chat failed:", geminiErr);
           responseText = `I'm here to help with your fitness journey! Could you tell me more about what you're looking for? (Gemini API unavailable — using fallback)`;
@@ -571,6 +675,8 @@ async function startServer() {
       } else {
         responseText = `I'm here to help with your fitness journey! Could you tell me more about what you're looking for? (Gemini API not configured — using sandbox)`;
       }
+
+      const elapsed = Date.now() - start;
 
       // Save message to chat session
       const messageData = {
@@ -602,7 +708,13 @@ async function startServer() {
         } as any);
       }
 
-      res.json({ response: responseText, timestamp: new Date().toISOString(), sandbox: !ai });
+      res.json({
+        reply: responseText,
+        agentId: "F06",
+        suggestions: suggestions.length > 0 ? suggestions : undefined,
+        responseTime: elapsed,
+        sandbox: !ai,
+      });
     } catch (err) {
       console.error("F06 chat error:", err);
       res.status(500).json({ error: "Failed to process chat" });
@@ -1383,6 +1495,88 @@ async function startServer() {
       res.status(500).json({ error: "Failed to delete data" });
     }
   });
+  // 6.2 — AI-powered workout summary (What went well / Could improve / Next focus)
+  app.post("/api/fitness/workout-summary", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      const { workoutId } = req.body as { workoutId?: string };
+      if (!workoutId) {
+        res.status(400).json({ error: "workoutId is required" });
+        return;
+      }
+
+      const workoutRef = doc(db, "users", uid, "workouts", workoutId);
+      const workoutSnap = await getDoc(workoutRef);
+      if (!workoutSnap.exists()) {
+        res.status(404).json({ error: "Workout not found" });
+        return;
+      }
+
+      const workout = workoutSnap.data() as any;
+
+      if (!ai) {
+        res.json({
+          whatWentWell: "Workout completed! Keep up the consistency.",
+          couldImprove: "Try to focus on form and controlled movement.",
+          nextFocus: "Consistency is key — aim to hit your next scheduled workout.",
+          sandbox: true,
+        });
+        return;
+      }
+
+      const prompt = `Analyze this completed workout and provide 3 short feedback sections:
+
+Workout data:
+- Name: ${workout.workoutName || "Unknown"}
+- Focus: ${workout.focus || "General"}
+- Duration: ${workout.duration || 0} minutes
+- Completed: ${workout.completed ? "Yes" : "No"}
+- Exercises: ${workout.exercises?.length || 0} exercises
+- User profile goal: ${workout.userProfile?.goal || "Not available"}
+- User profile level: ${workout.userProfile?.level || "Not available"}
+
+Provide a JSON response with exactly these 3 fields:
+{
+  "whatWentWell": "2-3 sentences about what the user did well",
+  "couldImprove": "2-3 sentences about areas to improve",
+  "nextFocus": "2-3 sentences about what to focus on next"
+}
+
+Be encouraging and actionable. Keep each section concise.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction: `You are a fitness coach providing post-workout feedback. Be encouraging, specific, and actionable. Respond in valid JSON only.`,
+          temperature: 0.7,
+        },
+      });
+
+      const text = response.text || "{}";
+      let summary: { whatWentWell: string; couldImprove: string; nextFocus: string } = {
+        whatWentWell: "Great job completing your workout!",
+        couldImprove: "Focus on maintaining good form.",
+        nextFocus: "Your next workout is an opportunity to build on today's effort.",
+      };
+
+      try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          summary = JSON.parse(jsonMatch[0]);
+        }
+      } catch {
+        // Use default
+      }
+
+      res.json(summary);
+    } catch (err) {
+      console.error("Workout summary error:", err);
+      res.status(500).json({ error: "Failed to generate summary" });
+    }
+  });
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

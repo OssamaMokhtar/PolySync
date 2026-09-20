@@ -547,12 +547,13 @@ export default function App() {
     );
   };
 
-  const handleSendMessage = async (message: string): Promise<{ reply: string; agentId: string; suggestions?: string[] }> => {
+  const handleSendMessage = async (message: string): Promise<ChatResponse> => {
     if (!currentUser) throw new Error('Not authenticated');
+    const lang = (profile as any)?.language as SupportedLanguage || 'en';
     const res = await fetch('/api/fitness/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
-      body: JSON.stringify({ message, context: { profile, recentWorkouts: [], currentPlan: plan } }),
+      body: JSON.stringify({ message, lang, context: { profile, recentWorkouts: [], currentPlan: plan } }),
     });
     if (!res.ok) throw new Error('Chat request failed');
     return res.json();
