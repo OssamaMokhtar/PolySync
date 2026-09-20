@@ -3,9 +3,10 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import fetch from "node-fetch";
 import { db } from "./src/firebase";
 import {
-  doc, getDoc, setDoc, serverTimestamp,
+  doc, getDoc, setDoc, serverTimestamp, deleteDoc,
   collection, addDoc, query, where, orderBy, getDocs, limit,
   Timestamp
 } from "firebase/firestore";
@@ -930,7 +931,95 @@ async function startServer() {
     }
   });
 
-  // F05 — Manual plan adaptation trigger
+  // 4.6 — Data export (GDPR/CCPA compliance)
+  app.post("/api/fitness/export", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      const { format } = req.body as { format?: string };
+      const exportFormat = (format || "json").toLowerCase();
+
+      // Fetch all user data
+      const [profileSnap, workoutsSnap, plansSnap, checkInsSnap, chatSessionsSnap, wearableSnap] = await Promise.all([
+        getDoc(doc(db, "users", uid, "profile", "current")),
+        getDocs(query(collection(db, "users", uid, "workouts"), orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "users", uid, "plans"), orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "users", uid, "checkIns"), orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "users", uid, "chatSessions"), orderBy("lastMessageAt", "desc"))),
+        getDoc(doc(db, "users", uid, "wearableData", "current")),
+      ]);
+
+      const exportData = {
+        exportedAt: Date.now(),
+        userId: uid,
+        profile: profileSnap.exists() ? profileSnap.data() : null,
+        workouts: workoutsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+        plans: plansSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+        checkIns: checkInsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+        chatSessions: chatSessionsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+        wearable: wearableSnap.exists() ? wearableSnap.data() : null,
+        version: "1.0",
+      };
+
+      if (exportFormat === "csv") {
+        // Flatten workouts to CSV
+        const ws = exportData.workouts;
+        let csv = "date,workoutName,focus,completed,duration,notes\n";
+        ws.forEach(w => {
+          const date = w.createdAt ? new Date(w.createdAt).toISOString().split("T")[0] : "";
+          csv += `${date},"${w.workoutName || ""}","${w.focus || ""}",${w.completed || false},${w.duration || 0},"${(w.notes || "").replace(/"/g, '""')}"\n`;
+        });
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", `attachment; filename=polysync-workouts-${Date.now()}.csv`);
+        return res.send(csv);
+      }
+
+      res.json(exportData);
+    } catch (err) {
+      console.error("Export error:", err);
+      res.status(500).json({ error: "Failed to export data" });
+    }
+  });
+
+  // 4.7 — GDPR/CCPA account deletion
+  app.post("/api/fitness/settings/delete-account", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      const { confirm } = req.body as { confirm?: string };
+      if (confirm !== "DELETE") {
+        res.status(400).json({ error: "Confirmation required: confirm='DELETE'" });
+        return;
+      }
+
+      // Delete all user data across all collections
+      const collections = ["profile", "workouts", "plans", "wearableData", "chatSessions", "checkIns", "recovery", "subscription", "settings", "dailyDigest"];
+      await Promise.all(collections.map(col =>
+        deleteDoc(doc(db, "users", uid, col, "current"))
+      ));
+
+      // Delete workout documents
+      const workoutDocs = await getDocs(collection(db, "users", uid, "workouts"));
+      await Promise.all(workoutDocs.docs.map(d => deleteDoc(d.ref)));
+
+      // Delete plan documents
+      const planDocs = await getDocs(collection(db, "users", uid, "plans"));
+      await Promise.all(planDocs.docs.map(d => deleteDoc(d.ref)));
+
+      // Delete check-in documents
+      const checkInDocs = await getDocs(collection(db, "users", uid, "checkIns"));
+      await Promise.all(checkInDocs.docs.map(d => deleteDoc(d.ref)));
+
+      // Delete chat session documents
+      const chatDocs = await getDocs(collection(db, "users", uid, "chatSessions"));
+      await Promise.all(chatDocs.docs.map(d => deleteDoc(d.ref)));
+
+      res.json({ success: true, message: "Account deletion requested. Data will be fully removed within 30 days." });
+    } catch (err) {
+      console.error("Delete account error:", err);
+      res.status(500).json({ error: "Failed to delete account" });
+    }
+  });
   app.post("/api/fitness/adapt-plan", async (req, res) => {
     const uid = requireAuth(req, res);
     if (!uid) return;

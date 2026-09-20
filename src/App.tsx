@@ -3,7 +3,7 @@ import { FitnessOnboarding } from './components/FitnessOnboarding';
 import {
   Target, Dumbbell, Activity, Heart, Clock, BarChart3, Users, Zap,
   ChevronUp, ChevronDown, Pause, Play, Plus, Minus, Clock as ClockIcon,
-  Sparkles, Check, AlertTriangle, Settings, LogOut
+  Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -13,6 +13,7 @@ import { EXERCISE_LIBRARY, EXERCISE_BY_ID } from './ExerciseLibrary';
 import { CoachChat } from './components/CoachingChat';
 import { RecoveryDashboard } from './components/RecoveryDashboard';
 import { CheckInForm } from './components/CheckInForm';
+import { SubscriptionStatus, ExportButton, DeleteAccountButton } from './components/SettingsComponents';
 
 type FitnessTab = 'today' | 'weekly' | 'progress' | 'coach' | 'settings';
 
@@ -706,6 +707,21 @@ export default function App() {
               View on GitHub →
             </a>
           </p>
+        </div>
+
+        {/* Subscription status */}
+        <div className="mt-4">
+          <SubscriptionStatus userId={currentUser?.uid || ''} />
+        </div>
+
+        {/* Data export */}
+        <div className="mt-4">
+          <ExportButton userId={currentUser?.uid || ''} />
+        </div>
+
+        {/* Delete account */}
+        <div className="mt-4">
+          <DeleteAccountButton userId={currentUser?.uid || ''} />
         </div>
 
         <button

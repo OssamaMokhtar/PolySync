@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { EXERCISE_BY_ID } from '../ExerciseLibrary';
+import { Sparkles } from 'lucide-react';
+import { FormCueButton } from './FormCueButton';
 
 interface WorkoutSessionProps {
   day: { dayIndex: number; date: string };
@@ -368,26 +370,26 @@ export function WorkoutSession({ day, workout, onComplete, onSkip }: WorkoutSess
       )}
 
       {/* Exercise action buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-2">
         {currentExercise.allowsSubstitution && (
           <button
             onClick={() => setShowSubstitution(activeExercise)}
-            className="flex-1 py-3 rounded-xl bg-[#1A1A20] border border-[#27272A] text-[#71717A] hover:border-[#6366F1] hover:text-[#6366F1] transition-all text-sm font-medium"
+            className="flex-1 py-2.5 rounded-xl bg-[#1A1A20] border border-[#27272A] text-[#71717A] hover:border-[#6366F1] hover:text-[#6366F1] transition-all text-sm font-medium"
           >
-            🔄 Substitute Exercise
+            🔄 Substitute
           </button>
         )}
+        <FormCueButton exerciseId={currentExercise.exerciseId} exerciseName={currentExercise.exerciseName} />
         <button
           onClick={() => toggleExerciseDone(activeExercise)}
-          className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
-            exerciseDone.has(activeExercise)
-              ? 'bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30'
-              : 'bg-[#27272A] text-[#71717A] hover:bg-[#3A3A40] hover:text-[#E4E4E7]'
-          }`}
+          className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${exerciseDone.has(activeExercise) ? 'bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30' : 'bg-[#27272A] text-[#71717A] hover:bg-[#3A3A40] hover:text-[#E4E4E7]'}`}
         >
-          {exerciseDone.has(activeExercise) ? '✓ Marked Done' : 'Mark Exercise Done'}
+          {exerciseDone.has(activeExercise) ? '✓ Done' : 'Mark Done'}
         </button>
       </div>
+
+      {/* Form cue button for current exercise */}
+      <FormCueButton exerciseId={currentExercise.exerciseId} exerciseName={currentExercise.exerciseName} />
 
       {/* Notes */}
       <div className="mt-4">
