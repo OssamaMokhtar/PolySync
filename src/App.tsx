@@ -3,7 +3,7 @@ import { FitnessOnboarding } from './components/FitnessOnboarding';
 import {
   Target, Dumbbell, Activity, Heart, Clock, BarChart3, Users, Zap,
   ChevronUp, ChevronDown, Pause, Play, Plus, Minus, Clock as ClockIcon,
-  Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2
+  Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2, TrendingUp
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -11,11 +11,13 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { FitnessProfile, WeeklyPlan, WorkoutLogEntry } from './types';
 import { EXERCISE_LIBRARY, EXERCISE_BY_ID } from './ExerciseLibrary';
 import { CoachChat } from './components/CoachingChat';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { RecoveryDashboard } from './components/RecoveryDashboard';
 import { CheckInForm } from './components/CheckInForm';
+import { InsightsDashboard } from './components/InsightsDashboard';
 import { SubscriptionStatus, ExportButton, DeleteAccountButton } from './components/SettingsComponents';
 
-type FitnessTab = 'today' | 'weekly' | 'progress' | 'coach' | 'settings';
+type FitnessTab = 'today' | 'weekly' | 'progress' | 'insights' | 'coach' | 'settings';
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(false);
@@ -191,6 +193,7 @@ export default function App() {
     { id: 'today', icon: Activity, label: "Today's Workout" },
     { id: 'weekly', icon: Target, label: 'Weekly Plan' },
     { id: 'progress', icon: BarChart3, label: 'Progress' },
+    { id: 'insights', icon: TrendingUp, label: 'Insights' },
     { id: 'coach', icon: Sparkles, label: 'Coach Chat' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
@@ -511,6 +514,24 @@ export default function App() {
     );
   };
 
+  const renderInsights = () => {
+    return currentUser ? (
+      <div className="px-4 py-6">
+        <InsightsDashboard userId={currentUser.uid} />
+      </div>
+    ) : (
+      <div className="flex flex-col items-center justify-center h-full text-center px-4">
+        <div className="w-16 h-16 rounded-full bg-[#6366F1]/10 flex items-center justify-center mb-4">
+          <TrendingUp className="w-8 h-8 text-[#6366F1]" />
+        </div>
+        <h4 className="text-[#E4E4E7] font-semibold mb-2">Your Insights</h4>
+        <p className="text-sm text-[#71717A] max-w-sm">
+          See your workout trends, streaks, and progress at a glance.
+        </p>
+      </div>
+    );
+  };
+
   const renderProgress = () => {
     return currentUser ? (
       <RecoveryDashboard userId={currentUser.uid} />
@@ -754,7 +775,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0C0C0E] text-[#E4E4E7] flex flex-col selection:bg-[#00A3FF]/30 selection:text-[#E4E4E7] p-2 md:p-4 border-[6px] md:border-[10px] border-[#1A1A1E] font-sans relative">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-[#0C0C0E] text-[#E4E4E7] flex flex-col selection:bg-[#00A3FF]/30 selection:text-[#E4E4E7] p-2 md:p-4 border-[10px] md:border-[10px] border-[#1A1A1E] font-sans relative">
       <div className="absolute top-0 left-0 right-0 h-[250px] bg-gradient-to-b from-[#00A3FF]/5 via-transparent to-transparent blur-3xl pointer-events-none" />
 
       <header className="bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] px-4 py-3 rounded-xl z-30 flex items-center justify-between gap-4 shadow-xl mb-4">
@@ -810,6 +832,7 @@ export default function App() {
         {activeTab === 'today' && renderToday()}
         {activeTab === 'weekly' && renderWeeklyPlan()}
         {activeTab === 'progress' && renderProgress()}
+        {activeTab === 'insights' && renderInsights()}
         {activeTab === 'coach' && renderCoachChat()}
         {activeTab === 'settings' && renderSettings()}
       </div>
@@ -819,5 +842,6 @@ export default function App() {
         Consult a healthcare professional for injuries or medical conditions.
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

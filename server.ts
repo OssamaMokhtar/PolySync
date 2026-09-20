@@ -886,6 +886,306 @@ async function startServer() {
     }
   });
 
+  // 5.2 — Personalized insights dashboard
+  app.get("/api/fitness/insights", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      // Fetch all data in parallel
+      const [profileSnap, checksSnap, logsSnap, recoverySnap] = await Promise.all([
+        getDoc(doc(db, "users", uid, "profile", "current")),
+        getDocs(query(collection(db, "users", uid, "checkIns"), orderBy("createdAt", "desc"), limit(20))),
+        getDocs(query(collection(db, "users", uid, "workouts"), orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "users", uid, "recovery"), orderBy("createdAt", "desc"))),
+      ]);
+
+      const profile = profileSnap.exists() ? (profileSnap.data() as any) : {};
+      const checks = checksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const logs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const recoveries = recoverySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Time periods
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+      const startLastWeek = new Date(startOfWeek);
+      startLastWeek.setDate(startLastWeek.getDate() - 7);
+
+      const thisWeekLogs = logs.filter(l => {
+        const d = new Date(l.createdAt);
+        return d >= startOfWeek && d < endOfWeek;
+      });
+      const lastWeekLogs = logs.filter(l => {
+        const d = new Date(l.createdAt);
+        return d >= startLastWeek && d < startOfWeek;
+      });
+
+      const thisWeekCheckIns = checks.filter(c => {
+        const d = new Date(c.createdAt);
+        return d >= startOfWeek && d < endOfWeek;
+      });
+      const lastWeekCheckIns = checks.filter(c => {
+        const d = new Date(c.createdAt);
+        return d >= startLastWeek && d < startOfWeek;
+      });
+
+      // Volume calculation
+      const calcVolume = (workoutLogs: any[]) => {
+        let total = 0;
+        workoutLogs.forEach(l => {
+          const sets = l.sets || [];
+          sets.forEach(s => {
+            total += (s.weight || 0) * (s.repCount || 0);
+          });
+        });
+        return total;
+      };
+
+      const thisWeekVolume = calcVolume(thisWeekLogs);
+      const lastWeekVolume = calcVolume(lastWeekLogs);
+
+      // RPE average
+      const calcAvgRPE = (workoutLogs: any[]) => {
+        const rpes: number[] = [];
+        workoutLogs.forEach(l => {
+          const sets = l.sets || [];
+          sets.forEach(s => {
+            if (typeof s.rpe === 'number' && s.rpe > 0) rpes.push(s.rpe);
+          });
+          if (typeof l.rpe === 'number' && l.rpe > 0) rpes.push(l.rpe);
+        });
+        return rpes.length > 0 ? rpes.reduce((a, b) => a + b, 0) / rpes.length : 0;
+      };
+
+      const thisWeekRPE = calcAvgRPE(thisWeekLogs);
+      const lastWeekRPE = calcAvgRPE(lastWeekLogs);
+
+      // Completion rate
+      const calcCompletion = (checks: any[]) => {
+        if (checks.length === 0) return 0;
+        const completed = checks.filter(c => c.mood !== 'skipped').length;
+        return (completed / checks.length) * 100;
+      };
+
+      const thisWeekCompletion = calcCompletion(thisWeekCheckIns);
+      const lastWeekCompletion = calcCompletion(lastWeekCheckIns);
+
+      // Streak calculation
+      const allDates = [...new Set(logs.map(l => {
+        const d = new Date(l.createdAt);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+      }))].sort((a, b) => a - b);
+
+      let currentStreak = 0;
+      let longestStreak = 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let i = allDates.length - 1; i >= 0; i--) {
+        const expected = new Date(today.getTime() - i * 86400000);
+        if (allDates.includes(expected.getTime())) {
+          currentStreak++;
+          longestStreak = Math.max(longestStreak, currentStreak);
+        } else if (i === allDates.length - 1) {
+          // Allow for yesterday if today is missing
+          const yesterday = new Date(today.getTime() - 86400000);
+          if (allDates.includes(yesterday.getTime())) {
+            currentStreak++;
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+
+      // Weekly volume trend (last 8 weeks)
+      const weeklyTrend = [];
+      for (let w = 7; w >= 0; w--) {
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - w * 7);
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+
+        const weekLogs = logs.filter(l => {
+          const d = new Date(l.createdAt);
+          return d >= weekStart && d < weekEnd;
+        });
+
+        const weekNum = Math.floor(w / 7) + 1;
+        const weekLabel = `${weekNum}`;
+        weeklyTrend.push({
+          week: weekLabel,
+          volume: calcVolume(weekLogs),
+        });
+      }
+
+      // Top exercises
+      const exerciseTotals: Record<string, { volume: number; count: number }> = {};
+      logs.forEach(l => {
+        const sets = l.sets || [];
+        sets.forEach(s => {
+          const exId = s.exerciseId || s.exerciseName || 'unknown';
+          const exName = s.exerciseName || EXERCISE_NAMES[exId] || exId;
+          if (!exerciseTotals[exName]) exerciseTotals[exName] = { volume: 0, count: 0 };
+          exerciseTotals[exName].volume += (s.weight || 0) * (s.repCount || 0);
+          exerciseTotals[exName].count++;
+        });
+      });
+
+      const topExercises = Object.entries(exerciseTotals)
+        .map(([name, data]) => ({ name, totalVolume: data.volume, count: data.count }))
+        .sort((a, b) => b.totalVolume - a.totalVolume)
+        .slice(0, 5);
+
+      // Recovery trend
+      const recoveryTrend = recoveries.slice(0, 10).map(r => ({
+        date: new Date(r.createdAt).toISOString().split('T')[0],
+        score: r.recoveryScore || 0,
+      }));
+
+      const numWeeks = Math.max(1, Math.floor(logs.length / 12));
+
+      res.json({
+        periodLabel: `Last 7 days vs prior 7 days`,
+        workoutsThisPeriod: thisWeekLogs.length,
+        workoutsLastPeriod: lastWeekLogs.length,
+        completionRate: thisWeekCompletion,
+        completionRateLast: lastWeekCompletion,
+        totalVolume: thisWeekVolume,
+        totalVolumeLast: lastWeekVolume,
+        avgRPE: thisWeekRPE,
+        avgRPELast: lastWeekRPE,
+        currentStreak,
+        longestStreak,
+        weeklyVolumeTrend: weeklyTrend.filter(w => w.volume > 0),
+        topExercises,
+        recoveryTrend,
+      });
+    } catch (err) {
+      console.error("Insights endpoint error:", err);
+      res.status(500).json({ error: "Failed to calculate insights" });
+    }
+  });
+
+  
+  // 5.2 — Personalized insights dashboard
+  app.get("/api/fitness/insights", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      const [profileSnap, checksSnap, logsSnap, recoverySnap] = await Promise.all([
+        getDoc(doc(db, "users", uid, "profile", "current")),
+        getDocs(query(collection(db, "users", uid, "checkIns"), orderBy("createdAt", "desc"), limit(20))),
+        getDocs(query(collection(db, "users", uid, "workouts"), orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "users", uid, "recovery"), orderBy("createdAt", "desc"))),
+      ]);
+
+      const profile = profileSnap.exists() ? (profileSnap.data() as any) : {};
+      const checks = checksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const logs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const recoveries = recoverySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 7);
+      const startLastWeek = new Date(startOfWeek);
+      startLastWeek.setDate(startLastWeek.getDate() - 7);
+
+      const thisWeekLogs = logs.filter(l => { const d = new Date(l.createdAt); return d >= startOfWeek && d < endOfWeek; });
+      const lastWeekLogs = logs.filter(l => { const d = new Date(l.createdAt); return d >= startLastWeek && d < startOfWeek; });
+      const thisWeekCheckIns = checks.filter(c => { const d = new Date(c.createdAt); return d >= startOfWeek && d < endOfWeek; });
+      const lastWeekCheckIns = checks.filter(c => { const d = new Date(c.createdAt); return d >= startLastWeek && d < startOfWeek; });
+
+      const calcVolume = (wl: any[]) => { let t = 0; wl.forEach(l => { (l.sets || []).forEach(s => { t += (s.weight || 0) * (s.repCount || 0); }); }); return t; };
+      const calcAvgRPE = (wl: any[]) => {
+        const rpes: number[] = [];
+        wl.forEach(l => { (l.sets || []).forEach(s => { if (typeof s.rpe === 'number' && s.rpe > 0) rpes.push(s.rpe); });
+          if (typeof l.rpe === 'number' && l.rpe > 0) rpes.push(l.rpe); });
+        return rpes.length > 0 ? rpes.reduce((a: number, b: number) => a + b, 0) / rpes.length : 0;
+      };
+      const calcCompletion = (cs: any[]) => { if (cs.length === 0) return 0; return (cs.filter(c => c.mood !== 'skipped').length / cs.length) * 100; };
+
+      const thisWeekVolume = calcVolume(thisWeekLogs);
+      const lastWeekVolume = calcVolume(lastWeekLogs);
+      const thisWeekRPE = calcAvgRPE(thisWeekLogs);
+      const lastWeekRPE = calcAvgRPE(lastWeekLogs);
+      const thisWeekCompletion = calcCompletion(thisWeekCheckIns);
+      const lastWeekCompletion = calcCompletion(lastWeekCheckIns);
+
+      // Streak
+      const allDates = [...new Set(logs.map(l => { const d = new Date(l.createdAt); d.setHours(0,0,0,0); return d.getTime(); }))].sort((a, b) => a - b);
+      let currentStreak = 0, longestStreak = 0;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      for (let i = allDates.length - 1; i >= 0; i--) {
+        const expected = new Date(today.getTime() - i * 86400000);
+        if (allDates.includes(expected.getTime())) { currentStreak++; longestStreak = Math.max(longestStreak, currentStreak); }
+        else if (i === allDates.length - 1) {
+          const yesterday = new Date(today.getTime() - 86400000);
+          if (allDates.includes(yesterday.getTime())) currentStreak++;
+          else break;
+        } else break;
+      }
+
+      // Weekly trend
+      const weeklyTrend: { week: string; volume: number }[] = [];
+      for (let w = 7; w >= 0; w--) {
+        const ws = new Date(now); ws.setDate(now.getDate() - w * 7); ws.setHours(0,0,0,0);
+        const we = new Date(ws); we.setDate(we.getDate() + 7);
+        const wl = logs.filter(l => { const d = new Date(l.createdAt); return d >= ws && d < we; });
+        weeklyTrend.push({ week: `${Math.floor(w/7)+1}`, volume: calcVolume(wl) });
+      }
+
+      // Top exercises
+      const exerciseTotals: Record<string, { volume: number; count: number }> = {};
+      logs.forEach(l => { (l.sets || []).forEach(s => {
+        const exId = s.exerciseId || s.exerciseName || 'unknown';
+        const exName = s.exerciseName || EXERCISE_NAMES[exId] || exId;
+        if (!exerciseTotals[exName]) exerciseTotals[exName] = { volume: 0, count: 0 };
+        exerciseTotals[exName].volume += (s.weight || 0) * (s.repCount || 0);
+        exerciseTotals[exName].count++;
+      }); });
+      const topExercises = Object.entries(exerciseTotals)
+        .map(([n, d]) => ({ name: n, totalVolume: d.volume, count: d.count }))
+        .sort((a, b) => b.totalVolume - a.totalVolume).slice(0, 5);
+
+      // Recovery trend
+      const recoveryTrend = recoveries.slice(0, 10).map(r => ({
+        date: new Date(r.createdAt).toISOString().split('T')[0],
+        score: r.recoveryScore || 0,
+      }));
+
+      res.json({
+        periodLabel: "Last 7 days vs prior 7 days",
+        workoutsThisPeriod: thisWeekLogs.length,
+        workoutsLastPeriod: lastWeekLogs.length,
+        completionRate: thisWeekCompletion,
+        completionRateLast: lastWeekCompletion,
+        totalVolume: thisWeekVolume,
+        totalVolumeLast: lastWeekVolume,
+        avgRPE: thisWeekRPE,
+        avgRPELast: lastWeekRPE,
+        currentStreak,
+        longestStreak,
+        weeklyVolumeTrend: weeklyTrend.filter(w => w.volume > 0),
+        topExercises,
+        recoveryTrend,
+      });
+    } catch (err) {
+      console.error("Insights error:", err);
+      res.status(500).json({ error: "Failed to calculate insights" });
+    }
+  });
+
   // 3.4 — Notification preferences
   app.post("/api/fitness/settings/notifications", async (req, res) => {
     const uid = requireAuth(req, res);
@@ -1681,5 +1981,137 @@ Note: Connect GEMINI_API_KEY for real AI-powered nutrition guidance tailored to 
 }
 
 }
+
+
+
+// 5.3 — Exercise name lookup for insights
+const EXERCISE_NAMES: Record<string, string> = {
+  "barbell-bench-press": "Barbell Bench Press",
+  "barbell-deadlift": "Barbell Deadlift",
+  "barbell-squat": "Barbell Squat",
+  "barbell-ohp": "Overhead Press",
+  "dumbbell-curl": "Dumbbell Curl",
+  "dumbbell-row": "Dumbbell Row",
+  "pull-up": "Pull-Up",
+  "push-up": "Push-Up",
+  "lunge": "Lunge",
+  "plank": "Plank",
+  "leg-press": "Leg Press",
+  "lat-pulldown": "Lat Pulldown",
+  "shoulder-press": "Shoulder Press",
+  "bicep-curl": "Bicep Curl",
+  "tricep-extension": "Tricep Extension",
+  "leg-curl": "Leg Curl",
+  "leg-extension": "Leg Extension",
+  "hip-thrust": "Hip Thrust",
+  "face-pull": "Face Pull",
+  "calf-raise": "Calf Raise",
+};
+
+// 5.3 — External API integrations (ExerciseAPI, Spoonacular, Strava)
+// Configure API keys in .env.local: EXERCISE_API_KEY, SPOONACULAR_API_KEY, STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET
+
+async function queryExerciseAPI(query: string): Promise<any[]> {
+  const apiKey = process.env.EXERCISE_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const res = await fetch(`https://api.exerciseapi.com/v1/exercises?name=${encodeURIComponent(query)}&limit=10`, {
+      headers: { "X-API-Key": apiKey },
+    });
+    if (!res.ok) throw new Error("ExerciseAPI error");
+    return res.json();
+  } catch (err) {
+    console.error("ExerciseAPI query failed:", err);
+    return [];
+  }
+}
+
+async function searchExercises(name: string): Promise<any[]> {
+  // Try ExerciseAPI first if configured
+  const apiResults = await queryExerciseAPI(name);
+  if (apiResults.length > 0) return apiResults;
+
+  // Fallback: local exercise library search
+  const fromLibrary = Object.values(EXERCISE_LIBRARY).filter(
+    e => e.name.toLowerCase().includes(name.toLowerCase())
+  );
+  return fromLibrary.map(e => ({ name: e.name, id: e.id, category: e.category }));
+}
+
+async function querySpoonacular(query: string): Promise<any> {
+  const apiKey = process.env.SPOONACULAR_API_KEY;
+  if (!apiKey) return { error: "Nutrition API not configured" };
+  try {
+    const res = await fetch(
+      `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(query)}&number=5&apiKey=${apiKey}`
+    );
+    if (!res.ok) throw new Error("Spoonacular error");
+    return res.json();
+  } catch (err) {
+    console.error("Spoonacular query failed:", err);
+    return { error: "Nutrition search failed" };
+  }
+}
+
+async function getStravaStats(accessToken: string): Promise<any> {
+  try {
+    const res = await fetch("https://www.strava.com/api/v3/athlete", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) throw new Error("Strava API error");
+    return res.json();
+  } catch (err) {
+    console.error("Strava API failed:", err);
+    return { error: "Strava connection failed" };
+  }
+}
+
+
+
+  // 5.3 — External exercise search
+  app.get("/api/fitness/external/exercises", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    const { q } = req.query as { q?: string };
+    if (!q) return res.json({ results: [] });
+    try {
+      const results = await searchExercises(q);
+      res.json({ results });
+    } catch (err) {
+      console.error("Exercise search error:", err);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  // 5.3 — External nutrition search
+  app.get("/api/fitness/external/nutrition", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    const { q } = req.query as { q?: string };
+    if (!q) return res.json({ results: [], error: "No query" });
+    try {
+      const results = await querySpoonacular(q);
+      res.json(results);
+    } catch (err) {
+      console.error("Nutrition search error:", err);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  // 5.3 — Strava connection status
+  app.get("/api/fitness/external/strava", async (req, res) => {
+    const uid = requireAuth(req, res);
+    if (!uid) return;
+    try {
+      const wearableRef = doc(db, "users", uid, "wearableData", "current");
+      const snap = await getDoc(wearableRef);
+      if (!snap.exists()) return res.json({ connected: false });
+      const data = snap.data();
+      res.json({ connected: !!data.stravaAccessToken, athlete: data.stravaAthlete || null });
+    } catch (err) {
+      res.json({ connected: false });
+    }
+  });
+
 
 startServer();
