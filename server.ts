@@ -83,10 +83,10 @@ function computeRecoveryScore(input: RecoveryInput): {
     return { score, recommendation: "reduce_intensity", text: "Moderate recovery — consider lighter intensity today.",
       factors, dataSources: [], dataAgeHours: 0 };
   } else if (score >= 40) {
-    return { score, recommendation: "reduce_volume", text: "Low recovery — reduce volume or take active recovery.",
+    return { score, recommendation: "active_recovery", text: "Low recovery — reduce volume or take active recovery.",
       factors, dataSources: [], dataAgeHours: 0 };
   } else {
-    return { score, recommendation: "rest", text: "Poor recovery — rest today and focus on sleep and nutrition.",
+    return { score, recommendation: "rest_day", text: "Poor recovery — rest today and focus on sleep and nutrition.",
       factors, dataSources: [], dataAgeHours: 0 };
   }
 }
@@ -198,9 +198,56 @@ async function generateAdaptation(
     if (planSnap.empty) return null;
 
     const plan = planSnap.docs[0].data() as WeeklyPlan;
-    plan.version = (plan.version ?? 1) + 1;
-    plan.adaptationReason = "Workout completed — progressive adaptation";
-    plan.adaptedFromPlanId = plan.id;
+    const prevVersion = plan.version ?? 1;
+
+    // ── Adaptation logic ──────────────────────────────────────
+    if (!workout.completed) {
+      // SKIPPED: reduce volume next week (remove 1 exercise from each day)
+      plan.version = prevVersion + 1;
+      plan.adaptationReason = "Workout skipped — volume reduced for recovery";
+      plan.adaptedFromPlanId = plan.id;
+      plan.days = plan.days.map(day => {
+        if (day.workouts && day.workouts.length > 0) {
+          return {
+            ...day,
+            workouts: day.workouts.map(w => ({
+              ...w,
+              exercises: w.exercises.slice(0, Math.max(1, w.exercises.length - 1)),
+            })),
+          };
+        }
+        return day;
+      });
+    } else {
+      // COMPLETED: progressive overload (increase intensity if recovery is good)
+      const recoverySnap = await getDocs(query(
+        collection(db, "users", uid, "recovery"),
+        orderBy("assessedAt", "desc"),
+        limit(1)
+      ));
+      const lastRecovery = recoverySnap.docs[0]?.data() as any;
+      const recoveryScore = lastRecovery?.recoveryScore ?? 50;
+
+      plan.version = prevVersion + 1;
+      if (recoveryScore >= 60) {
+        plan.adaptationReason = `Workout completed — progressive overload (+5% intensity, recovery ${recoveryScore})`;
+        // Increase prescribed sets by 1 for exercises that were completed
+        plan.days = plan.days.map(day => ({
+          ...day,
+          workouts: day.workouts?.map(w => ({
+            ...w,
+            mainExercises: w.mainExercises?.map(ex => ({
+              ...ex,
+              sets: [...(ex.sets || []), { reps: 8, weight: 0, completed: false } as any],
+            })),
+          })),
+        }));
+      } else {
+        plan.adaptationReason = `Workout completed — maintained volume (recovery ${recoveryScore} < 60)`;
+      }
+      plan.adaptedFromPlanId = plan.id;
+    }
+
     await savePlan(uid, plan);
     return plan;
   } catch {
@@ -491,7 +538,7 @@ async function startServer() {
         return;
       }
       workout.userId = uid;
-      workout.completed = workout.completed ?? true;
+      workout.completed = workout.completed ?? false;
       workout.createdAt = serverTimestamp();
       const snap = await addDoc(collection(db, "users", uid, "workouts"), workout as any);
 

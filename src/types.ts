@@ -122,7 +122,7 @@ export interface PlanDay {
   dayLabel: string;                  // 'Monday' etc.
   focus: string;                     // 'Upper Body Strength', 'Full Body', etc.
 
-  recoveryRecommendation?: 'train_normal' | 'reduce_intensity' | 'rest_day';
+  recoveryRecommendation?: 'train_normal' | 'reduce_intensity' | 'rest_day' | 'active_recovery';
   recoveryScore?: number;            // 0–100, if wearable data available
 
   workouts: PlanWorkout[];

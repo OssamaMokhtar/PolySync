@@ -149,6 +149,61 @@ export function RecoveryDashboard({ userId }: RecoveryDashboardProps) {
         </div>
       )}
 
+      {/* Manual Wearable Data Input */}
+      <div className="bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Manual Recovery Input</h2>
+          <span className="text-xs text-[#71717A]">Enter today's metrics</span>
+        </div>
+        <p className="text-xs text-[#71717A] mb-4">
+          Don't have a wearable? Enter your metrics manually and we'll compute your recovery score.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <label className="text-xs text-[#71717A] block mb-1">Sleep duration (minutes)</label>
+            <input
+              type="number"
+              placeholder="e.g. 480"
+              className="w-full px-3 py-2 bg-[#1A1A1E] border border-[#27272A] rounded-lg text-sm text-[#E4E4E7] placeholder-[#71717A] focus:outline-none focus:border-[#00A3FF]/40"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs text-[#71717A] block mb-1">Resting heart rate (bpm)</label>
+            <input
+              type="number"
+              placeholder="e.g. 65"
+              className="w-full px-3 py-2 bg-[#1A1A1E] border border-[#27272A] rounded-lg text-sm text-[#E4E4E7] placeholder-[#71717A] focus:outline-none focus:border-[#00A3FF]/40"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs text-[#71717A] block mb-1">HRV (ms)</label>
+            <input
+              type="number"
+              placeholder="e.g. 45"
+              className="w-full px-3 py-2 bg-[#1A1A1E] border border-[#27272A] rounded-lg text-sm text-[#E4E4E7] placeholder-[#71717A] focus:outline-none focus:border-[#00A3FF]/40"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs text-[#71717A] block mb-1">Energy level (1-5)</label>
+            <input
+              type="number"
+              min="1"
+              max="5"
+              placeholder="e.g. 4"
+              className="w-full px-3 py-2 bg-[#1A1A1E] border border-[#27272A] rounded-lg text-sm text-[#E4E4E7] placeholder-[#71717A] focus:outline-none focus:border-[#00A3FF]/40"
+            />
+          </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-[#27272A]">
+          <button className="w-full py-2 px-4 bg-[#00A3FF] text-white rounded-lg text-sm font-medium hover:bg-[#00A3FF]/90 transition">
+            Update Recovery Score
+          </button>
+          <p className="text-xs text-[#71717A] text-center mt-2">
+            Your data is stored locally and used only for recovery analysis.
+          </p>
+        </div>
+      </div>
+
       {/* Connect Wearable Prompt */}
       {wearableData.length === 0 && (
         <div className="bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl p-4">

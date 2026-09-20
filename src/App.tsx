@@ -3,7 +3,7 @@ import { FitnessOnboarding } from './components/FitnessOnboarding';
 import {
   Target, Dumbbell, Activity, Heart, Clock, BarChart3, Users, Zap,
   ChevronUp, ChevronDown, Pause, Play, Plus, Minus, Clock as ClockIcon,
-  Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2, TrendingUp, Globe, ChevronRight
+ Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2, TrendingUp, Globe, ChevronRight, Flame
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -13,6 +13,7 @@ import { EXERCISE_LIBRARY, EXERCISE_BY_ID } from './ExerciseLibrary';
 import { CoachChat } from './components/CoachingChat';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RecoveryDashboard } from './components/RecoveryDashboard';
+import { ProgressDashboard } from './components/ProgressDashboard';
 import { CheckInForm } from './components/CheckInForm';
 import { InsightsDashboard } from './components/InsightsDashboard';
 import { SubscriptionStatus, ExportButton, DeleteAccountButton } from './components/SettingsComponents';
@@ -60,6 +61,8 @@ export default function App() {
   const [showCoachPanel, setShowCoachPanel] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [checkInWorkoutId, setCheckInWorkoutId] = useState<string | undefined>();
+  const [streak, setStreak] = useState(0);
+  const [streakLoading, setStreakLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -81,6 +84,28 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    fetchStreak();
+  }, [currentUser]);
+
+  const fetchStreak = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await fetch('/api/fitness/streaks', {
+        headers: { 'x-user-id': currentUser.uid },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStreak(data.currentStreak || 0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch streak:', err);
+    } finally {
+      setStreakLoading(false);
+    }
+  };
 
   const handleOnboardingComplete = (p: FitnessProfile) => {
     setProfile(p);
@@ -562,7 +587,7 @@ export default function App() {
 
   const renderProgress = () => {
     return currentUser ? (
-      <RecoveryDashboard userId={currentUser.uid} />
+      <ProgressDashboard userId={currentUser.uid} />
     ) : (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <BarChart3 className="w-12 h-12 text-[#71717A] mb-4" />
@@ -901,6 +926,12 @@ export default function App() {
             <div className="status-pill !text-[#00A3FF] !bg-[#00A3FF]/10 !border-[#00A3FF]/30 px-2 py-1 flex items-center gap-1 text-xs">
               <Heart className="w-3 h-3" />
               Health Data
+            </div>
+          )}
+          {!streakLoading && streak > 0 && (
+            <div className="status-pill !text-[#F59E0B] !bg-[#F59E0B]/10 !border-[#F59E0B]/30 px-2 py-1 flex items-center gap-1 text-xs">
+              <Flame className="w-3 h-3" />
+              {streak} day streak
             </div>
           )}
           <div className="status-pill !text-[#10B981] !bg-[#10B981]/10 !border-[#10B981]/30 px-2 py-1 flex items-center gap-1 text-xs">
