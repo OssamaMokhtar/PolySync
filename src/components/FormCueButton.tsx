@@ -4,9 +4,10 @@ import { Sparkles, Loader2 } from 'lucide-react';
 interface FormCueButtonProps {
   exerciseId: string;
   exerciseName: string;
+  userId: string;
 }
 
-export function FormCueButton({ exerciseId, exerciseName }: FormCueButtonProps) {
+export function FormCueButton({ exerciseId, exerciseName, userId }: FormCueButtonProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(`How do I do ${exerciseName} correctly?`);
   const [response, setResponse] = useState<string | null>(null);
@@ -18,12 +19,12 @@ export function FormCueButton({ exerciseId, exerciseName }: FormCueButtonProps) 
     try {
       const res = await fetch('/api/fitness/form-cue', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'current-user' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
         body: JSON.stringify({ exerciseId, userDescription: query.trim() }),
       });
       if (!res.ok) throw new Error('Form cue request failed');
       const data = await res.json();
-      setResponse(data.guidance || data.response || 'No form guidance available.');
+      setResponse(data.cue || data.guidance || 'No form guidance available.');
     } catch {
       setResponse('Could not reach form coach. Please try again.');
     } finally {

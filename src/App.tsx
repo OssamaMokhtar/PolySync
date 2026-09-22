@@ -3,7 +3,7 @@ import { FitnessOnboarding } from './components/FitnessOnboarding';
 import {
   Target, Dumbbell, Activity, Heart, Clock, BarChart3, Users, Zap,
   ChevronUp, ChevronDown, Pause, Play, Plus, Minus, Clock as ClockIcon,
- Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2, TrendingUp, Globe, ChevronRight, Flame
+  Sparkles, Check, AlertTriangle, Settings, LogOut, Crown, Download, Trash2, TrendingUp, Globe, ChevronRight, Flame, Info
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -17,6 +17,8 @@ import { ProgressDashboard } from './components/ProgressDashboard';
 import { CheckInForm } from './components/CheckInForm';
 import { InsightsDashboard } from './components/InsightsDashboard';
 import { SubscriptionStatus, ExportButton, DeleteAccountButton } from './components/SettingsComponents';
+import { FormCueButton } from './components/FormCueButton';
+import { NutritionPanel } from './components/NutritionPanel';
 
 type FitnessTab = 'today' | 'weekly' | 'progress' | 'insights' | 'coach' | 'settings';
 
@@ -332,6 +334,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
+                    {currentUser && <FormCueButton exerciseId={exercise.exerciseId} exerciseName={exercise.name} userId={currentUser.uid} />}
                     {exercise.sets?.filter(s => s.completed).length === exercise.prescribedSets && (
                       <Check className="w-5 h-5 text-[#10B981]" />
                     )}
@@ -666,6 +669,11 @@ export default function App() {
             loading={false}
             chatLanguage={chatLanguage}
           />
+
+        {/* Nutrition Advisor */}
+        <div className="mt-4">
+          <NutritionPanel profile={(profile as any) || null} userId={currentUser?.uid || ''} />
+        </div>
 
         {/* Language selector */}
         <div className="mt-4 p-4 bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl">

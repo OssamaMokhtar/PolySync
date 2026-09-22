@@ -3,9 +3,10 @@ import { Utensils, AlertTriangle, Sparkles } from 'lucide-react';
 
 interface NutritionPanelProps {
   profile: { goal?: string; level?: string } | null;
+  userId: string;
 }
 
-export function NutritionPanel({ profile }: NutritionPanelProps) {
+export function NutritionPanel({ profile, userId }: NutritionPanelProps) {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState<{ guidance: string; disclaimer: string; sandbox: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export function NutritionPanel({ profile }: NutritionPanelProps) {
     try {
       const res = await fetch('/api/fitness/nutrition', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'current-user' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
         body: JSON.stringify({ query: query.trim(), profile }),
       });
       if (!res.ok) throw new Error('Nutrition request failed');

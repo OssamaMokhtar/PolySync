@@ -1840,7 +1840,22 @@ function generateDeterministicPlan(profile: FitnessProfile): WeeklyPlan {
   const exercisesPerWorkout = profile.level === "beginner" ? 4 : profile.level === "advanced" ? 6 : 5;
   const setsPerExercise = profile.level === "beginner" ? 2 : profile.level === "advanced" ? 4 : 3;
 
-  // Select exercises based on goal and equipment
+  // GLP-1 / special mode adjustments
+  let adjustedSets = setsPerExercise;
+  let adjustedReps = getRepRange(profile.goal, profile.level);
+  if (profile.specialMode === 'glp1') {
+    // GLP-1 users: lower intensity, more recovery, joint-friendly
+    adjustedSets = Math.max(1, setsPerExercise - 1);
+    adjustedReps = profile.level === 'beginner' ? '10-12' : '8-10';
+  } else if (profile.specialMode === 'postpartum') {
+    // Postpartum: lighter, pelvic floor friendly
+    adjustedSets = Math.max(1, setsPerExercise - 1);
+    adjustedReps = '12-15';
+  } else if (profile.specialMode === 'senior') {
+    // Older adults: balance and joint health focus
+    adjustedSets = Math.max(1, setsPerExercise - 1);
+    adjustedReps = '12-15';
+  }
   const selectedExercises = selectExercisesForGoal(profile);
 
   for (let i = 0; i < profile.daysPerWeek; i++) {
@@ -1864,8 +1879,8 @@ function generateDeterministicPlan(profile: FitnessProfile): WeeklyPlan {
         instructions: ex.instructions,
         commonMistakes: ex.commonMistakes,
         substitutionIds: ex.substitutionIds,
-        sets: setsPerExercise,
-        reps: getRepRange(profile.goal, profile.level),
+        sets: adjustedSets,
+        reps: adjustedReps,
         rest: getRestTime(profile.goal),
         rpeTarget: getRpeTarget(profile.level),
         allowsSubstitution: true,
