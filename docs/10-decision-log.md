@@ -5,6 +5,7 @@
 Each ADR states what was rejected and the measurable condition that would reverse the call. An ADR without a reversal trigger is a press release.
 
 ## ADR-001 — B2B2C over direct-to-consumer
+
 **Status:** Accepted
 
 **Context.** Consumer fitness has brutal CAC and 3-month retention cliffs. The product's differentiator — a human coach in the loop — is unaffordable at consumer price points and is exactly what orgs already pay for.
@@ -22,6 +23,7 @@ Each ADR states what was rejected and the measurable condition that would revers
 ---
 
 ## ADR-002 — Hybrid athletes as a conviction segment
+
 **Status:** Accepted
 
 **Context.** Hybrid athletes are underserved precisely because their problem is hard: endurance and strength adaptations interfere, and no mainstream app resolves the trade-off — they run two plans in parallel and let the athlete collide them.
@@ -39,6 +41,7 @@ Each ADR states what was rejected and the measurable condition that would revers
 ---
 
 ## ADR-003 — Human coach in the loop, structurally
+
 **Status:** Accepted
 
 **Context.** Autonomous training prescription carries injury liability and, in B2B2C, the coach is also the adoption gatekeeper. Human-in-loop is both a safety control and a channel strategy.
@@ -56,6 +59,7 @@ Each ADR states what was rejected and the measurable condition that would revers
 ---
 
 ## ADR-004 — Deterministic engine prescribes; LLM explains and proposes
+
 **Status:** Accepted
 
 | Option | Pros | Cons | Verdict |
@@ -70,12 +74,27 @@ Each ADR states what was rejected and the measurable condition that would revers
 ---
 
 ## ADR-005 — Narrow from multi-region, multi-sport to a single beachhead
+
 **Status:** Accepted
 
 **Context.** Initial scope spanned USA, Europe, EMEA and APAC across multiple sports. That is a research scope, not a build scope — a funded build needs one buyer archetype in one regulatory regime.
+
+**Beachhead (named):** US-based boutique endurance + strength hybrid athletics gyms and coach-staffed hybrid training programs operating under US state-level privacy law (no GDPR, no HIPAA-triggering claims). Single sport context: concurrent endurance + resistance training. Single coach archetype: certified S&C coach managing 20–60 hybrid athletes.
+
+**Why this beachhead:**
+- US state privacy law is the simplest regime to ship under and audit against.
+- Boutique gyms have the coach-in-the-loop economics already in their P&L (ADR-001).
+- Hybrid athletes are the segment where the interference problem is acute enough to make the deterministic engine's logic a real moat (ADR-002).
+- One sport context (concurrent endurance + resistance) keeps the protocol library depth-focused (ADR-002 consequence).
+
+**What this excludes for now:**
+- EU/GDPR (defer until beachhead retention proves the model).
+- Direct-to-consumer (ADR-001).
+- Single-sport specialist apps (no defensible moat — ADR-002).
+- Clinical or deconditioned populations (out of scope by design — see doc 07 §6).
 
 **Consequences.** Protocol library depth over breadth; one compliance regime; reference customers concentrated enough to be quotable.
 
 **Reversal trigger.** Beachhead segment saturated (TBD% penetration of reachable orgs) or a second region's inbound demand exceeds TBD% of pipeline unprompted.
 
-**TBD:** name the beachhead explicitly in this ADR. A decision log that says "we narrowed" without saying to what is not yet a decision.
+**Status note:** Beachhead named and the ADR is now complete. This closes gap #3 from GAPS.md (filled 2026-09-23).

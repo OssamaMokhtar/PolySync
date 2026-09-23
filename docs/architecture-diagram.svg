@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555555"/>
+  </marker>
+  <linearGradient id="engineGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#27ae60"/>
+    <stop offset="100%" stop-color="#1e8449"/>
+  </linearGradient>
+  <linearGradient id="llmGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2980b9"/>
+    <stop offset="100%" stop-color="#1a5276"/>
+  </linearGradient>
+</defs>
+
+<rect width="800" height="500" fill="#fafafa"/>
+
+<!-- Title -->
+<text x="400" y="30" text-anchor="middle" fill="#1a1a2e" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="bold">PolySync — System Architecture</text>
+<text x="400" y="48" text-anchor="middle" fill="#666666" font-family="Helvetica, Arial, sans-serif" font-size="11">Deterministic engine prescribes; LLM explains and proposes within bounds</text>
+<line x1="20" y1="56" x2="780" y2="56" stroke="#dddddd" stroke-width="1"/>
+
+<!-- ===== CLIENTS ===== -->
+<rect x="20" y="85" width="150" height="50" rx="6" fill="#2c3e50"/>
+<text x="95" y="103" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">Athlete App</text>
+<text x="95" y="117" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">React · Vite · Express</text>
+
+<rect x="20" y="150" width="150" height="50" rx="6" fill="#34495e"/>
+<text x="95" y="168" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">Coach Console</text>
+<text x="95" y="182" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Dashboard + escalations</text>
+
+<rect x="20" y="215" width="150" height="50" rx="6" fill="#465c71"/>
+<text x="95" y="233" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">Org Admin</text>
+<text x="95" y="247" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Roster · retention</text>
+
+<!-- ===== PLATFORM (center) ===== -->
+<rect x="250" y="85" width="160" height="50" rx="6" fill="#2980b9"/>
+<text x="330" y="103" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">API Gateway</text>
+<text x="330" y="117" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Tenancy · routing</text>
+
+<rect x="250" y="150" width="160" height="65" rx="6" fill="url(#engineGrad)"/>
+<text x="330" y="170" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">Deterministic Engine</text>
+<text x="330" y="184" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Owns ALL load prescription</text>
+<text x="330" y="196" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Phase/Period/Session/Taper</text>
+
+<rect x="430" y="85" width="160" height="50" rx="6" fill="url(#llmGrad)"/>
+<text x="510" y="103" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">LLM Orchestrator</text>
+<text x="510" y="117" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Gemini 3.5 Flash</text>
+<text x="510" y="129" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Explains · proposes deltas</text>
+
+<rect x="430" y="150" width="160" height="65" rx="6" fill="#e67e22"/>
+<text x="510" y="170" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold">Bounds Checker</text>
+<text x="510" y="184" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Validates every proposal</text>
+<text x="510" y="196" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Safety · Efficacy · Adherence</text>
+
+<rect x="430" y="230" width="160" height="50" rx="6" fill="#c0392b"/>
+<text x="510" y="248" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="bold">Escalation Router</text>
+<text x="510" y="262" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Out-of-bounds → coach</text>
+
+<rect x="250" y="230" width="160" height="55" rx="6" fill="#c0392b"/>
+<text x="330" y="248" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="bold">Coach Queue</text>
+<text x="330" y="262" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Diff Approval</text>
+<text x="330" y="274" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Proposed + blocked deltas</text>
+
+<!-- ===== DATA ===== -->
+<ellipse cx="150" cy="330" rx="60" ry="30" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.5"/>
+<text x="150" y="325" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">Athlete +</text>
+<text x="150" y="338" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">Program Store</text>
+<text x="150" y="350" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">PostgreSQL</text>
+
+<ellipse cx="330" cy="330" rx="60" ry="30" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.5"/>
+<text x="330" y="325" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">Wearable</text>
+<text x="330" y="338" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">Timeseries</text>
+<text x="330" y="350" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">TSDB</text>
+
+<ellipse cx="510" cy="330" rx="60" ry="30" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.5"/>
+<text x="510" y="322" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">Protocol</text>
+<text x="510" y="334" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold">Library</text>
+<text x="510" y="346" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">Vector + signed</text>
+
+<!-- ===== EVAL HARNESS ===== -->
+<rect x="650" y="310" width="130" height="55" rx="6" fill="#8e44ad" stroke="#8e44ad" stroke-width="1.5"/>
+<text x="715" y="328" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="bold">Eval Harness</text>
+<text x="715" y="342" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">5 eval sets</text>
+<text x="715" y="352" text-anchor="middle" fill="#ffffff" font-family="Helvetica, Arial, sans-serif" font-size="8">CI gates (proposed)</text>
+
+<!-- ===== CONNECTIONS ===== -->
+<line x1="170" y1="110" x2="250" y2="110" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="170" y1="175" x2="250" y2="175" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="170" y1="240" x2="250" y2="240" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<line x1="330" y1="135" x2="330" y2="150" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="330" y1="215" x2="330" y2="230" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<line x1="330" y1="135" x2="430" y2="110" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<line x1="510" y1="135" x2="510" y2="150" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<line x1="320" y1="215" x2="250" y2="230" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="505" y1="215" x2="510" y2="230" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="385" y="205" text-anchor="middle" fill="#c0392b" font-family="Helvetica, Arial, sans-serif" font-size="8" font-weight="bold">fail → queue</text>
+
+<line x1="330" y1="285" x2="510" y2="280" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Coach queue → coach console (feedback) -->
+<path d="M 330 285 C 330 340, 170 340, 170 210" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<text x="200" y="348" text-anchor="middle" fill="#c0392b" font-family="Helvetica, Arial, sans-serif" font-size="8" font-weight="bold">coach reviews → applies</text>
+
+<!-- Engine → data stores -->
+<line x1="250" y1="248" x2="150" y2="300" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="250" y1="248" x2="330" y2="300" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Orchestrator → RAG -->
+<line x1="590" y1="135" x2="650" y2="135" stroke="#555555" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="620" y="130" text-anchor="middle" fill="#555555" font-family="Helvetica, Arial, sans-serif" font-size="8">context</text>
+
+<!-- RAG → engine/bounds (grounding) -->
+<line x1="650" y1="170" x2="650" y2="200" stroke="#555555" stroke-width="1" stroke-dasharray="4,3"/>
+<line x1="650" y1="200" x2="430" y2="200" stroke="#555555" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="500" y="195" text-anchor="middle" fill="#555555" font-family="Helvetica, Arial, sans-serif" font-size="8">grounding</text>
+
+<!-- Eval → offline -->
+<path d="M 715 310 C 715 240, 510 200, 510 200" fill="none" stroke="#8e44ad" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text x="640" y="260" text-anchor="middle" fill="#8e44ad" font-family="Helvetica, Arial, sans-serif" font-size="8">offline eval</text>
+
+<!-- ===== LEGEND ===== -->
+<rect x="20" y="385" width="14" height="10" fill="#27ae60"/>
+<text x="38" y="394" fill="#333333" font-family="Helvetica, Arial, sans-serif" font-size="9">Deterministic (owns load)</text>
+<rect x="170" y="385" width="14" height="10" fill="#2980b9"/>
+<text x="188" y="394" fill="#333333" font-family="Helvetica, Arial, sans-serif" font-size="9">AI (explains + proposes)</text>
+<rect x="340" y="385" width="14" height="10" fill="#e67e22"/>
+<text x="358" y="394" fill="#333333" font-family="Helvetica, Arial, sans-serif" font-size="9">Guard (bounds checker)</text>
+<rect x="500" y="385" width="14" height="10" fill="#c0392b"/>
+<text x="518" y="394" fill="#333333" font-family="Helvetica, Arial, sans-serif" font-size="9">Human (coach in loop)</text>
+<rect x="640" y="385" width="14" height="10" fill="#8e44ad"/>
+<text x="658" y="394" fill="#333333" font-family="Helvetica, Arial, sans-serif" font-size="9">RAG / Protocols</text>
+
+<!-- Footer -->
+<text x="400" y="420" text-anchor="middle" fill="#666666" font-family="Helvetica, Arial, sans-serif" font-size="10">The LLM never writes a load prescription. The deterministic engine does.</text>
+<text x="400" y="435" text-anchor="middle" fill="#666666" font-family="Helvetica, Arial, sans-serif" font-size="9">Prompt injection cannot change training load. Provider outage degrades explanation, not training.</text>
+<text x="400" y="452" text-anchor="middle" fill="#999999" font-family="Helvetica, Arial, sans-serif" font-size="8">PolySync · Ossama Mokhtar · github.com/OssamaMokhtar/PolySync</text>
+</svg>
