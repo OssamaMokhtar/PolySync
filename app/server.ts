@@ -19,6 +19,9 @@ import {
   PlanExercise, PlanWorkout, PlanDay, DailyWorkday as DailyWorkout, Exercise, ModifiedExercise,
   WearableDataPoint, RecoveryFactor, HealthDataConsent
 } from "./src/types";
+import { generatePlan } from "./src/engine/planEngine";
+import { prescribe, checkPlan } from "./src/engine/boundsChecker";
+import type { EngineProfile } from "./src/engine/types";
 import { EXERCISE_LIBRARY, getSubstituteExercises } from "./src/ExerciseLibrary";
 
 // Week, date formatting helpers
@@ -91,64 +94,18 @@ function computeRecoveryScore(input: RecoveryInput): {
   }
 }
 
-async function generateDeterministicPlan(profile: FitnessProfile): Promise<WeeklyPlan> {
-  const exercises = EXERCISE_LIBRARY;
-  const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
-  startOfWeek.setHours(0, 0, 0, 0);
-
-  const days: PlanDay[] = [];
-  const exercisesPerDay = profile.goal === "build_muscle" ? 5 :
-    profile.goal === "lose_weight" ? 6 :
-    profile.goal === "improve_endurance" ? 5 : 4;
-
-  for (let i = 0; i < profile.daysPerWeek; i++) {
-    const dayExercises: WorkoutExercise[] = exercises
-      .slice(0, exercisesPerDay)
-      .map((ex, idx) => ({
-        exerciseId: ex.exerciseId,
-        name: ex.name,
-        category: ex.category,
-        primaryMuscles: ex.primaryMuscles,
-        prescribedSets: idx < 2 ? 4 : 3,
-        prescribedReps: ex.primaryMuscles.length > 1 ? "8-12" : "12-15",
-        prescribedRestSeconds: 60 + idx * 10,
-        sets: [],
-      }));
-
-    days.push({
-      dayIndex: i,
-      date: startOfWeek.getTime() + i * 86400000,
-      dayLabel: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"][i] as string,
-      focus: profile.goal === "build_muscle" ? "Upper Body Strength" :
-             profile.goal === "lose_weight" ? "Full Body HIIT" :
-             profile.goal === "improve_endurance" ? "Cardio & Core" : "General Fitness",
-      workouts: [{
-        id: crypto.randomUUID(),
-        name: `Workout ${i + 1}`,
-        focus: profile.goal === "build_muscle" ? "Upper Body Strength" :
-               profile.goal === "lose_weight" ? "Full Body HIIT" :
-               profile.goal === "improve_endurance" ? "Cardio & Core" : "General Fitness",
-        estimatedDuration: profile.sessionDuration,
-        warmup: [],
-        mainExercises: dayExercises,
-        cooldown: [],
-      }],
-    });
-  }
-
+function toEngineProfile(profile: FitnessProfile): EngineProfile {
   return {
-    id: crypto.randomUUID(),
-    userId: profile.uid ?? "unknown",
-    weekNumber: getWeekNumber(startOfWeek),
-    startDate: startOfWeek.getTime(),
-    version: 1,
-    days,
-    generatedBy: "F02",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    goal: String(profile.goal),
+    level: profile.level,
+    injuries: profile.injuries ?? [],
+    equipment: profile.equipment ?? [],
+    daysPerWeek: profile.daysPerWeek,
+    sessionDuration: profile.sessionDuration,
+    specialMode: profile.specialMode,
   };
 }
+
 
 async function savePlan(uid: string, plan: WeeklyPlan): Promise<void> {
   const planRef = doc(db, "users", uid, "plans", plan.id);
@@ -185,75 +142,6 @@ function findExerciseSubstitution(
   return substitutes.slice(0, 5);
 }
 
-async function generateAdaptation(
-  uid: string,
-  workout: WorkoutLogEntry
-): Promise<WeeklyPlan | null> {
-  try {
-    const planSnap = await getDocs(query(
-      collection(db, "users", uid, "plans"),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    ));
-    if (planSnap.empty) return null;
-
-    const plan = planSnap.docs[0].data() as WeeklyPlan;
-    const prevVersion = plan.version ?? 1;
-
-    // ── Adaptation logic ──────────────────────────────────────
-    if (!workout.completed) {
-      // SKIPPED: reduce volume next week (remove 1 exercise from each day)
-      plan.version = prevVersion + 1;
-      plan.adaptationReason = "Workout skipped — volume reduced for recovery";
-      plan.adaptedFromPlanId = plan.id;
-      plan.days = plan.days.map(day => {
-        if (day.workouts && day.workouts.length > 0) {
-          return {
-            ...day,
-            workouts: day.workouts.map(w => ({
-              ...w,
-              exercises: w.exercises.slice(0, Math.max(1, w.exercises.length - 1)),
-            })),
-          };
-        }
-        return day;
-      });
-    } else {
-      // COMPLETED: progressive overload (increase intensity if recovery is good)
-      const recoverySnap = await getDocs(query(
-        collection(db, "users", uid, "recovery"),
-        orderBy("assessedAt", "desc"),
-        limit(1)
-      ));
-      const lastRecovery = recoverySnap.docs[0]?.data() as any;
-      const recoveryScore = lastRecovery?.recoveryScore ?? 50;
-
-      plan.version = prevVersion + 1;
-      if (recoveryScore >= 60) {
-        plan.adaptationReason = `Workout completed — progressive overload (+5% intensity, recovery ${recoveryScore})`;
-        // Increase prescribed sets by 1 for exercises that were completed
-        plan.days = plan.days.map(day => ({
-          ...day,
-          workouts: day.workouts?.map(w => ({
-            ...w,
-            mainExercises: w.mainExercises?.map(ex => ({
-              ...ex,
-              sets: [...(ex.sets || []), { reps: 8, weight: 0, completed: false } as any],
-            })),
-          })),
-        }));
-      } else {
-        plan.adaptationReason = `Workout completed — maintained volume (recovery ${recoveryScore} < 60)`;
-      }
-      plan.adaptedFromPlanId = plan.id;
-    }
-
-    await savePlan(uid, plan);
-    return plan;
-  } catch {
-    return null;
-  }
-}
 
 dotenv.config();
 
@@ -402,49 +290,38 @@ async function startServer() {
         return;
       }
 
-      // Generate plan using Gemini if available, otherwise use deterministic algorithm
+      // ADR-004: the deterministic engine prescribes. Gemini may PROPOSE a
+      // plan; the proposal replaces the engine plan only if it clears every
+      // bound. A blocked proposal is stored for the coach and never shown to
+      // the athlete. Previously Gemini's JSON was saved directly as the plan,
+      // and the engine was only a fallback.
+      const engineProfile = toEngineProfile(profile);
+      const enginePlan = generatePlan(engineProfile);
+      let proposal: unknown = undefined;
       if (ai) {
         try {
-          const prompt = buildPlanGenerationPrompt(profile);
           const response = await ai.models.generateContent({
             model: "gemini-3.5-flash",
-            contents: prompt,
-            config: {
-              systemInstruction: F02_SYSTEM_PROMPT,
-              temperature: 0.7,
-              responseMimeType: "application/json",
-            },
+            contents: buildPlanGenerationPrompt(profile),
+            config: { systemInstruction: F02_SYSTEM_PROMPT, temperature: 0.7, responseMimeType: "application/json" },
           });
-          const text = response.text || "{}";
-          let plan: WeeklyPlan;
-          try {
-            plan = JSON.parse(text);
-          } catch {
-            console.error("Failed to parse Gemini plan response:", text);
-            plan = generateDeterministicPlan(profile as any);
-          }
-          plan.userId = uid;
-          plan.createdAt = Date.now() as any;
-          plan.updatedAt = Date.now() as any;
-          await savePlan(uid, plan);
-          res.json({ plan, generatedBy: "gemini" });
+          proposal = JSON.parse(response.text || "null") ?? undefined;
         } catch (geminiErr) {
-          console.error("Gemini plan generation failed, using deterministic fallback:", geminiErr);
-          const plan = await generateDeterministicPlan(profile as any);
-          plan.userId = uid;
-          plan.createdAt = Date.now() as any;
-          plan.updatedAt = Date.now() as any;
-          await savePlan(uid, plan);
-          res.json({ plan, generatedBy: "deterministic" });
+          console.error("F02 proposal unavailable; engine plan stands:", geminiErr);
         }
-      } else {
-        const plan = await generateDeterministicPlan(profile as any);
-        plan.userId = uid;
-        plan.createdAt = Date.now() as any;
-        plan.updatedAt = Date.now() as any;
-        await savePlan(uid, plan);
-        res.json({ plan, generatedBy: "deterministic" });
       }
+      const result = prescribe(engineProfile, enginePlan, proposal);
+      if (result.proposal && !result.proposal.accepted) {
+        console.log(JSON.stringify({ event: "bounds_rejected", uid, rules: result.proposal.violations.map((x) => x.rule) }));
+      }
+      const plan = { ...result.plan, userId: uid, createdAt: Date.now() as any, updatedAt: Date.now() as any };
+      await savePlan(uid, plan as any);
+      res.json({
+        plan,
+        generatedBy: result.prescribedBy,
+        proposal: result.proposal ?? null,
+        needsCoachReview: result.needsCoachReview,
+      });
     } catch (err) {
       console.error("F02 plan generation error:", err);
       res.status(500).json({ error: "Failed to generate plan" });
@@ -1834,112 +1711,7 @@ function formatDate(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
-function generateDeterministicPlan(profile: FitnessProfile): WeeklyPlan {
-  const startOfWeek = getMonday(new Date());
-  const days: DailyWorkout[] = [];
-  const exercisesPerWorkout = profile.level === "beginner" ? 4 : profile.level === "advanced" ? 6 : 5;
-  const setsPerExercise = profile.level === "beginner" ? 2 : profile.level === "advanced" ? 4 : 3;
 
-  // GLP-1 / special mode adjustments
-  let adjustedSets = setsPerExercise;
-  let adjustedReps = getRepRange(profile.goal, profile.level);
-  if (profile.specialMode === 'glp1') {
-    // GLP-1 users: lower intensity, more recovery, joint-friendly
-    adjustedSets = Math.max(1, setsPerExercise - 1);
-    adjustedReps = profile.level === 'beginner' ? '10-12' : '8-10';
-  } else if (profile.specialMode === 'postpartum') {
-    // Postpartum: lighter, pelvic floor friendly
-    adjustedSets = Math.max(1, setsPerExercise - 1);
-    adjustedReps = '12-15';
-  } else if (profile.specialMode === 'senior') {
-    // Older adults: balance and joint health focus
-    adjustedSets = Math.max(1, setsPerExercise - 1);
-    adjustedReps = '12-15';
-  }
-  const selectedExercises = selectExercisesForGoal(profile);
-
-  for (let i = 0; i < profile.daysPerWeek; i++) {
-    const date = new Date(startOfWeek);
-    date.setDate(date.getDate() + i * Math.floor(7 / profile.daysPerWeek));
-    const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
-
-    const workoutExercises = selectedExercises.slice(0, exercisesPerWorkout);
-    const workoutName = getWorkoutName(profile.goal, i, profile.daysPerWeek);
-
-    const workout: Workout = {
-      workoutId: `workout-${i + 1}`,
-      workoutName,
-      focus: getWorkoutFocus(profile.goal, i, profile.daysPerWeek),
-      duration: profile.sessionDuration,
-      exercises: workoutExercises.map((ex, idx) => ({
-        exerciseId: ex.id,
-        exerciseName: ex.name,
-        targetMuscles: ex.targetMuscles,
-        equipment: ex.equipment,
-        instructions: ex.instructions,
-        commonMistakes: ex.commonMistakes,
-        substitutionIds: ex.substitutionIds,
-        sets: adjustedSets,
-        reps: adjustedReps,
-        rest: getRestTime(profile.goal),
-        rpeTarget: getRpeTarget(profile.level),
-        allowsSubstitution: true,
-      })),
-    };
-
-    days.push({
-      dayIndex,
-      date: formatDate(date),
-      workouts: [workout],
-    });
-  }
-
-  return {
-    weekNumber: getWeekNumber(new Date()),
-    startDate: formatDate(startOfWeek),
-    endDate: formatDate(new Date(startOfWeek.getTime() + 6 * 24 * 60 * 60 * 1000)),
-    days,
-    version: 1,
-    userId: profile.goal, // will be overwritten
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-function selectExercisesForGoal(profile: FitnessProfile): ExerciseInput[] {
-  // Pick exercises from the static library based on goal and equipment
-  const allExercises = ExerciseLibrary.getAllExercises();
-  const compatible = allExercises.filter(ex =>
-    profile.equipment.length === 0 || profile.equipment.some(eq =>
-      ex.equipment.some(e => e.toLowerCase() === eq.toLowerCase())
-    )
-  );
-
-  // Filter out injured body parts
-  const safe = profile.injuries.length > 0
-    ? compatible.filter(ex =>
-        !profile.injuries.some(injury =>
-          ex.targetMuscles.some(m => m.toLowerCase().includes(injury.toLowerCase()))
-        )
-      )
-    : compatible;
-
-  // Prioritize based on goal
-  const goalPriority = profile.goal === "build_muscle" ? "hypertrophy"
-    : profile.goal === "lose_weight" ? "cardio"
-    : profile.goal === "improve_endurance" ? "endurance"
-    : "strength";
-
-  const prioritized = safe.sort((a, b) => {
-    const aScore = a.category === goalPriority ? 1 : 0;
-    const bScore = b.category === goalPriority ? 1 : 0;
-    return bScore - aScore;
-  });
-
-  // Return enough for a week of workouts
-  const needed = profile.daysPerWeek * (profile.level === "beginner" ? 4 : profile.level === "advanced" ? 6 : 5);
-  return prioritized.slice(0, Math.max(needed, 20));
-}
 
 function getWorkoutName(goal: string, dayIndex: number, daysPerWeek: number): string {
   const names: Record<string, string[]> = {
@@ -2043,6 +1815,15 @@ async function generateAdaptation(uid: string, completedWorkout: any): Promise<W
         }),
       })),
     }));
+  }
+
+  // ADR-004: an adaptation is a proposed change. It is saved only if it clears
+  // the bounds checker against the current plan (incl. the +10% weekly volume
+  // cap); otherwise the current plan stands and the block is logged for review.
+  const verdict = checkPlan(adapted, toEngineProfile(profile), currentPlan as any);
+  if (!verdict.ok) {
+    console.log(JSON.stringify({ event: "bounds_rejected", uid, source: "adaptation", rules: verdict.violations.map((x) => x.rule) }));
+    return currentPlan;
   }
 
   const adaptedPlanId = `plan-${adapted.weekNumber}-${Date.now()}`;

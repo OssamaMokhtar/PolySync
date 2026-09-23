@@ -1,5 +1,5 @@
 {
-  "name": "polysync-ai-fitness-coach",
+  "name": "polysync-app",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -8,7 +8,12 @@
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "eval": "tsx ../evals/run.ts",
+    "typecheck:engine": "tsc -p tsconfig.engine.json",
+    "typecheck:ratchet": "node scripts/typecheck-ratchet.mjs",
+    "check-bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -36,7 +41,8 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "vitest": "^3.2.7"
   },
   "description": "PolySync — AI-powered personal fitness coach with adaptive workout plans, conversational coaching, wearable integration, and recovery analysis. Built on the PolyVerses multi-agent orchestration architecture.",
   "keywords": [
