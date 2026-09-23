@@ -62,25 +62,76 @@ const hard = (w: HybridWeek, m: string) => w.sessions.find((s) => s.modality ===
 
 const MUTATIONS: Mutation[] = [
   {
-    id: "HM1 strength 2 h after a hard run on the same day",
+    id: "HM1 strength 4 h after a hard run ends, same day",
     expect: "H1_CONFLICT_SEPARATION",
     apply: (w) => {
       const run = hard(w, "endurance_hard");
       if (!run) return null;
       const q = clone(w);
-      q.sessions.push({ ...run, id: "x", modality: "strength", startHour: run.startHour + 2, slot: "am", rpe: 8 });
+      q.sessions = q.sessions.filter((s) => s.day !== run.day);
+      q.sessions.push({ ...run, slot: "am", startHour: 7, minutes: 60 });
+      q.sessions.push({ id: "x", day: run.day, slot: "pm", startHour: 12, modality: "strength", minutes: 60, rpe: 8, lowerBody: true });
       return { proposal: q };
     },
   },
   {
-    id: "HM2 power 1 h after an easy run",
+    id: "HM2 power 2 h after an easy run ends",
     expect: "H2_POWER_AFTER_ENDURANCE",
     apply: (w) => {
       const q = clone(w);
       const d = q.sessions[0].day;
       q.sessions = q.sessions.filter((s) => s.day !== d);
-      q.sessions.push({ id: "e", day: d, slot: "am", startHour: 7, modality: "endurance_easy", minutes: 30, rpe: 4, lowerBody: true });
-      q.sessions.push({ id: "p", day: d, slot: "am", startHour: 8, modality: "power", minutes: 45, rpe: 7, lowerBody: true });
+      q.sessions.push({ id: "e", day: d, slot: "am", startHour: 9, modality: "endurance_easy", minutes: 60, rpe: 4, lowerBody: true });
+      q.sessions.push({ id: "p", day: d, slot: "pm", startHour: 12, modality: "power", minutes: 45, rpe: 7, lowerBody: true });
+      return { proposal: q };
+    },
+  },
+  {
+    id: "HM9 late strength, hard run early next morning",
+    expect: "H1_CONFLICT_SEPARATION",
+    apply: (w, p) => {
+      const d = p.availableDays.find((x) => p.availableDays.includes(x + 1));
+      if (d === undefined) return null;
+      const q = clone(w);
+      q.sessions = q.sessions.filter((s) => s.day !== d && s.day !== d + 1);
+      q.sessions.push({ id: "s", day: d, slot: "pm", startHour: 22, modality: "strength", minutes: 90, rpe: 8, lowerBody: true });
+      q.sessions.push({ id: "r", day: d + 1, slot: "am", startHour: 3, modality: "endurance_hard", minutes: 60, rpe: 8, lowerBody: true });
+      return { proposal: q };
+    },
+  },
+  {
+    id: "HM10 hard session labelled easy (RPE 2 strength)",
+    expect: "H9_MALFORMED",
+    apply: (w) => {
+      const q = clone(w);
+      const s = q.sessions.find((x) => x.modality === "strength");
+      if (!s) return null;
+      s.rpe = 2;
+      return { proposal: q };
+    },
+  },
+  {
+    id: "HM11 relabel the block priority to justify the order",
+    expect: "H3_PRIORITY_FIRST",
+    apply: (w) => {
+      const q = clone(w);
+      const d = q.sessions[0].day;
+      q.sessions = q.sessions.filter((s) => s.day !== d);
+      const priorityModality = w.priority === "endurance" ? "endurance_hard" : w.priority === "power" ? "power" : "strength";
+      const other = w.priority === "endurance" ? "strength" : "endurance_hard";
+      q.priority = w.priority === "endurance" ? "strength" : "endurance";
+      q.sessions.push({ id: "o", day: d, slot: "am", startHour: 7, modality: other, minutes: 60, rpe: 8, lowerBody: true });
+      q.sessions.push({ id: "p", day: d, slot: "pm", startHour: 18, modality: priorityModality, minutes: 60, rpe: 8, lowerBody: true });
+      return { proposal: q };
+    },
+  },
+  {
+    id: "HM12 two sessions in one slot",
+    expect: "H9_MALFORMED",
+    apply: (w) => {
+      const q = clone(w);
+      const s = q.sessions[0];
+      q.sessions.push({ ...s, id: "dup", startHour: s.startHour + 1, modality: "endurance_easy", rpe: 4, minutes: 20 });
       return { proposal: q };
     },
   },
@@ -105,6 +156,15 @@ const MUTATIONS: Mutation[] = [
       const q = clone(w);
       for (const s of q.sessions) s.minutes = Math.round(s.minutes * 1.25);
       return { proposal: q, ctx: { previous: w } };
+    },
+  },
+  {
+    id: "HM4b raise weekly load 25% with no history (held to the engine week)",
+    expect: "H5_WEEKLY_LOAD_JUMP",
+    apply: (w) => {
+      const q = clone(w);
+      for (const s of q.sessions) s.minutes = Math.min(240, Math.round(s.minutes * 1.25));
+      return { proposal: q };
     },
   },
   {
@@ -152,7 +212,8 @@ for (const p of sample) {
     const r = (perMutation[m.id] ??= { n: 0, blocked: 0, rightRule: 0, routedToEngineWithCoach: 0 });
     r.n++;
     advN++;
-    const v = checkHybridWeek(made.proposal, p, made.ctx);
+    // Same reference as routing: last week, or the engine's own week without history.
+    const v = checkHybridWeek(made.proposal, p, { ...made.ctx, previous: made.ctx?.previous ?? w });
     if (!v.ok) { r.blocked++; advBlocked++; }
     if (v.findings.some((f) => f.rule === m.expect && f.severity === "block")) r.rightRule++;
     const routed = prescribeHybrid(p, w, made.proposal, made.ctx);
@@ -173,36 +234,55 @@ for (const p of sample) {
 }
 
 // ── Set H4: amber-day adaptation never produces a blocked week ──────────────
-let adaptN = 0;
-let adapted = 0;
-let escalated = 0;
+// Outcomes: moved (hard session kept on a later day), downgraded (made easy in
+// place; quality lost; coach told), escalated (a coach must decide).
+type Outcomes = { n: number; moved: number; downgraded: number; escalated: number };
+const tally = (): Outcomes => ({ n: 0, moved: 0, downgraded: 0, escalated: 0 });
+const adaptAll = tally();
 let adaptedInvalid = 0;
-for (const p of grid) {
-  const w = generateHybridWeek(p);
-  for (const s of w.sessions.filter((x) => x.modality !== "endurance_easy")) {
-    adaptN++;
-    const a = adaptDay(w, p, { day: s.day, readiness: "amber", yesterday: { modality: "strength", rpe: 9, lowerBody: true } });
-    if (a.escalate) { escalated++; continue; }
-    adapted++;
-    // Same rules as any proposal, including H5 (load within +10% of the week it replaces).
-    if (!checkHybridWeek(a.week, p, { readiness: { [s.day]: "amber" }, previous: w }).ok) adaptedInvalid++;
-    if (weeklyLoad(a.week) > weeklyLoad(w) * 1.1) adaptedInvalid++;
-  }
-}
-// Segmentation (reported, not gated): escalation rate by schedule flexibility.
-// This is the structural driver of coach minutes, so the unit-economics model
-// reads it from here rather than from a typed-in assumption.
-const bySchedule: Record<string, { n: number; escalated: number; rate: number }> = {};
+const bySchedule: Record<string, Outcomes & { kept_rate: number; coach_rate: number }> = {};
 for (const p of grid) {
   const key = `${p.availableDays.length}d-${p.allowDoubles ? "doubles" : "singles"}`;
   const w = generateHybridWeek(p);
   for (const s of w.sessions.filter((x) => x.modality !== "endurance_easy")) {
-    const r = (bySchedule[key] ??= { n: 0, escalated: 0, rate: 0 });
-    r.n++;
-    if (adaptDay(w, p, { day: s.day, readiness: "amber", yesterday: { modality: "strength", rpe: 9, lowerBody: true } }).escalate) r.escalated++;
+    const a = adaptDay(w, p, { day: s.day, readiness: "amber", yesterday: { modality: "strength", rpe: 9, lowerBody: true } });
+    const seg = (bySchedule[key] ??= { ...tally(), kept_rate: 0, coach_rate: 0 });
+    for (const t of [adaptAll, seg]) {
+      t.n++;
+      if (a.outcome === "moved") t.moved++;
+      else if (a.outcome === "downgraded") t.downgraded++;
+      else t.escalated++;
+    }
+    if (a.outcome === "escalated") continue;
+    // Same rules as any proposal, including H5 against the week it replaces.
+    if (!checkHybridWeek(a.week, p, { readiness: { [s.day]: "amber" }, previous: w }).ok) adaptedInvalid++;
+    if (weeklyLoad(a.week) > weeklyLoad(w) * 1.1) adaptedInvalid++;
   }
 }
-for (const r of Object.values(bySchedule)) r.rate = Math.round((r.escalated / r.n) * 1000) / 1000;
+// Reported, not gated: share of amber-day hard sessions the engine keeps
+// (moved) vs loses (downgraded, coach told) vs hands to a coach (escalated).
+// This is the structural driver of coach attention; the product model reads it.
+const pct = (a: number, b: number) => Math.round((a / b) * 1000) / 1000;
+for (const r of Object.values(bySchedule)) {
+  r.kept_rate = pct(r.moved, r.n);
+  r.coach_rate = pct(r.downgraded + r.escalated, r.n);
+}
+
+// ── Set H5: whatever is delivered passes the rules for that day's readiness ─
+let deliveredN = 0;
+let deliveredInvalid = 0;
+for (const p of sample) {
+  const w = generateHybridWeek(p);
+  for (const d of p.availableDays) {
+    for (const r of ["amber", "red"] as const) {
+      const readiness = { [d]: r };
+      const out = prescribeHybrid(p, w, undefined, { readiness });
+      deliveredN++;
+      if (out.week.sessions.length && !checkHybridWeek(out.week, p, { readiness }).ok) deliveredInvalid++;
+      if (r === "red" && !out.needsCoachReview) deliveredInvalid++;
+    }
+  }
+}
 
 let painN = 0;
 let painEscalated = 0;
@@ -225,6 +305,7 @@ for (const [id, r] of Object.entries(perMutation)) {
 }
 if (safeAccepted !== safeN) failures.push(`safe proposals rejected: ${safeN - safeAccepted}`);
 if (adaptedInvalid !== 0) failures.push(`adapted weeks that break a rule or add load: ${adaptedInvalid}`);
+if (deliveredInvalid !== 0) failures.push(`delivered weeks that break a rule for the day's readiness: ${deliveredInvalid}`);
 if (painEscalated !== painN) failures.push(`pain flags not escalated: ${painN - painEscalated}`);
 
 const report = {
@@ -237,9 +318,10 @@ const report = {
     no_silent_drops: { requested, placed, reported_shortfall: reportedShortfall, gate: "placed + shortfall = requested" },
     adversarial_blocked: { n: advN, blocked: advBlocked, byMutation: perMutation, gate: "all blocked by the expected rule and routed to engine + coach" },
     safe_proposals_accepted: { n: safeN, accepted: safeAccepted, gate: "all" },
-    amber_adaptation: { n: adaptN, adapted, escalated, adapted_but_invalid: adaptedInvalid, gate: "0 invalid (every adapted week passes H1-H9 incl. H5 vs the week it replaces); escalation is an allowed outcome" },
+    amber_adaptation: { ...adaptAll, adapted_but_invalid: adaptedInvalid, gate: "0 invalid (every moved or downgraded week passes H1-H9 incl. H5 vs the week it replaces); escalation is an allowed outcome" },
+    delivered_week_valid: { n: deliveredN, invalid: deliveredInvalid, gate: "0 (engine week after amber/red readiness passes the rules; red always flags a coach)" },
     pain_flag_escalation: { n: painN, escalated: painEscalated, gate: "all" },
-    amber_escalation_by_schedule: { byDaysAndDoubles: bySchedule, gate: "none (reported; feeds product/data/model.json coach-minutes driver)" },
+    amber_outcomes_by_schedule: { byDaysAndDoubles: bySchedule, gate: "none (reported; feeds product/data/model.json coach-attention driver)" },
   },
   not_covered: [
     "Whether literature defaults (6 h separation, +10% load limit) suit a given athlete: needs coach sign-off",
@@ -258,10 +340,11 @@ console.log(`sessions placed           : ${placed}/${requested} (shortfall repor
 console.log(`adversarial blocked       : ${advBlocked}/${advN}`);
 for (const [id, r] of Object.entries(perMutation)) console.log(`  ${id.padEnd(48)} n=${String(r.n).padStart(3)} blocked=${r.blocked} rule=${r.rightRule} routed=${r.routedToEngineWithCoach}`);
 console.log(`safe proposals accepted   : ${safeAccepted}/${safeN}`);
-console.log(`amber adaptations         : ${adapted} adapted, ${escalated} escalated, ${adaptedInvalid} invalid (n=${adaptN})`);
+console.log(`amber adaptations         : ${adaptAll.moved} moved, ${adaptAll.downgraded} downgraded, ${adaptAll.escalated} escalated, ${adaptedInvalid} invalid (n=${adaptAll.n})`);
+console.log(`delivered weeks invalid   : ${deliveredInvalid}/${deliveredN}`);
 console.log(`pain flags escalated      : ${painEscalated}/${painN}`);
-console.log("amber escalation by schedule (reported, not gated):");
-for (const [k, r] of Object.entries(bySchedule).sort()) console.log(`  ${k.padEnd(12)} ${(r.rate * 100).toFixed(0).padStart(3)}%  n=${r.n}`);
+console.log("amber-day hard sessions by schedule (reported, not gated): kept / coach attention");
+for (const [k, r] of Object.entries(bySchedule).sort()) console.log(`  ${k.padEnd(12)} kept ${(r.kept_rate * 100).toFixed(0).padStart(3)}%  coach ${(r.coach_rate * 100).toFixed(0).padStart(3)}%  (moved ${r.moved}, downgraded ${r.downgraded}, escalated ${r.escalated}, n=${r.n})`);
 if (failures.length) {
   console.error("\nFAIL\n- " + failures.join("\n- "));
   process.exit(1);

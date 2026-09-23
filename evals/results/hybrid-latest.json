@@ -1,6 +1,6 @@
 {
   "suite": "polysync-hybrid-layer",
-  "ranAt": "2026-09-23T21:47:34.740Z",
+  "ranAt": "2026-09-23T22:36:07.377Z",
   "scope": "Hybrid scheduling engine + rules H1-H9 + routing + daily adaptation. Deterministic; not an LLM quality eval.",
   "rulesVersion": "v1-literature (parameters from product/data/evidence.json; not coach-signed, GAPS #4)",
   "sets": {
@@ -16,16 +16,34 @@
       "gate": "placed + shortfall = requested"
     },
     "adversarial_blocked": {
-      "n": 3593,
-      "blocked": 3593,
+      "n": 5810,
+      "blocked": 5810,
       "byMutation": {
-        "HM1 strength 2 h after a hard run on the same day": {
+        "HM1 strength 4 h after a hard run ends, same day": {
           "n": 444,
           "blocked": 444,
           "rightRule": 444,
           "routedToEngineWithCoach": 444
         },
-        "HM2 power 1 h after an easy run": {
+        "HM2 power 2 h after an easy run ends": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM10 hard session labelled easy (RPE 2 strength)": {
+          "n": 458,
+          "blocked": 458,
+          "rightRule": 458,
+          "routedToEngineWithCoach": 458
+        },
+        "HM11 relabel the block priority to justify the order": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM12 two sessions in one slot": {
           "n": 463,
           "blocked": 463,
           "rightRule": 463,
@@ -38,6 +56,12 @@
           "routedToEngineWithCoach": 463
         },
         "HM4 raise weekly load 25% over last week": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM4b raise weekly load 25% with no history (held to the engine week)": {
           "n": 463,
           "blocked": 463,
           "rightRule": 463,
@@ -66,6 +90,12 @@
           "blocked": 463,
           "rightRule": 463,
           "routedToEngineWithCoach": 463
+        },
+        "HM9 late strength, hard run early next morning": {
+          "n": 370,
+          "blocked": 370,
+          "rightRule": 370,
+          "routedToEngineWithCoach": 370
         }
       },
       "gate": "all blocked by the expected rule and routed to engine + coach"
@@ -77,70 +107,106 @@
     },
     "amber_adaptation": {
       "n": 13674,
-      "adapted": 5163,
-      "escalated": 8511,
+      "moved": 6015,
+      "downgraded": 7659,
+      "escalated": 0,
       "adapted_but_invalid": 0,
-      "gate": "0 invalid (every adapted week passes H1-H9 incl. H5 vs the week it replaces); escalation is an allowed outcome"
+      "gate": "0 invalid (every moved or downgraded week passes H1-H9 incl. H5 vs the week it replaces); escalation is an allowed outcome"
+    },
+    "delivered_week_valid": {
+      "n": 4628,
+      "invalid": 0,
+      "gate": "0 (engine week after amber/red readiness passes the rules; red always flags a coach)"
     },
     "pain_flag_escalation": {
       "n": 2263,
       "escalated": 2263,
       "gate": "all"
     },
-    "amber_escalation_by_schedule": {
+    "amber_outcomes_by_schedule": {
       "byDaysAndDoubles": {
         "3d-doubles": {
           "n": 1416,
-          "escalated": 1275,
-          "rate": 0.9
+          "moved": 423,
+          "downgraded": 993,
+          "escalated": 0,
+          "kept_rate": 0.299,
+          "coach_rate": 0.701
         },
         "3d-singles": {
           "n": 954,
-          "escalated": 954,
-          "rate": 1
+          "moved": 0,
+          "downgraded": 954,
+          "escalated": 0,
+          "kept_rate": 0,
+          "coach_rate": 1
         },
         "4d-doubles": {
           "n": 1458,
-          "escalated": 876,
-          "rate": 0.601
+          "moved": 936,
+          "downgraded": 522,
+          "escalated": 0,
+          "kept_rate": 0.642,
+          "coach_rate": 0.358
         },
         "4d-singles": {
           "n": 1206,
-          "escalated": 1161,
-          "rate": 0.963
+          "moved": 45,
+          "downgraded": 1161,
+          "escalated": 0,
+          "kept_rate": 0.037,
+          "coach_rate": 0.963
         },
         "5d-doubles": {
           "n": 1458,
-          "escalated": 540,
-          "rate": 0.37
+          "moved": 1098,
+          "downgraded": 360,
+          "escalated": 0,
+          "kept_rate": 0.753,
+          "coach_rate": 0.247
         },
         "5d-singles": {
           "n": 1368,
-          "escalated": 1212,
-          "rate": 0.886
+          "moved": 156,
+          "downgraded": 1212,
+          "escalated": 0,
+          "kept_rate": 0.114,
+          "coach_rate": 0.886
         },
         "6d-doubles": {
           "n": 1458,
-          "escalated": 342,
-          "rate": 0.235
+          "moved": 1152,
+          "downgraded": 306,
+          "escalated": 0,
+          "kept_rate": 0.79,
+          "coach_rate": 0.21
         },
         "6d-singles": {
           "n": 1440,
-          "escalated": 1008,
-          "rate": 0.7
+          "moved": 432,
+          "downgraded": 1008,
+          "escalated": 0,
+          "kept_rate": 0.3,
+          "coach_rate": 0.7
         },
         "7d-doubles": {
           "n": 1458,
-          "escalated": 360,
-          "rate": 0.247
+          "moved": 1098,
+          "downgraded": 360,
+          "escalated": 0,
+          "kept_rate": 0.753,
+          "coach_rate": 0.247
         },
         "7d-singles": {
           "n": 1458,
-          "escalated": 783,
-          "rate": 0.537
+          "moved": 675,
+          "downgraded": 783,
+          "escalated": 0,
+          "kept_rate": 0.463,
+          "coach_rate": 0.537
         }
       },
-      "gate": "none (reported; feeds product/data/model.json coach-minutes driver)"
+      "gate": "none (reported; feeds product/data/model.json coach-attention driver)"
     }
   },
   "not_covered": [
