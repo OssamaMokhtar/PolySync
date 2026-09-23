@@ -47,7 +47,7 @@ This matters because the repo's strongest asset is its honest documentation of w
 
 ### Designed but not yet measured (PROPOSED in docs, TBD in results)
 
-- **Eval harness** — the safety layer is measured in CI (0 contraindication leaks in 8,640 engine plans; 2,067/2,067 unsafe proposals blocked and escalated). The model-in-the-loop sets (golden programming, free-text safety, live injection) have no results yet (GAPS #1, narrowed).
+- **Eval harness** — the safety and hybrid layers are measured in CI (0 contraindication leaks in 8,640 engine plans; 7,877/7,877 unsafe proposals across 21 attack types blocked and routed to a coach; 0 of 4,628 delivered weeks break a readiness rule). The model-in-the-loop sets (golden programming, free-text safety, live injection) have no results yet (GAPS #1, narrowed).
 - **Coach minutes / athlete-month** — unit economics designed, not yet measured (GAPS #2, Severe).
 - **Protocol library** — designed as the moat, not yet coach-signed (GAPS #4, High).
 - **Scale envelope** — ceilings proposed, not stress-tested (several TBDs in doc 01).

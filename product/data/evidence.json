@@ -383,10 +383,10 @@
     {
       "id": "OWN-002",
       "topic": "product",
-      "claim": "Simulated amber-day escalation rate by schedule shape (share of hard sessions the engine cannot reschedule within rules H1-H9)",
+      "claim": "Simulated amber-day outcomes by schedule shape: share of hard sessions the engine keeps by moving them, makes easy in place (coach told), or escalates, within rules H1-H9",
       "value": "see results file",
       "unit": "rate by days-available x doubles",
-      "source": "evals/results/hybrid-latest.json, amber_escalation_by_schedule (CI). Simulation of the engine's own rules; real-world rates are unmeasured",
+      "source": "evals/results/hybrid-latest.json, amber_outcomes_by_schedule (CI). Simulation of the engine's own rules; real-world rates are unmeasured",
       "url": "../../evals/results/hybrid-latest.json",
       "accessed": "2026-09-24",
       "grade": "A",

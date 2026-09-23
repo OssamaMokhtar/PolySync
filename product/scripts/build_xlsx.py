@@ -23,7 +23,7 @@ OUT = ROOT / "product/generated/polysync-unit-economics.xlsx"
 model = json.loads((ROOT / "product/data/model.json").read_text())
 evidence = {c["id"]: c for c in json.loads((ROOT / "product/data/evidence.json").read_text())["claims"]}
 hybrid = json.loads((ROOT / "evals/results/hybrid-latest.json").read_text())
-esc = hybrid["sets"]["amber_escalation_by_schedule"]["byDaysAndDoubles"]
+esc = hybrid["sets"]["amber_outcomes_by_schedule"]["byDaysAndDoubles"]
 
 F = "Arial"
 BLUE = Font(name=F, color="0000FF")
@@ -34,7 +34,7 @@ HEAD = Font(name=F, bold=True, color="FFFFFF")
 HEAD_FILL = PatternFill("solid", fgColor="1F3A5F")
 KEY = PatternFill("solid", fgColor="FFFF00")
 THIN = Border(bottom=Side(style="thin", color="BBBBBB"))
-KEY_DRIVERS = {"manualMinutesPerAthleteWeek", "pricePerAthleteMonthUsd", "specialistPremium", "minutesPerEscalation"}
+KEY_DRIVERS = {"manualMinutesPerAthleteWeek", "pricePerAthleteMonthUsd", "specialistPremium", "coachLoading", "triageMinutesPerAthleteWeek"}
 
 
 def header(ws, row, cols):
@@ -56,7 +56,7 @@ def build(write=True):
         ("Blue cells are inputs; black cells are formulas; green cells link to another sheet; yellow marks the drivers that swing club ROI most.", BLACK),
         ("Edit a blue cell on 'Drivers' (column C) and every sheet recalculates.", BLACK),
         ("B2B2C (ADR-001): the club's coaches review escalations, so coach time is the club's cost. 'Managed break-even' is the price PolySync would need if it employed the coaches.", BLACK),
-        ("Escalation rates are simulated from the engine's own rules (evals/results/hybrid-latest.json); real rates are unmeasured (GAPS #14).", BLACK),
+        ("Amber-day outcomes (moved / made easy / escalated) are simulated from the engine's own rules (evals/results/hybrid-latest.json); real rates are unmeasured (GAPS #14).", BLACK),
         ("Most drivers are hypotheses; each names the telemetry event or study that will replace it (see 'Drivers' column H).", BLACK),
     ]
     for i, (t, f) in enumerate(lines, 1):
@@ -91,7 +91,7 @@ def build(write=True):
     consts = [
         ("weeksPerMonth", "Weeks per month", 4.33, "Convention"),
         ("fxAedPerUsd", "AED per USD", evidence["CST-004"]["value"], f"CST-004 ({evidence['CST-004']['grade']}): {evidence['CST-004']['source']}"),
-        ("uaeMonthlyWageAed", "UAE personal-trainer average salary, AED/month", 4556, f"CST-002 ({evidence['CST-002']['grade']}): {evidence['CST-002']['url']}"),
+        ("uaeMonthlyWageAed", "UAE personal-trainer average salary, AED/month", evidence["CST-002"]["value"], f"CST-002 ({evidence['CST-002']['grade']}): {evidence['CST-002']['url']}"),
         ("uaeHoursPerMonth", "Working hours per month", 173.33, "40 h x 52 / 12"),
         ("usHourlyWageUsd", "US median wage, fitness trainers, USD/h", evidence["CST-001"]["value"], f"CST-001 ({evidence['CST-001']['grade']}): {evidence['CST-001']['url']}"),
     ]
@@ -104,30 +104,29 @@ def build(write=True):
     for col, w in zip("ABCDEFGH", (30, 58, 10, 10, 10, 16, 12, 90)):
         dr.column_dimensions[col].width = w
 
-    # ── Escalation (CI simulation) ──────────────────────────────────────────
-    es = wb.create_sheet("Escalation")
-    header(es, 1, ["Schedule", "Hard sessions (n)", "Escalated", "Rate", "Segment"])
+    # ── Amber-day outcomes (CI simulation) ──────────────────────────────────
+    es = wb.create_sheet("Amber outcomes")
+    header(es, 1, ["Schedule", "Hard sessions (n)", "Moved (kept)", "Made easy (coach told)", "Escalated", "Segment"])
     seg_of = {k: s["id"] for s in model["segments"] for k in s["scheduleKeys"]}
     keys = sorted(esc)
     for r, k in enumerate(keys, 2):
         es.cell(row=r, column=1, value=k).font = BLACK
-        es.cell(row=r, column=2, value=esc[k]["n"]).font = BLUE
-        es.cell(row=r, column=3, value=esc[k]["escalated"]).font = BLUE
-        c = es.cell(row=r, column=4, value=f"=IFERROR(C{r}/B{r},0)")
-        c.font, c.number_format = BLACK, "0.0%"
-        es.cell(row=r, column=5, value=seg_of.get(k, "")).font = BLACK
+        for col, f in ((2, "n"), (3, "moved"), (4, "downgraded"), (5, "escalated")):
+            es.cell(row=r, column=col, value=esc[k][f]).font = BLUE
+        es.cell(row=r, column=6, value=seg_of.get(k, "")).font = BLACK
     last = len(keys) + 1
-    es.cell(row=1, column=4).comment = Comment("Source: evals/results/hybrid-latest.json, amber_escalation_by_schedule (CI). Simulation of the engine's own rules.", "build_xlsx")
+    es.cell(row=1, column=2).comment = Comment("Source: evals/results/hybrid-latest.json, amber_outcomes_by_schedule (CI). Simulation of the engine's own rules.", "build_xlsx")
     seg_row0 = last + 3
-    es.cell(row=seg_row0 - 1, column=1, value="Segment escalation rate (n-weighted)").font = BOLD
+    header(es, seg_row0 - 1, ["Segment (n-weighted)", "Label", "Kept rate", "Made-easy rate", "Escalation rate", ""])
     for i, s in enumerate(model["segments"]):
         r = seg_row0 + i
         es.cell(row=r, column=1, value=s["id"]).font = BLACK
         es.cell(row=r, column=2, value=s["label"]).font = BLACK
-        c = es.cell(row=r, column=4, value=f'=IFERROR(SUMIFS($C$2:$C${last},$E$2:$E${last},A{r})/SUMIFS($B$2:$B${last},$E$2:$E${last},A{r}),0)')
-        c.font, c.number_format = BLACK, "0.0%"
-        wb.defined_names[f"esc_{s['id']}"] = DefinedName(f"esc_{s['id']}", attr_text=f"Escalation!$D${r}")
-    for col, w in zip("ABCDE", (22, 46, 16, 10, 12)):
+        for col, src, name in ((3, "C", "kept"), (4, "D", "down"), (5, "E", "esc")):
+            c = es.cell(row=r, column=col, value=f'=IFERROR(SUMIFS(${src}$2:${src}${last},$F$2:$F${last},A{r})/SUMIFS($B$2:$B${last},$F$2:$F${last},A{r}),0)')
+            c.font, c.number_format = BLACK, "0.0%"
+            wb.defined_names[f"{name}_{s['id']}"] = DefinedName(f"{name}_{s['id']}", attr_text=f"'Amber outcomes'!${chr(64 + col)}${r}")
+    for col, w in zip("ABCDEF", (22, 60, 14, 22, 14, 12)):
         es.column_dimensions[col].width = w
 
     # ── Unit economics ──────────────────────────────────────────────────────
@@ -136,7 +135,10 @@ def build(write=True):
     header(ue, 1, ["Per athlete-month"] + [f"{m} / {s}" for m, s in cases])
     rows = [
         ("coachHourly", "Coach cost per hour, loaded ($)", "$#,##0.00"),
-        ("escRate", "Escalation rate on amber days (simulated)", "0.0%"),
+        ("keptRate", "Amber-day hard sessions kept by moving (simulated)", "0.0%"),
+        ("downRate", "Amber-day hard sessions made easy (simulated)", "0.0%"),
+        ("escRate", "Amber-day hard sessions escalated (simulated)", "0.0%"),
+        ("lost", "Lost sessions per athlete-month (coach reviews)", "0.00"),
         ("escalations", "Escalations per athlete-month", "0.00"),
         ("withMin", "Coach minutes with PolySync", "0.0"),
         ("manualMin", "Coach minutes by hand", "0.0"),
@@ -160,9 +162,12 @@ def build(write=True):
         wage = "(uaeMonthlyWageAed/uaeHoursPerMonth/fxAedPerUsd)" if mkt == "UAE" else "usHourlyWageUsd"
         f = {
             "coachHourly": f"={wage}*coachLoading*specialistPremium",
+            "keptRate": f"=kept_{seg}",
+            "downRate": f"=down_{seg}",
             "escRate": f"=esc_{seg}",
+            "lost": f"=amberDaysPerAthleteMonth*hardShareOnAmber*{R('downRate')}",
             "escalations": f"=amberDaysPerAthleteMonth*hardShareOnAmber*{R('escRate')}+painFlagsPerAthleteMonth+llmProposalsPerAthleteMonth*proposalRejectRate",
-            "withMin": f"=triageMinutesPerAthleteWeek*weeksPerMonth+{R('escalations')}*minutesPerEscalation",
+            "withMin": f"=triageMinutesPerAthleteWeek*weeksPerMonth+{R('lost')}*minutesPerLostSession+{R('escalations')}*minutesPerEscalation",
             "manualMin": "=manualMinutesPerAthleteWeek*weeksPerMonth",
             "savedMin": f"={R('manualMin')}-{R('withMin')}",
             "clubValue": f"={R('savedMin')}/60*{R('coachHourly')}",
@@ -177,7 +182,7 @@ def build(write=True):
         }
         for key, label, fmt in rows:
             c = ue.cell(row=ROW[key], column=j, value=f[key])
-            c.font = GREEN if key == "escRate" else BLACK
+            c.font = GREEN if key in ("keptRate", "downRate", "escRate") else BLACK
             c.number_format = fmt
     ue.column_dimensions["A"].width = 48
     for j in range(2, len(cases) + 2):
@@ -221,7 +226,7 @@ def verify(ROW, cases):
     wb = load_workbook(OUT, data_only=True)
     ue = wb["Unit economics"]
     out = json.loads((ROOT / "product/generated/model-output.json").read_text())["unitEconomics"]
-    keymap = {"clubRoi": "clubRoi", "softwareGm": "softwareGrossMargin", "managedBe": "managedBreakEvenPriceUsd", "withMin": "coachMinutesWith", "apcWith": "athletesPerCoachWith", "escRate": "escalationRate", "inference": "inferenceUsd"}
+    keymap = {"clubRoi": "clubRoi", "softwareGm": "softwareGrossMargin", "managedBe": "managedBreakEvenPriceUsd", "withMin": "coachMinutesWith", "apcWith": "athletesPerCoachWith", "keptRate": "keptRate", "downRate": "downgradeRate", "escRate": "escalationRate", "lost": "lostSessionsPerAthleteMonth", "inference": "inferenceUsd"}
     bad = []
     for j, (m, s) in enumerate(cases, 2):
         for xk, jk in keymap.items():

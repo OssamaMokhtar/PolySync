@@ -12,12 +12,13 @@
 // - every risk's controlEvidence path exists; every linked id, ADR and GAPS
 //   number exists
 // - OWN-001 in evidence.json matches evals/results/latest.json (CI output)
+// - the README's headline eval numbers match both results files
 // No dependencies. Output is deterministic (no clock), so --check is exact.
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { computeUnit, segmentEscalation, marketWage } from "./model-core.mjs";
+import { computeUnit, segmentOutcomes, marketWage, HOURS_PER_MONTH } from "./model-core.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const P = (...x) => join(ROOT, ...x);
@@ -74,8 +75,26 @@ for (const d of model.drivers) {
   }
   if (!(d.low <= d.base && d.base <= d.high)) errors.push(`driver ${d.id}: base outside low-high`);
 }
-const escTable = hybrid.sets.amber_escalation_by_schedule.byDaysAndDoubles;
-for (const seg of model.segments) for (const k of seg.scheduleKeys) if (!escTable[k]) errors.push(`segment ${seg.id}: no CI escalation data for ${k}`);
+const escTable = hybrid.sets.amber_outcomes_by_schedule.byDaysAndDoubles;
+for (const seg of model.segments) for (const k of seg.scheduleKeys) if (!escTable[k]) errors.push(`segment ${seg.id}: no CI amber-outcome data for ${k}`);
+const allKeys = model.segments.flatMap((x) => x.scheduleKeys);
+if (new Set(allKeys).size !== allKeys.length || allKeys.length !== Object.keys(escTable).length) errors.push("segments must partition every schedule shape in the eval exactly once");
+
+// ── Headline numbers quoted in the README ───────────────────────────────────
+const fmtN = (n) => n.toLocaleString("en-US");
+const headline = {
+  unsafeTotal: s.bounds_adversarial.n + hybrid.sets.adversarial_blocked.n,
+  unsafeBlocked: s.bounds_adversarial.blocked + hybrid.sets.adversarial_blocked.blocked,
+  safeTotal: s.safe_proposal_acceptance.n + hybrid.sets.safe_proposals_accepted.n,
+  safeAccepted: s.safe_proposal_acceptance.accepted + hybrid.sets.safe_proposals_accepted.accepted,
+};
+headline.attackTypes = Object.keys(s.bounds_adversarial.byMutation).length + Object.keys(hybrid.sets.adversarial_blocked.byMutation).length;
+const readme = readFileSync(P("README.md"), "utf8");
+if (!readme.includes(`(${headline.attackTypes} attack types`)) errors.push(`README does not quote the current number of attack types (${headline.attackTypes})`);
+for (const [a, b] of [["unsafeBlocked", "unsafeTotal"], ["safeAccepted", "safeTotal"]]) {
+  const quoted = `${fmtN(headline[a])} / ${fmtN(headline[b])}`;
+  if (!readme.includes(quoted)) errors.push(`README does not quote the current eval result "${quoted}" (${a})`);
+}
 
 // ── Validate risks ──────────────────────────────────────────────────────────
 for (const r of risks.risks) {
@@ -97,11 +116,12 @@ if (errors.length) {
 const r2 = (x) => Math.round(x * 100) / 100;
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const FX = E.get("CST-004").value;
-const escRate = (seg) => segmentEscalation(escTable, seg.scheduleKeys);
-const baseWage = { UAE: marketWage("UAE", FX, E.get("CST-001").value), US: marketWage("US", FX, E.get("CST-001").value) };
+const outcomes = (seg) => segmentOutcomes(escTable, seg.scheduleKeys);
+const wageInputs = { fxAedPerUsd: FX, uaeMonthlyAed: E.get("CST-002").value, usHourly: E.get("CST-001").value };
+const baseWage = { UAE: marketWage("UAE", wageInputs), US: marketWage("US", wageInputs) };
 
 function unit(v, market, seg) {
-  return computeUnit(v, baseWage[market], escRate(seg));
+  return computeUnit(v, baseWage[market], outcomes(seg));
 }
 
 const V = (which) => Object.fromEntries(model.drivers.map((d) => [d.id, d[which]]));
@@ -136,6 +156,23 @@ const sensitivity = {
   managedBreakEvenPriceUsd: sweep("managedBreakEvenPriceUsd", "lower"),
 };
 
+// Pilot pass bars 2 and 3 must stay consistent with the model.
+const ref = unit(base, "UAE", model.segments.find((x) => x.id === "standard"));
+const breakEvenManualMinPerWeek = ((base.pricePerAthleteMonthUsd * 60) / ref.coachHourlyUsd + ref.coachMinutesWith) / 4.33;
+const pilot = readFileSync(P("product/pilot-plan.md"), "utf8");
+const bar = (n) => {
+  const m = pilot.match(new RegExp(`^\\| ${n} \\| [^|]+\\| [≥≤] ([0-9.]+) \\|`, "m"));
+  return m ? Number(m[1]) : NaN;
+};
+if (!(bar(2) >= breakEvenManualMinPerWeek)) errors.push(`pilot pass bar 2 (${bar(2)}) is below the UAE break-even of ${breakEvenManualMinPerWeek.toFixed(1)} hand-minutes per athlete-week`);
+if (!(Math.abs(bar(3) - 1.5 * ref.coachMinutesWith) <= 1)) errors.push(`pilot pass bar 3 (${bar(3)}) is not 1.5 x the modelled ${ref.coachMinutesWith.toFixed(1)} coach minutes`);
+if (!pilot.includes(`break-even at the modelled price is ${breakEvenManualMinPerWeek.toFixed(1)}`)) errors.push(`pilot plan does not quote the current break-even ${breakEvenManualMinPerWeek.toFixed(1)}`);
+if (!pilot.includes(`modelled standard segment (${ref.coachMinutesWith.toFixed(1)})`)) errors.push(`pilot plan does not quote the modelled ${ref.coachMinutesWith.toFixed(1)} coach minutes`);
+if (errors.length) {
+  console.error("product build: INVALID\n- " + errors.join("\n- "));
+  process.exit(1);
+}
+
 const athletesForArr = base.arrTargetUsd / (12 * base.pricePerAthleteMonthUsd);
 const clubsForArr = athletesForArr / base.athletesPerClub;
 const penetration = { arrTargetUsd: base.arrTargetUsd, athletes: Math.round(athletesForArr), clubs: Math.round(clubsForArr), shareOfHyroxGyms: r3(clubsForArr / base.hyroxGyms), hyroxGymsEvidence: "MKT-003", hyroxGymsGrade: E.get("MKT-003").grade };
@@ -158,13 +195,16 @@ const output = {
   sensitivity,
   penetration,
   safety: ownExpected,
+  headline,
+  pilotReference: { breakEvenManualMinPerWeek: r3(breakEvenManualMinPerWeek), modelledCoachMinPerMonth: r3(ref.coachMinutesWith) },
   hybrid: {
     engineWeeksValid: hybrid.sets.engine_weeks_valid,
     adversarial: { n: hybrid.sets.adversarial_blocked.n, blocked: hybrid.sets.adversarial_blocked.blocked },
     safeAccepted: hybrid.sets.safe_proposals_accepted,
     amberAdaptation: hybrid.sets.amber_adaptation,
     painFlags: hybrid.sets.pain_flag_escalation,
-    escalationBySchedule: escTable,
+    deliveredWeekValid: hybrid.sets.delivered_week_valid,
+    amberOutcomesBySchedule: escTable,
   },
   risks: risks.risks.map((r) => ({ id: r.id, category: r.category, risk: r.risk, score: r.likelihood * r.impact, residual: r.residual.likelihood * r.residual.impact, likelihood: r.likelihood, impact: r.impact, mitigated: r.controlEvidence.length > 0 })),
 };
@@ -180,14 +220,14 @@ let fm = HDR("PolySync financial model");
 fm += `**The answer first.** At the modelled price of ${usd(base.pricePerAthleteMonthUsd)} (${aed(base.pricePerAthleteMonthUsd)}) per athlete-month, PolySync is software for the club: gross margin is ${pct(grid["UAE/standard"].softwareGrossMargin)} and inference is ${usd(grid["UAE/standard"].inferenceUsd)} per athlete-month. Whether the club gets its money back depends on market and schedule segment. The US case pays back ${grid["US/flexible"].clubRoi.toFixed(1)}x for flexible athletes. The UAE pilot case is ${grid["UAE/standard"].clubRoi.toFixed(1)}x, because UAE coach wages are lower. If PolySync ran the coaching itself (the managed variant), a ${pct(base.targetGrossMargin)} margin would need about ${usd(grid["UAE/standard"].managedBreakEvenPriceUsd)} per athlete-month in the UAE and ${usd(grid["US/standard"].managedBreakEvenPriceUsd)} in the US. That is services pricing, not software.\n\n`;
 fm += `**How much to trust it.** ${provenance.evidenceBacked} of ${provenance.drivers} drivers are evidence-backed and ${provenance.decisions} are recorded decisions. The other ${provenance.hypotheses} are hypotheses. Each hypothesis names the telemetry event or study that will replace it. The model is mainly a map of what the [pilot](pilot-plan.md) has to measure.\n\n`;
 fm += `## Unit economics per athlete-month (base case)\n\nCoach time is the club's cost under B2B2C (ADR-001). PolySync's value is the coach time it saves; its own cost is inference, hosting and fees.\n\n`;
-fm += `| Market / segment | Escalation rate (simulated) | Coach min with PolySync | Coach min by hand | Club value | Club ROI at ${usd(base.pricePerAthleteMonthUsd)} | Athletes per coach (hand → PolySync) | Software GM | Managed break-even price |\n|---|---|---|---|---|---|---|---|---|\n`;
-for (const [k, u] of Object.entries(grid)) fm += `| ${k} | ${pct(u.escalationRate)} | ${u.coachMinutesWith.toFixed(1)} | ${u.coachMinutesManual.toFixed(1)} | ${usd(u.clubValueUsd)} | ${u.clubRoi.toFixed(2)}x | ${Math.round(u.athletesPerCoachManual)} → ${Math.round(u.athletesPerCoachWith)} | ${pct(u.softwareGrossMargin)} | ${usd(u.managedBreakEvenPriceUsd)} |\n`;
-fm += `\nEscalation rates come from the hybrid eval (\`evals/results/hybrid-latest.json\`), a simulation of the engine's own rules (OWN-002). Real rates are unmeasured (GAPS #14).\n\n`;
+fm += `| Market / segment | Amber-day hard sessions kept (simulated) | Coach min with PolySync | Coach min by hand | Club value | Club ROI at ${usd(base.pricePerAthleteMonthUsd)} | Athletes per coach (hand → PolySync) | Software GM | Managed break-even price |\n|---|---|---|---|---|---|---|---|---|\n`;
+for (const [k, u] of Object.entries(grid)) fm += `| ${k} | ${pct(u.keptRate)} | ${u.coachMinutesWith.toFixed(1)} | ${u.coachMinutesManual.toFixed(1)} | ${usd(u.clubValueUsd)} | ${u.clubRoi.toFixed(2)}x | ${Math.round(u.athletesPerCoachManual)} → ${Math.round(u.athletesPerCoachWith)} | ${pct(u.softwareGrossMargin)} | ${usd(u.managedBreakEvenPriceUsd)} |\n`;
+fm += `\nOn an amber day the engine either keeps the hard session by moving it (no coach time), makes it easy in place and tells the coach a session was lost (a short review), or escalates. The rates come from the hybrid eval (\`evals/results/hybrid-latest.json\`), a simulation of the engine's own rules (OWN-002). Real rates are unmeasured (GAPS #14).\n\n`;
 fm += `### What the table says\n\n`;
 fm += `1. **Inference is not the business risk.** ${usd(grid["UAE/standard"].inferenceUsd)} per athlete-month at list price. The engine prescribes and the model only proposes and explains (ADR-004), so model spend per athlete is small and bounded; it is not what sets the margin.\n`;
 fm += `2. **Coach capacity is the product.** A coach handles about ${Math.round(grid["UAE/standard"].athletesPerCoachManual)} hybrid athletes by hand in the hours modelled, and about ${Math.round(grid["UAE/standard"].athletesPerCoachWith)} with PolySync (standard segment). Sell that, not features.\n`;
 fm += `3. **The UAE is a harder ROI market than the US.** Lower coach wages mean the same minutes saved are worth less, so the UAE pitch has to be capacity (more athletes per coach), not cost.\n`;
-fm += `4. **Rigid schedules cost coach time.** The rigid segment needs ${(grid["UAE/rigid"].coachMinutesWith - grid["UAE/flexible"].coachMinutesWith).toFixed(1)} more coach minutes per athlete-month than the flexible one (ADR-008).\n\n`;
+fm += `4. **Schedule shape decides training quality more than coach cost.** The engine keeps ${pct(grid["UAE/flexible"].keptRate)} of amber-day hard sessions for flexible athletes and ${pct(grid["UAE/rigid"].keptRate)} for rigid ones. The coach-time difference is small (${(grid["UAE/rigid"].coachMinutesWith - grid["UAE/flexible"].coachMinutesWith).toFixed(1)} min per athlete-month), so the case for segmenting is outcomes and retention, not cost (ADR-008).\n\n`;
 const tornadoTable = (sw, fmt) => `| Driver | Low value → | High value → | Swing |\n|---|---|---|---|\n` + sw.tornado.map((b) => `| ${b.label} | ${fmt(b.low)} | ${fmt(b.high)} | ${fmt(b.swing)} |`).join("\n") + "\n";
 fm += `## Sensitivity (reference case: ${sensitivity.referenceCase})\n\n`;
 fm += `Bear takes the unfavourable end of every range at once; bull the favourable end.\n\n| Metric | Bear | Base | Bull |\n|---|---|---|---|\n`;
@@ -199,7 +239,7 @@ fm += `The top drivers are the pilot's measurement priorities: coach minutes by 
 fm += `## Required penetration, not a forecast\n\n$${(penetration.arrTargetUsd / 1e6).toFixed(1)}M ARR at ${usd(base.pricePerAthleteMonthUsd)} per athlete-month needs about **${penetration.athletes.toLocaleString("en-US")} active athletes**, or **${penetration.clubs} clubs** at ${base.athletesPerClub} athletes each. That is **${(penetration.shareOfHyroxGyms * 100).toFixed(1)}%** of ${base.hyroxGyms.toLocaleString("en-US")} HYROX-affiliated gyms. The gym count is company-reported, grade ${penetration.hyroxGymsGrade} ([MKT-003](data/evidence.json)), so treat this as order of magnitude.\n\n`;
 fm += `## Drivers\n\n| Driver | Base | Range | Unit | Source |\n|---|---|---|---|---|\n`;
 for (const d of drivers) fm += `| ${d.label} | ${d.base} | ${d.low}–${d.high} | ${d.unit} | ${d.evidence ? `Evidence: ${src(d.evidence)}` : d.decision ? `Decision: ${d.decision}` : `Hypothesis → measured by \`${d.hypothesis.measuredBy}\`${d.anchors ? `; anchored on ${src(d.anchors)}` : ""}`} |\n`;
-fm += `\nCoach base wage: UAE AED 4,556/month (CST-002, grade B) ÷ 173.33 h ÷ ${FX} = ${usd(baseWage.UAE)}/h; US $22.67/h (CST-001, grade A). Both are multiplied by on-cost and specialist premium. Also available as a spreadsheet with live formulas: [polysync-unit-economics.xlsx](generated/polysync-unit-economics.xlsx).\n`;
+fm += `\nCoach base wage: UAE AED ${fmtN(wageInputs.uaeMonthlyAed)}/month (CST-002, grade ${E.get("CST-002").grade}) ÷ ${HOURS_PER_MONTH} h ÷ ${FX} = ${usd(baseWage.UAE)}/h; US ${usd(wageInputs.usHourly)}/h (CST-001, grade ${E.get("CST-001").grade}). Both are multiplied by on-cost and specialist premium. Also available as a spreadsheet with live formulas: [polysync-unit-economics.xlsx](generated/polysync-unit-economics.xlsx).\n`;
 
 let rr = HDR("PolySync risk register");
 rr += `**${risks.risks.filter((r) => r.likelihood * r.impact >= 15).length} red, ${risks.risks.filter((r) => { const x = r.likelihood * r.impact; return x >= 8 && x < 15; }).length} amber, ${risks.risks.filter((r) => r.likelihood * r.impact < 8).length} green** before mitigation. ${risks.rule}\n\nScale: likelihood and impact 1–5; score = L × I; 15+ red, 8–14 amber, under 8 green.\n\n`;

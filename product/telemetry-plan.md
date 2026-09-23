@@ -12,7 +12,7 @@ Formula: `count(session_completed where adapted = true) / active athletes / week
 |---|---|---|
 | Plan adherence | `session_completed / sessions prescribed` |  |
 | Coach minutes per athlete-month | `sum(coach_decision.active_s)/60 + coach_console_active_min, per active athlete-month` | Decides software vs services (ADR-003, ADR-008) |
-| Escalation rate by schedule segment | `coach_escalation / adaptation_requested, split by onboarding flexibility segment` | Replaces the simulated driver (GAPS #14) |
+| Amber-day outcomes by schedule segment | `session_moved, session_downgraded, coach_escalation / adaptation_requested{band=amber}, split by onboarding flexibility segment` | Replaces the simulated driver (GAPS #14) |
 | Rule rejection rate | `bounds_rejected / adaptation_proposed` | Model quality proxy; coach-queue load |
 | Cost per accepted adaptation | `sum(llm_call.cost_usd) / adaptations accepted` | Unit cost of the AI layer |
 
@@ -26,7 +26,7 @@ Formula: `count(session_completed where adapted = true) / active athletes / week
 
 ## Events
 
-3 of 13 are logged today as structured JSON lines; the rest are planned.
+5 of 15 are logged today as structured JSON lines; the rest are planned.
 
 | Event | Properties | Status | Replaces model hypothesis |
 |---|---|---|---|
@@ -37,7 +37,9 @@ Formula: `count(session_completed where adapted = true) / active athletes / week
 | `bounds_rejected` | uid, rules | instrumented (app/server.ts (plan route)) | Share of model proposals the rules block (each needs coach review) |
 | `hybrid_proposal_rejected` | uid, rules | instrumented (app/server.ts (/api/hybrid/week)) | — |
 | `coach_escalation` | uid, reason | instrumented (app/server.ts (/api/hybrid/adapt)) | — |
-| `coach_decision` | decision, latency_s, active_s, rule | planned | Coach minutes per escalation review |
+| `session_moved` | uid, day | instrumented (app/server.ts (/api/hybrid/adapt)) | — |
+| `session_downgraded` | uid, day | instrumented (app/server.ts (/api/hybrid/adapt)) | Coach minutes to review a hard session the engine made easy |
+| `coach_decision` | decision, latency_s, active_s, rule | planned | Coach minutes per escalation (pain flag, blocked proposal, or no safe adaptation) |
 | `coach_console_active_min` | coach_id, athletes | planned | Coach weekly triage per athlete with PolySync |
 | `llm_call` | model, tokens_in, tokens_out, cost_usd, purpose | planned | Input tokens per model call; Output tokens per model call; Model calls per athlete-month (proposals + explanations + chat) |
 | `session_completed` | modality, adapted, rpe_reported | planned | — |

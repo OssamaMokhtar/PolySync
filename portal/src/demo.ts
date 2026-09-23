@@ -50,26 +50,54 @@ const PROPOSALS: Proposal[] = [
   },
   {
     id: "h1",
-    title: "Strength 2 h after the threshold run",
-    said: "Model proposes: \"Add a heavy squat session right after Monday's run, you'll save a day.\"",
+    title: "Strength 4 h after the threshold run",
+    said: "Model proposes: \"Squat at lunchtime after the morning run, you'll save a day.\"",
     build: (w) => {
       const run = w.sessions.find((x) => x.modality === "endurance_hard");
       if (!run) return null;
       const q = clone(w);
-      q.sessions.push({ ...run, id: "proposed-strength", modality: "strength", startHour: run.startHour + 2, slot: "am", rpe: 8 });
+      q.sessions = q.sessions.filter((x) => x.day !== run.day);
+      q.sessions.push({ ...run, slot: "am", startHour: 7, minutes: 60 });
+      q.sessions.push({ id: "proposed-strength", day: run.day, slot: "pm", startHour: 12, modality: "strength", minutes: 60, rpe: 8, lowerBody: true });
+      return { proposal: q };
+    },
+  },
+  {
+    id: "h1-night",
+    title: "Late squats, early run",
+    said: "Model proposes: \"Squat at 22:00, then do the threshold run at 03:00 before work.\"",
+    build: (w, p) => {
+      const d = p.availableDays.find((x) => p.availableDays.includes(x + 1));
+      if (d === undefined) return null;
+      const q = clone(w);
+      q.sessions = q.sessions.filter((x) => x.day !== d && x.day !== d + 1);
+      q.sessions.push({ id: "late-squat", day: d, slot: "pm", startHour: 22, modality: "strength", minutes: 90, rpe: 8, lowerBody: true });
+      q.sessions.push({ id: "early-run", day: d + 1, slot: "am", startHour: 3, modality: "endurance_hard", minutes: 60, rpe: 8, lowerBody: true });
       return { proposal: q };
     },
   },
   {
     id: "h2",
-    title: "Power work straight after an easy run",
-    said: "Model proposes: \"Warm up with a 30-minute jog, then plyometrics.\"",
+    title: "Plyometrics 2 h after a jog",
+    said: "Model proposes: \"Easy hour's jog in the morning, plyometrics at noon.\"",
     build: (w, p) => {
       const d = p.availableDays[0];
       const q = clone(w);
       q.sessions = q.sessions.filter((x) => x.day !== d);
-      q.sessions.push({ id: "jog", day: d, slot: "am", startHour: 7, modality: "endurance_easy", minutes: 30, rpe: 4, lowerBody: true });
-      q.sessions.push({ id: "plyo", day: d, slot: "am", startHour: 8, modality: "power", minutes: 45, rpe: 7, lowerBody: true });
+      q.sessions.push({ id: "jog", day: d, slot: "am", startHour: 9, modality: "endurance_easy", minutes: 60, rpe: 4, lowerBody: true });
+      q.sessions.push({ id: "plyo", day: d, slot: "pm", startHour: 12, modality: "power", minutes: 45, rpe: 7, lowerBody: true });
+      return { proposal: q };
+    },
+  },
+  {
+    id: "h9-label",
+    title: "Heavy squats labelled easy",
+    said: "Model proposes the same week but rates strength at RPE 2, so the load looks smaller.",
+    build: (w) => {
+      const q = clone(w);
+      const s = q.sessions.find((x) => x.modality === "strength");
+      if (!s) return null;
+      s.rpe = 2;
       return { proposal: q };
     },
   },
@@ -92,11 +120,12 @@ const PROPOSALS: Proposal[] = [
   {
     id: "safe",
     title: "Safe edit: shorten an easy session",
-    said: "Model proposes: \"Trim 10 minutes off the first session; the athlete is short on time.\"",
+    said: "Model proposes: \"Trim 10 minutes off an easy run; the athlete is short on time.\"",
     build: (w) => {
       const q = clone(w);
-      if (!q.sessions[0]) return null;
-      q.sessions[0].minutes = Math.max(20, q.sessions[0].minutes - 10);
+      const easy = q.sessions.find((x) => x.modality === "endurance_easy");
+      if (!easy) return null;
+      easy.minutes = Math.max(20, easy.minutes - 10);
       return { proposal: q, ctx: { previous: w } };
     },
   },
@@ -107,10 +136,10 @@ function weekBoard(w: HybridWeek, marks: { moved?: Set<string>; added?: Set<stri
   DAYS.forEach((d, i) => {
     const col = h("div", { class: "flex flex-col gap-2" }, h("div", { class: "text-xs font-semibold ink-2 text-center" }, d));
     for (const slot of ["am", "pm"] as const) {
-      const cell = h("div", { class: "rounded-md p-1 min-h-[58px]", style: "background:var(--surface-2)" }, h("div", { class: "text-[10px] muted uppercase" }, slot === "am" ? "07:00" : "18:00"));
+      const cell = h("div", { class: "rounded-md p-1 min-h-[58px]", style: "background:var(--surface-2)" }, h("div", { class: "text-[10px] muted uppercase" }, slot));
       for (const x of w.sessions.filter((q) => q.day === i && q.slot === slot)) {
         const cls = ["session", marks.moved?.has(x.id) ? "moved" : "", marks.added?.has(x.id) ? "added" : ""].join(" ").trim();
-        cell.append(h("div", { class: cls, style: `--c:${MOD[x.modality].color}`, title: `${MOD[x.modality].label}: ${x.minutes} min at RPE ${x.rpe}` }, h("div", { class: "font-medium" }, MOD[x.modality].label), h("div", { class: "muted tabnum" }, `${x.minutes} min`), h("div", { class: "muted tabnum" }, `RPE ${x.rpe}`)));
+        cell.append(h("div", { class: cls, style: `--c:${MOD[x.modality].color}`, title: `${MOD[x.modality].label}: ${x.minutes} min at RPE ${x.rpe}` }, h("div", { class: "font-medium" }, MOD[x.modality].label), h("div", { class: "muted tabnum" }, `${String(x.startHour).padStart(2, "0")}:00 · ${x.minutes} min`), h("div", { class: "muted tabnum" }, `RPE ${x.rpe}`)));
       }
       col.append(cell);
     }
@@ -165,11 +194,13 @@ export function engineDemo(): HTMLElement {
       const moved = new Set(a.week.sessions.filter((x) => before.has(x.id) && (before.get(x.id)!.day !== x.day || before.get(x.id)!.slot !== x.slot)).map((x) => x.id));
       const added = new Set(a.week.sessions.filter((x) => !before.has(x.id)).map((x) => x.id));
       board.replaceChildren(weekBoard(a.escalate ? w : a.week, { moved, added }));
+      const label = { moved: "✓ Kept: the hard session moves to a later day", downgraded: "◐ Made easy in place: the session is lost and the coach is told", escalated: "▲ Escalated to the coach", unchanged: "✓ No change needed" }[a.outcome];
+      const color = a.outcome === "escalated" ? "var(--bad-ink)" : a.outcome === "downgraded" ? "var(--ink-2)" : "var(--good-ink)";
       verdict.append(
-        h("div", { class: "flex items-center gap-2" }, h("span", { class: "state", style: `color:${a.escalate ? "var(--bad-ink)" : "var(--good-ink)"}` }, a.escalate ? "▲ Escalated to the coach" : "✓ Adapted by the engine"), h("span", { class: "text-sm ink-2" }, `${DAYS[d]}: amber readiness after yesterday's heavy lower-body session (RPE 9)`)),
+        h("div", { class: "flex flex-wrap items-center gap-2" }, h("span", { class: "state", style: `color:${color}` }, label), h("span", { class: "text-sm ink-2" }, `${DAYS[d]}: amber readiness after yesterday's heavy lower-body session (RPE 9)`)),
         h("ol", { class: "list-decimal pl-5 mt-2 text-sm ink-2 flex flex-col gap-1" }, ...a.steps.map((s0) => h("li", {}, h("span", { class: "font-mono text-xs" }, s0.rule), " ", humanize(s0.outcome)))),
       );
-      if (!a.escalate) verdict.append(h("p", { class: "text-xs muted mt-2" }, "Solid outline: session moved. Dashed outline: easy session added in place of the hard one."));
+      if (!a.escalate) verdict.append(h("p", { class: "text-xs muted mt-2" }, "Solid outline: session moved. Dashed outline: easy session in place of the hard one. Untick \"Doubles OK\" to see how often the engine has to make sessions easy instead of moving them."));
     } else if (state.selected) {
       board.replaceChildren(weekBoard(w));
       const pr = PROPOSALS.find((x) => x.id === state.selected)!;

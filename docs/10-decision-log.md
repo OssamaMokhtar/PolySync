@@ -140,20 +140,23 @@ Each ADR states what was rejected and the measurable condition that would revers
 
 ---
 
-## ADR-008: Segment and price by schedule flexibility
+## ADR-008: Segment by schedule flexibility
 
-**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar
+**Status:** Accepted 2026-09-24 · Revised 2026-09-24 after adversarial review · Owner: Ossama Mokhtar
 
-**Context.** The hybrid eval simulates amber-readiness days across 3,240 athlete schedules ([results](../evals/results/hybrid-latest.json), `amber_escalation_by_schedule`). When the engine cannot reschedule within the rules, the case goes to a coach. Escalation falls from 90–100% for athletes with 3–4 fixed days to about 25% for athletes with 6–7 available days who accept doubles. Coach minutes are the dominant variable cost (ADR-003), so schedule flexibility decides gross margin.
+**Context.** The hybrid eval simulates an amber-readiness day for every hard session across 3,240 athlete schedules ([results](../evals/results/hybrid-latest.json), `amber_outcomes_by_schedule`). The engine moves the session to a later day if a move passes every rule; otherwise it makes the session easy in place and tells the coach a session was lost; it escalates only if neither passes. The share of hard sessions kept by moving them is 77% for athletes who accept doubles on 5–7 days, 43% in the middle segment, and 6% for athletes limited to one session a day on 3–5 days. Whether doubles are acceptable matters more than the number of days.
+
+**First version and why it changed.** The first version of this ADR said escalation fell from 90–100% (3–4 fixed days) to about 25% (6–7 days with doubles) and priced segments by coach cost. That engine could only move or escalate. An adversarial review showed the rates were an artifact of the missing make-easy option. With it, escalations in the grid are 0 and the coach-time gap between segments is about 2.6 minutes per athlete-month. The segment still matters, but for training quality, not cost.
 
 **Decision.**
-1. Onboarding captures available days and whether doubles are acceptable, before anything else.
-2. The pilot recruits competitive HYROX athletes, who typically train 5+ days, first.
-3. Pricing and coach capacity are modelled per flexibility segment ([financial model](../product/financial-model.md)).
+1. Onboarding asks whether the athlete can train twice on some days, then which days, before anything else.
+2. The pilot recruits flexible athletes first ([pilot plan](../product/pilot-plan.md)).
+3. Rigid athletes are told at onboarding that on low-readiness days most hard sessions will be made easy, not moved.
+4. The [financial model](../product/financial-model.md) keeps segment-level coach minutes, and one blended price.
 
-**Rejected.** A single blended price and coach ratio. It hides the segment that makes the business services-heavy.
+**Rejected.** Pricing by segment. The cost difference is too small to justify the complexity. Revisit if pilot rates differ.
 
-**Reversal trigger.** Pilot escalation rates by segment differ from the simulation by more than 2x. Then re-fit the model to observed rates.
+**Reversal trigger.** In the pilot, the share of amber-day hard sessions kept differs from the simulation by more than 15 points in any segment (pass bar 4). Then re-fit the model to observed rates.
 
 ---
 

@@ -60,15 +60,15 @@ We compared these products on price only; their features were not audited. The p
 
   | Market | Pitch | Club ROI | Coach capacity |
   |---|---|---|---|
-  | UAE | Capacity; lower coach wages make the time-saved case thin, and the bear case is negative | 1.4x | ~40 → ~170 athletes per coach |
-  | US | Time saved | 4.3–4.8x | ~40 → ~170 athletes per coach |
+  | UAE | Capacity; lower coach wages make the time-saved case thin, and the bear case is negative | 1.5x | ~40 → ~190–230 athletes per coach, by segment |
+  | US | Time saved | 4.7–5.0x | ~40 → ~190–230 athletes per coach, by segment |
 
-- **Not offered: a managed coaching service.** To reach a 70% margin, PolySync-employed coaches would need $12–17 per athlete-month in the UAE and $36–52 in the US. That is a services business with a different P&L (doc 11's warning, now quantified).
+- **Not offered: a managed coaching service.** To reach a 70% margin, PolySync-employed coaches would need about $11–13 per athlete-month in the UAE and $32–39 in the US ([financial model](financial-model.md)). That is a services business with a different P&L (doc 11's warning, now quantified).
 
 ## 7. Go-to-market
 
 1. **UAE pilot:** 3 HYROX training clubs, flexible-schedule athletes first ([pilot plan](pilot-plan.md), ADR-006, ADR-008).
-2. **Case study** with the pilot's measured coach minutes and escalation rates.
+2. **Case study** with the pilot's measured coach minutes and amber-day outcomes by segment.
 3. **US boutique hybrid gyms** (ADR-005), through coach networks. Land the head coach, expand to the club.
 
 ## 8. Non-goals
@@ -84,8 +84,8 @@ We compared these products on price only; their features were not audited. The p
 | Signal | Decision it reverses |
 |---|---|
 | Fewer than 2 of 5 UAE owners sign an LOI | UAE-first (ADR-006) |
-| Hand-programming baseline under 8 coach minutes per athlete-week | The time-saved pitch in the UAE |
-| Observed escalation rates differ from the simulation by more than 2× | The segment model (ADR-008) |
+| Hand-programming baseline under 12 coach minutes per athlete-week (UAE break-even is 10.8) | The time-saved pitch in the UAE |
+| Share of amber-day hard sessions kept differs from the simulation by more than 15 points in a segment | The segment model (ADR-008) |
 | Coach agreement above 90% for 3 months on green-tier adaptations | Widen autonomous bounds for green tier only (ADR-003) |
 
 ## 10. Status of every claim on this page

@@ -70,7 +70,7 @@ export const modelOutput = output as unknown as {
 };
 export const safetyResults = safety;
 export const hybridResults = hybrid;
-export const escalationTable = hybrid.sets.amber_escalation_by_schedule.byDaysAndDoubles as Record<string, { n: number; escalated: number; rate: number }>;
+export const outcomeTable = hybrid.sets.amber_outcomes_by_schedule.byDaysAndDoubles as Record<string, { n: number; moved: number; downgraded: number; escalated: number; kept_rate: number; coach_rate: number }>;
 
 // ── Markdown sources parsed for lists (the docs stay the source of truth) ──
 const plain = (s: string) => s.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/`([^`]+)`/g, "$1").trim();

@@ -15,7 +15,7 @@
       "id": "UAE",
       "label": "UAE (pilot, ADR-006)",
       "coachBaseHourlyUsd": {
-        "formula": "4556 AED/month / 173.33 h / 3.6725",
+        "formula": "CST-002 AED/month / 173.33 h / CST-004",
         "evidence": [
           "CST-002",
           "CST-004"
@@ -36,29 +36,30 @@
   "segments": [
     {
       "id": "flexible",
-      "label": "Flexible: 6-7 days available, doubles OK",
+      "label": "Flexible: doubles OK, 5-7 days",
       "scheduleKeys": [
+        "5d-doubles",
         "6d-doubles",
         "7d-doubles"
       ]
     },
     {
       "id": "standard",
-      "label": "Standard: 5 days with doubles, or 6-7 days without",
+      "label": "Standard: doubles OK on 3-4 days, or 6-7 single-session days",
       "scheduleKeys": [
-        "5d-doubles",
+        "3d-doubles",
+        "4d-doubles",
         "6d-singles",
         "7d-singles"
       ]
     },
     {
       "id": "rigid",
-      "label": "Rigid: 3-4 fixed days",
+      "label": "Rigid: one session a day, 3-5 days",
       "scheduleKeys": [
-        "3d-doubles",
         "3d-singles",
-        "4d-doubles",
-        "4d-singles"
+        "4d-singles",
+        "5d-singles"
       ]
     }
   ],
@@ -67,7 +68,7 @@
       "OWN-002"
     ],
     "file": "evals/results/hybrid-latest.json",
-    "path": "sets.amber_escalation_by_schedule.byDaysAndDoubles"
+    "path": "sets.amber_outcomes_by_schedule.byDaysAndDoubles"
   },
   "drivers": [
     {
@@ -131,8 +132,20 @@
       }
     },
     {
+      "id": "minutesPerLostSession",
+      "label": "Coach minutes to review a hard session the engine made easy",
+      "unit": "min",
+      "base": 1.5,
+      "low": 0.5,
+      "high": 4,
+      "hypothesis": {
+        "pilotMetric": "coach_decision.latency_active_s / 60 where trigger = session_downgraded",
+        "measuredBy": "event:session_downgraded"
+      }
+    },
+    {
       "id": "minutesPerEscalation",
-      "label": "Coach minutes per escalation review",
+      "label": "Coach minutes per escalation (pain flag, blocked proposal, or no safe adaptation)",
       "unit": "min",
       "base": 4,
       "low": 2,

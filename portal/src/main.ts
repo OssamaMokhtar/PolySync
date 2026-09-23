@@ -1,7 +1,7 @@
 import "./styles.css";
-import { computeUnit, marketWage, segmentEscalation } from "../../product/scripts/model-core.mjs";
+import { computeUnit, marketWage, segmentOutcomes } from "../../product/scripts/model-core.mjs";
 import { HYBRID_PARAMS, RULE_EVIDENCE, type HybridRuleId } from "../../app/src/engine/hybrid";
-import { adrs, blob, escalationTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, type Risk } from "./data";
+import { adrs, blob, outcomeTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, type Risk } from "./data";
 import { chartCard, groupedColumns, h, legend, tableView, tornado } from "./charts";
 import { engineDemo } from "./demo";
 import { evidenceChip } from "./evidence";
@@ -14,7 +14,7 @@ const fmt = {
   int: (v: number) => Math.round(v).toLocaleString("en-US"),
 };
 const FX = evidenceById.get("CST-004")!.value as number;
-const US_WAGE = evidenceById.get("CST-001")!.value as number;
+const WAGES = { fxAedPerUsd: FX, uaeMonthlyAed: evidenceById.get("CST-002")!.value as number, usHourly: evidenceById.get("CST-001")!.value as number };
 
 // ── Theme toggle (explicit; defaults to the OS setting) ─────────────────────
 function themeToggle(): HTMLElement {
@@ -86,27 +86,27 @@ function overview(): HTMLElement {
     h("div", { class: "card p-6" },
       h("div", { class: "text-sm ink-2" }, "Unsafe proposals blocked before reaching an athlete"),
       h("div", { class: "font-semibold mt-1", style: "font-size:clamp(40px, 9vw, 56px);line-height:1.05" }, `${fmt.int(blocked)} of ${fmt.int(total)}`),
-      h("div", { class: "text-sm ink-2 mt-2" }, `${s.bounds_adversarial.n.toLocaleString("en-US")} single-plan attacks (8 types) + ${hy.adversarial_blocked.n.toLocaleString("en-US")} hybrid-week attacks (8 types, including injected text). Each blocked by the expected rule and routed to a coach.`),
+      h("div", { class: "text-sm ink-2 mt-2" }, `${s.bounds_adversarial.n.toLocaleString("en-US")} single-plan attacks (${Object.keys(s.bounds_adversarial.byMutation).length} types) + ${hy.adversarial_blocked.n.toLocaleString("en-US")} hybrid-week attacks (${Object.keys(hy.adversarial_blocked.byMutation).length} types, including injected text, effort labelled easy, and a run 3.5 h after late squats end). Each blocked by the expected rule and routed to a coach. This shows the rules hold; it does not show a proposal that passes is a good plan.`),
       h("div", { class: "state mt-2" }, "Measured · CI")),
     h("div", { class: "grid sm:grid-cols-2 lg:grid-cols-4 gap-3" },
       statTile("Engine weeks breaking a blocking rule", `0 of ${fmt.int(hy.engine_weeks_valid.n_profiles)}`, "Across levels, priorities, schedules", "Measured · CI"),
       statTile("Contraindicated exercises in plans", `${s.contraindication_leak.contraindicated_exercises_in_plans} of ${fmt.int(s.contraindication_leak.n_plans)}`, "Injury filter + bounds checker", "Measured · CI"),
-      statTile("Pain flags escalated to a coach", `${fmt.int(hy.pain_flag_escalation.escalated)} of ${fmt.int(hy.pain_flag_escalation.n)}`, "Never adapted autonomously", "Measured · CI"),
+      statTile("Delivered weeks breaking a rule on a low-readiness day", `${fmt.int(hy.delivered_week_valid.invalid)} of ${fmt.int(hy.delivered_week_valid.n)}`, `Pain flags: ${fmt.int(hy.pain_flag_escalation.escalated)} of ${fmt.int(hy.pain_flag_escalation.n)} escalated`, "Measured · CI"),
       statTile("Athletes per coach, by hand → with PolySync", `${Math.round(uaeStd.athletesPerCoachManual)} → ${Math.round(uaeStd.athletesPerCoachWith)}`, "UAE, standard schedule segment", "Hypothesis + simulation")),
     stateLegend());
 }
 
 function rulesTable(): HTMLElement {
   const desc: Record<HybridRuleId, [string, string]> = {
-    H1_CONFLICT_SEPARATION: [`Conflicting hard sessions on one day at least ${HYBRID_PARAMS.minSeparationHours} h apart`, "Blocks"],
-    H2_POWER_AFTER_ENDURANCE: [`No power work within ${HYBRID_PARAMS.powerAfterEnduranceHours} h after endurance`, "Blocks"],
-    H3_PRIORITY_FIRST: ["On a shared day, the block's priority quality goes first", "Blocks"],
+    H1_CONFLICT_SEPARATION: [`At least ${HYBRID_PARAMS.minSeparationHours} h rest between conflicting hard sessions, end to start, across midnight`, "Blocks"],
+    H2_POWER_AFTER_ENDURANCE: [`No power work within ${HYBRID_PARAMS.powerAfterEnduranceHours} h after endurance ends`, "Blocks"],
+    H3_PRIORITY_FIRST: ["On a shared day, the athlete's block priority goes first (a proposal cannot relabel it)", "Blocks"],
     H4_CONFLICT_WITHIN_24H: [`Conflicting hard sessions under ${HYBRID_PARAMS.preferredSeparationHours} h apart`, "Coach attention"],
-    H5_WEEKLY_LOAD_JUMP: [`Weekly load above +${HYBRID_PARAMS.maxWeeklyLoadIncrease * 100}% (a product limit, not an injury claim)`, "Blocks → coach"],
+    H5_WEEKLY_LOAD_JUMP: [`Weekly load above +${HYBRID_PARAMS.maxWeeklyLoadIncrease * 100}% over last week, or the engine's week without history (a product limit, not an injury claim)`, "Blocks → coach"],
     H6_ACUTE_CHRONIC_ATTENTION: [`Acute:chronic above ${HYBRID_PARAMS.acwrAttention} (attention only; no sweet spot claimed)`, "Coach attention"],
     H7_READINESS: ["Red readiness: nothing autonomous; amber: no hard session", "Blocks → coach"],
     H8_UNAVAILABLE_DAY: ["Sessions only on days the athlete made available", "Blocks"],
-    H9_MALFORMED: ["Malformed or injected proposals", "Blocks"],
+    H9_MALFORMED: ["Not a possible week: injected text, overlaps, two sessions in one slot, effort outside the modality's RPE band", "Blocks"],
   };
   const t = h("table", { class: "data" });
   t.append(h("thead", {}, h("tr", {}, h("th", {}, "Rule"), h("th", {}, "What it enforces"), h("th", {}, "Severity"), h("th", {}, "Evidence"))));
@@ -134,7 +134,9 @@ function economics(): HTMLElement {
     ["pricePerAthleteMonthUsd", (x) => `$${x.toFixed(2)} (AED ${Math.round(x * FX)})`, 0.5],
     ["manualMinutesPerAthleteWeek", (x) => `${x} min`, 1],
     ["specialistPremium", (x) => `${x.toFixed(1)}x`, 0.1],
-    ["minutesPerEscalation", (x) => `${x} min`, 1],
+    ["coachLoading", (x) => `${x.toFixed(2)}x`, 0.05],
+    ["triageMinutesPerAthleteWeek", (x) => `${x} min`, 0.5],
+    ["minutesPerLostSession", (x) => `${x} min`, 0.5],
     ["amberDaysPerAthleteMonth", (x) => `${x} days`, 1],
   ];
   const tiles = h("div", { class: "grid sm:grid-cols-2 lg:grid-cols-4 gap-3" });
@@ -143,7 +145,7 @@ function economics(): HTMLElement {
 
   const segCase = (mk: string, segId: string) => {
     const seg = model.segments.find((x) => x.id === segId)!;
-    return computeUnit(v, marketWage(mk, FX, US_WAGE), segmentEscalation(escalationTable, seg.scheduleKeys));
+    return computeUnit(v, marketWage(mk, WAGES), segmentOutcomes(outcomeTable, seg.scheduleKeys));
   };
   const renderAll = () => {
     const u = segCase(market, "standard");
@@ -187,16 +189,16 @@ function economics(): HTMLElement {
   });
   controls.append(reset);
 
-  // Escalation by schedule (static CI data)
+  // Amber-day outcomes by schedule (static CI data)
   const days = [3, 4, 5, 6, 7];
   const escSeries = [
-    { name: "Doubles OK", color: "var(--s1)", values: days.map((d) => escalationTable[`${d}d-doubles`].rate) },
-    { name: "One session a day", color: "var(--s2)", values: days.map((d) => escalationTable[`${d}d-singles`].rate) },
+    { name: "Doubles OK", color: "var(--s1)", values: days.map((d) => outcomeTable[`${d}d-doubles`].kept_rate) },
+    { name: "One session a day", color: "var(--s2)", values: days.map((d) => outcomeTable[`${d}d-singles`].kept_rate) },
   ];
   const escCard = chartCard(
-    "Coach escalations fall as schedules get more flexible",
-    "Share of hard sessions the engine cannot reschedule within the rules on an amber-readiness day. Simulated across 3,240 profiles in CI; real rates are measured in the pilot.",
-    () => h("div", {}, legend(escSeries), groupedColumns({ categories: days.map((d) => `${d} days`), series: escSeries, format: (x) => `${Math.round(x * 100)}%`, yLabel: "Escalation rate" })),
+    "Training twice a day decides whether hard sessions survive a bad day",
+    "Share of hard sessions the engine keeps by moving them on an amber-readiness day; the rest are made easy in place and the coach is told. Simulated across 3,240 profiles in CI; the pilot measures real rates.",
+    () => h("div", {}, legend(escSeries), groupedColumns({ categories: days.map((d) => `${d} days`), series: escSeries, format: (x) => `${Math.round(x * 100)}%`, yLabel: "Hard sessions kept" })),
     () => tableView(["Days available", "Doubles OK", "One a day"], days.map((d, i) => [`${d}`, fmt.pct(escSeries[0].values[i]), fmt.pct(escSeries[1].values[i])]), [1, 2]),
   );
 
@@ -212,7 +214,7 @@ function economics(): HTMLElement {
   const prov = modelOutput.provenance;
   renderAll();
   return h("section", { class: "flex flex-col gap-4" },
-    sectionTitle("economics", "Economics", `Under B2B2C the club's coaches handle escalations, so PolySync sells coach capacity. ${prov.evidenceBacked} of ${prov.drivers} drivers are evidence-backed and ${prov.hypotheses} are hypotheses, each mapped to the event or study that will replace it.`),
+    sectionTitle("economics", "Economics", `Under B2B2C the club's coaches review what the engine cannot resolve, so PolySync sells coach capacity. ${prov.evidenceBacked} of ${prov.drivers} drivers are evidence-backed and ${prov.hypotheses} are hypotheses, each mapped to the event or study that will replace it.`),
     tiles,
     h("div", { class: "grid lg:grid-cols-[340px_minmax(0,1fr)] gap-4" }, controls, h("div", { class: "min-w-0" }, roiHolder)),
     h("div", { class: "grid lg:grid-cols-2 gap-4 [&>*]:min-w-0" }, escCard, torCard),
@@ -325,7 +327,7 @@ function decisionsSection(): HTMLElement {
 
 function footer(): HTMLElement {
   return h("footer", { class: "text-sm muted py-10 border-t mt-12", style: "border-color:var(--ring)" },
-    h("p", {}, "Generated at build time from product/data, evals/results and docs in the ", h("a", { href: "https://github.com/OssamaMokhtar/PolySync" }, "PolySync repository"), ". Nothing on this page is typed in by hand."),
+    h("p", {}, "Generated at build time from product/data, evals/results and docs in the ", h("a", { href: "https://github.com/OssamaMokhtar/PolySync" }, "PolySync repository"), ". Every number is read from those files when the page is built; the words around them are written by hand."),
     h("p", { class: "mt-1" }, "Ossama Mokhtar · Dubai, UAE"));
 }
 

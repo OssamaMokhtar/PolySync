@@ -26,16 +26,16 @@ flowchart LR
 
 **Who to approach first.** UAE HYROX training clubs, including official HYROX Performance Centers (GymNation operates in four emirates, MKT-007) and boutique clubs that run HYROX prep classes (MKT-006). These are candidates only; none has been contacted.
 
-**Who to recruit inside each club.** 10–20 athletes per club, **flexible segment first**: 6–7 available days, doubles acceptable (ADR-008). Adults only; not a clinical population.
+**Who to recruit inside each club.** 10–20 athletes per club, **flexible segment first**: able to train twice on some days, 5+ days a week (ADR-008). Adults only; not a clinical population.
 
 ## Pass bars (set 2026-09-24, before any data)
 
 | # | Measure | Pass | Source of the bar | Fails means |
 |---|---|---|---|---|
 | 1 | Club owners signing a paid-pilot LOI | ≥ 2 of 5 at ≥ $5 (AED 18) per athlete-month | Model price range low end | Stop; ADR-006 reversal trigger |
-| 2 | Coach minutes per athlete-week programming by hand (diary baseline) | ≥ 8 | Model low end; below this the UAE cost case is negative | Sell capacity only, or move to the US |
-| 3 | Coach minutes per athlete-month with PolySync | ≤ 23 | 1.5 × modelled standard segment (15.4) | Tighten escalation precision before scaling |
-| 4 | Escalation rate by schedule segment | Within 2× of the simulation | ADR-008 reversal trigger | Re-fit the model to observed rates |
+| 2 | Coach minutes per athlete-week programming by hand (diary baseline) | ≥ 12 | UAE club break-even at the modelled price is 10.8; the bar adds a margin. CI fails if it drops below break-even | Sell capacity only, or move to the US |
+| 3 | Coach minutes per athlete-month with PolySync | ≤ 18 | 1.5 × modelled standard segment (12.4); CI checks the multiple | Tighten escalation precision before scaling |
+| 4 | Amber-day hard sessions kept (moved, not lost) by segment | Within 15 points of the simulation | ADR-008 reversal trigger | Re-fit the model to observed rates |
 | 5 | Contraindicated exercises reaching an athlete | 0 | Safety guardrail | Stop the pilot |
 | 6 | Pain flags escalated to a coach | 100%, reviewed within 24 h | Safety guardrail | Stop the pilot |
 | 7 | Prescribed sessions completed | ≥ 70% | Target, not evidence | Investigate plan fit before growth |
@@ -48,8 +48,8 @@ Each hypothesis driver in the [financial model](financial-model.md) names the ev
 1. Coach minutes by hand
 2. Specialist wage premium
 3. Price
-4. Minutes per escalation
-5. Coach on-cost
+4. Coach on-cost
+5. Coach weekly triage with PolySync
 
 ## Consent and data
 
