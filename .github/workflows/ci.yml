@@ -37,7 +37,7 @@ jobs:
       - name: Unit tests (engine, hybrid rules H1-H9, bounds checker, routing, auth)
         run: npm test
 
-      - name: Evals: safety layer + hybrid layer (hard gates, results reported with n)
+      - name: "Evals: safety layer + hybrid layer (hard gates, results reported with n)"
         run: npm run eval
 
       - name: Build
@@ -64,3 +64,25 @@ jobs:
           if git grep -nE 'AIza[0-9A-Za-z_-]{35}' -- ':!app/firebase-applet-config.json'; then
             echo "::error::possible Google API key committed"; exit 1
           fi
+
+  portal:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: portal/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Typecheck and build ProjectOS (compiles the production engine into the page)
+        run: npm run build
+      - name: Single self-contained file, no third-party scripts
+        run: |
+          test -f dist/index.html
+          if grep -oE '<script[^>]+src="https?://' dist/index.html; then echo "::error::external script in portal"; exit 1; fi
+

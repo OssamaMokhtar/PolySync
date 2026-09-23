@@ -1,103 +1,120 @@
 # PolySync
 
-**AI coaching for hybrid athletes.** B2B2C, with a human coach in the loop.
+**AI coaching for hybrid athletes, where the model can propose but never prescribe.** B2B2C: clubs buy coach capacity; a human coach handles what the engine cannot resolve.
 
-**Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [gaps](docs/GAPS.md)
+**[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
 
-Hybrid athletes chase endurance and strength adaptations at the same time. Those adaptations interfere with each other, and mainstream apps don't resolve it — they run two plans in parallel and let the athlete or coach arbitrate. PolySync treats training as a control problem, not a chat problem.
+**Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [hybrid engine](docs/12-hybrid-athlete-programming-engine.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [gaps](docs/GAPS.md)
+
+![A prompt-injected model output is blocked by rule H9; the athlete keeps the engine's week and a coach is asked](docs/screens/engine-blocks-injection.png)
+
+*A model output tries to override the limits. Rule H9 blocks it, the athlete keeps the engine's week, and the case goes to a coach. Screenshot of [ProjectOS](https://ossamamokhtar.github.io/PolySync/), which runs [`app/src/engine/hybrid.ts`](app/src/engine/hybrid.ts) unchanged.*
 
 ## The load-bearing decision
 
-The **deterministic programming engine** owns every load prescription. The LLM explains, converses, and *proposes* adaptations as structured deltas — every one of which must clear a bounds checker before it can produce athlete-facing output.
+The **deterministic engine owns every load prescription** ([ADR-004](docs/10-decision-log.md)). The LLM explains and *proposes* changes. A proposal reaches the athlete only if it passes every rule; otherwise the engine's plan stands and a coach is asked.
 
-Four consequences:
-- Safety is auditable to an org buyer's risk function.
 - Prompt injection cannot change training load.
-- A model provider outage degrades the explanation, not the training.
-- Eval gates are meaningful, because prescription is reproducible.
+- A model outage degrades the explanation, not the training.
+- Safety is auditable by a club's risk function, and the evals mean something, because prescription is reproducible.
+
+## What the engine does for hybrid athletes
+
+It schedules strength, power and endurance under nine rules, each citing the study behind it ([evidence](product/evidence.md)). The largest recent meta-analysis ([Schumann et al., *Sports Medicine* 2022](https://link.springer.com/doi/10.1007/s40279-021-01587-7), 43 studies) found **no significant interference on strength or hypertrophy, but a real loss in power**, concentrated in same-session training. So the rules:
+
+- protect power: no power work within 3 h after endurance;
+- separate conflicting sessions by at least 6 h;
+- put the block's priority quality first on shared days.
+
+Two popular load rules stay as coach-attention limits, and **PolySync does not claim they prevent injuries**. The trials we read do not support that ([ADR-007](docs/10-decision-log.md#adr-007-claims-we-refuse-to-make)).
+
+## Measured on every push
+
+| Set | n | Result |
+|---|---|---|
+| Engine weeks breaking a blocking rule (hybrid) | 3,240 profiles | **0** |
+| Unsafe proposals blocked by the expected rule and routed to a coach | 2,067 single-plan + 3,593 hybrid-week (16 attack types, including injected text) | **5,660 / 5,660** |
+| Safe proposals accepted (the rules are not a wall) | 194 + 463 | **657 / 657** |
+| Contraindicated exercises in generated plans | 8,640 plans | **0** |
+| Amber-day adaptations that break a rule | 13,674 | **0** |
+| Pain flags escalated to a coach | 2,263 | **2,263** |
+
+Results: [`evals/results/`](evals/results/). These check the code against its own rules. They do not show that the rules are coach-approved (GAPS #4), that model proposals are good (GAPS #1), or that athletes do better (pilot).
+
+## The finding that changed the product
+
+The simulation, not the model, showed what drives cost. When readiness is low, the engine can reschedule most hard sessions for athletes with flexible weeks, but not for rigid ones:
+
+| Schedule | Share of hard sessions a coach must handle on amber days |
+|---|---|
+| 6–7 days available, doubles OK | ~25% |
+| 3–4 fixed days | 90–100% |
+
+Coach minutes decide whether this is software or services. So schedule flexibility is the first onboarding question, the pilot recruits flexible athletes first, and the model prices by segment ([ADR-008](docs/10-decision-log.md#adr-008-segment-and-price-by-schedule-flexibility)).
+
+## Product layer
+
+| | |
+|---|---|
+| [Strategy](product/strategy.md) | Customer, positioning, moat, pricing, go-to-market, non-goals |
+| [Financial model](product/financial-model.md) · [xlsx](product/generated/polysync-unit-economics.xlsx) | Club ROI, coach capacity (~40 → ~170 athletes per coach), software margin, managed-service break-even; 18 of 23 drivers are hypotheses, each mapped to the event that will measure it |
+| [Pilot plan](product/pilot-plan.md) | UAE, 3 HYROX clubs, 8 weeks, pass bars set before data ([ADR-006](docs/10-decision-log.md#adr-006-validate-in-the-uae-scale-in-the-us)) |
+| [Risk register](product/risk-register.md) | 15 risks; a mitigation counts only with a test, gate or decision behind it |
+| [Telemetry plan](product/telemetry-plan.md) · [Evidence](product/evidence.md) | North star, events, studies; 26 claims graded A–D |
+
+All product numbers are generated from [`product/data/`](product/data/) by [`product/scripts/build.mjs`](product/scripts/build.mjs). CI fails in any of these cases:
+
+- a driver has no source;
+- a risk's control evidence does not exist;
+- the evidence drifts from eval results;
+- a generated doc is stale.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  APP[Athlete app] --> API[API / tenancy]
+  APP[Athlete app] --> API[API<br/>verified ID tokens]
   CON[Coach console] --> API
-  API --> ENG[Programming engine<br/>deterministic]
-  API --> ORCH[LLM orchestrator]
-  ORCH --> GUARD[Bounds checker]
-  GUARD --> ENG
-  GUARD --> ESC[Escalation → coach]
+  API --> ENG[Engine<br/>deterministic]
+  API --> LLM[Model<br/>proposes, explains]
+  LLM --> CHK[Rules H1-H9<br/>+ bounds B1-B9]
+  CHK -->|pass| ENG
+  CHK -->|block| ESC[Coach queue]
 ```
 
-Also see the full diagram: [`docs/architecture-diagram.png`](docs/architecture-diagram.png) — container view with clients, platform, data, and eval harness.
+## Status
 
-## Product status (honest)
-
-| Layer | Status |
+| Layer | State |
 |---|---|
-| Decision log (5 ADRs, reversal triggers, beachhead named) | **Authored** |
-| Runtime code (React + Express + Firebase + Gemini) | **In this repo** under [`app/`](app/) since 23 Sep 2026, moved from PolyVerses with history |
-| Deterministic engine + bounds checker (ADR-004) | **Built and enforced** in [`app/src/engine/`](app/src/engine/). Gemini output is a proposal that must pass rules B1–B9 |
-| Safety-layer evals | **Run in CI**: 0 contraindication leaks in 8,640 engine plans; 2,067/2,067 unsafe proposals blocked and escalated ([results](evals/results/latest.json)) |
-| Model-in-the-loop evals (golden programming, free-text safety, live injection) | **Designed, not run** |
-| Coach minutes / athlete-month (unit economics) | **Not measured** |
-| Protocol library and contraindication rules (the moat) | **v0, not coach-signed** |
-| Live deployment | **Not deployed** |
+| Engine: single-modality plans + bounds checker (B1–B9) | **Built**, enforced on the plan route |
+| Engine: hybrid scheduling (H1–H9), adaptation, API (`/api/hybrid/week`, `/adapt`) | **Built** 24 Sep 2026; literature parameters, **not coach-signed** |
+| Auth: verified Firebase ID tokens; production boot check | **Built** 24 Sep 2026 (the server used to trust a client header and crashed on boot) |
+| Athlete UI on the hybrid engine | **Not yet** (GAPS #13); the engine runs in [ProjectOS](https://ossamamokhtar.github.io/PolySync/) |
+| Server data access in production | **Blocked**: client SDK without credentials (GAPS #12, P0 before the pilot) |
+| Model-in-the-loop evals, coach minutes, users | **Not measured**; the [pilot](product/pilot-plan.md) measures coach minutes and users |
 
-See [`docs/00-unified-product-status.md`](docs/00-unified-product-status.md) for the full account.
+## Run it
 
-## Documentation
-
-Full set in [`docs/`](docs/README.md) — 17 documents covering architecture, data model, AI architecture, RAG grounding, evaluation harness, decision log, unit economics, security, and the hybrid programming engine.
-
-Start with:
-- [Unified product status](docs/00-unified-product-status.md) — where the product lives, what is real vs designed vs TBD
-- [Decision log](docs/10-decision-log.md) — 5 ADRs with rejected options and reversal triggers; beachhead named in ADR-005
-- [Evaluation and evidence](docs/07-evaluation-and-evidence.md) — eval sets, CI gates, and an explicit account of what the evals do *not* prove
-- [Gaps](docs/GAPS.md) — what's unresolved, ranked by damage-if-unfilled
-- [Hybrid programming engine](docs/12-hybrid-athlete-programming-engine.md) — the domain logic
-
-## Evaluation status
-
-The safety layer is measured; the model is not. [`evals/run.ts`](evals/run.ts) runs on every push and fails the build on any breach:
-
-| Set | n | Result |
-|---|---|---|
-| Rule table vs hand labels | 49 pairs | 49/49 agree |
-| Contraindication leak (engine plans) | 8,640 | 0 |
-| Unsafe proposals blocked (8 mutation types) | 2,067 | 2,067 |
-| Blocked proposals escalated to coach | 2,067 | 2,067 |
-| Safe proposals accepted | 194 | 194 |
-
-These are deterministic checks of the code against its own v0 rules. They do not show the rules are clinically right (no coach review yet) or that model proposals are any good. The five model-in-the-loop sets in [doc 07](docs/07-evaluation-and-evidence.md) are still unrun.
-
-## Beachhead
-
-**Named:** US-based boutique endurance + strength hybrid athletics gyms and coach-staffed hybrid training programs. Single sport context: concurrent endurance + resistance training. Single coach archetype: certified S&C coach managing 20–60 hybrid athletes. Legal regime: US state-level privacy law.
-
-See [ADR-005](docs/10-decision-log.md) for the full decision and reversal trigger.
+```bash
+cd app && npm install
+npm test                 # 39 tests: engine, hybrid rules, auth, input validation
+npm run eval             # safety-layer + hybrid-layer evals (non-zero exit on any breach)
+npm run build && npm run boot-check
+node ../product/scripts/build.mjs --check      # product layer
+cd ../portal && npm install && npm run dev     # ProjectOS on localhost
+```
 
 ## Repository layout
 
 | Path | What |
 |---|---|
 | `docs/` | Design authority: architecture, ADRs, evaluation, gaps |
-| `app/` | Runtime code ([app/README.md](app/README.md)) |
-| `evals/` | Safety-layer eval runner, hand labels, results |
-| Design screens | Claude Design; not yet exported here (GAPS #8) |
+| `app/` | Runtime: React + Express + Firebase + Gemini; engine in `app/src/engine/` |
+| `evals/` | Safety-layer and hybrid-layer eval runners and results |
+| `product/` | Strategy, evidence, model, risks, telemetry, pilot, case study |
+| `portal/` | ProjectOS: one self-contained HTML file, deployed to GitHub Pages |
 
-CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (engine strict typecheck, type-error ratchet, tests, evals, build, bundle check, audit) and [`docs.yml`](.github/workflows/docs.yml) (links, Mermaid, status headers).
-
-## Gaps (ranked)
-
-See [`docs/GAPS.md`](docs/GAPS.md). Top open items:
-1. **No model-in-the-loop eval results** (Severe; narrowed now that the safety layer is measured)
-2. **Coach minutes / athlete-month unknown** (Severe)
-3. **Beachhead geography** (new #11): ADR-005 says US boutique gyms, while a Dubai-based UAE pilot is the practical first test. Decide before the DPIA.
-
-## Contributing
-
-See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+CI: [`ci.yml`](.github/workflows/ci.yml) (strict engine typecheck, type-error ratchet, tests, evals, build, boot check, bundle and identity checks, portal build) · [`docs.yml`](.github/workflows/docs.yml) (links, Mermaid, status lines, product layer) · [`pages.yml`](.github/workflows/pages.yml) (ProjectOS deploy).
 
 ---
 

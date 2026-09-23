@@ -17,6 +17,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { computeUnit, segmentEscalation, marketWage } from "./model-core.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const P = (...x) => join(ROOT, ...x);
@@ -95,45 +96,12 @@ if (errors.length) {
 // ── Compute ─────────────────────────────────────────────────────────────────
 const r2 = (x) => Math.round(x * 100) / 100;
 const r3 = (x) => Math.round(x * 1000) / 1000;
-const WEEKS = 4.33;
 const FX = E.get("CST-004").value;
-const escRate = (seg) => {
-  let n = 0, e = 0;
-  for (const k of seg.scheduleKeys) { n += escTable[k].n; e += escTable[k].escalated; }
-  return e / n;
-};
-const baseWage = { UAE: 4556 / 173.33 / FX, US: E.get("CST-001").value };
+const escRate = (seg) => segmentEscalation(escTable, seg.scheduleKeys);
+const baseWage = { UAE: marketWage("UAE", FX, E.get("CST-001").value), US: marketWage("US", FX, E.get("CST-001").value) };
 
 function unit(v, market, seg) {
-  const coachHourly = baseWage[market] * v.coachLoading * v.specialistPremium;
-  const esc = escRate(seg);
-  const escalations = v.amberDaysPerAthleteMonth * v.hardShareOnAmber * esc + v.painFlagsPerAthleteMonth + v.llmProposalsPerAthleteMonth * v.proposalRejectRate;
-  const withMin = v.triageMinutesPerAthleteWeek * WEEKS + escalations * v.minutesPerEscalation;
-  const manualMin = v.manualMinutesPerAthleteWeek * WEEKS;
-  const savedMin = manualMin - withMin;
-  const clubValue = (savedMin / 60) * coachHourly;
-  const capacityMin = v.coachProgrammingHoursPerWeek * 60 * WEEKS;
-  const inference = (v.llmCallsPerAthleteMonth * (v.llmTokensInPerProposal * v.priceInPer1M + v.llmTokensOutPerProposal * v.priceOutPer1M)) / 1e6;
-  const price = v.pricePerAthleteMonthUsd;
-  const softwareCogs = inference + v.infraPerAthleteMonthUsd + price * v.paymentFeeRate;
-  const coachCost = (withMin / 60) * coachHourly;
-  const managedBreakEven = (coachCost + inference + v.infraPerAthleteMonthUsd) / (1 - v.targetGrossMargin - v.paymentFeeRate);
-  return {
-    escalationRate: esc,
-    escalationsPerAthleteMonth: escalations,
-    coachMinutesWith: withMin,
-    coachMinutesManual: manualMin,
-    coachMinutesSaved: savedMin,
-    coachHourlyUsd: coachHourly,
-    clubValueUsd: clubValue,
-    clubRoi: clubValue / price,
-    athletesPerCoachManual: capacityMin / manualMin,
-    athletesPerCoachWith: capacityMin / withMin,
-    inferenceUsd: inference,
-    softwareGrossMargin: 1 - softwareCogs / price,
-    managedCoachCostUsd: coachCost,
-    managedBreakEvenPriceUsd: managedBreakEven,
-  };
+  return computeUnit(v, baseWage[market], escRate(seg));
 }
 
 const V = (which) => Object.fromEntries(model.drivers.map((d) => [d.id, d[which]]));
@@ -248,7 +216,7 @@ ev += `| ID | Grade | Claim | Value | Source | Used in |\n|---|---|---|---|---|-
 for (const c of evidence.claims) {
   const val = c.value === null ? "—" : typeof c.value === "object" ? Object.entries(c.value).map(([k, v]) => `${k} ${v}`).join("; ") : `${c.value} ${c.unit}`;
   const link = c.url.startsWith("http") ? c.url : c.url.replace("../../", "../");
-  ev += `| ${c.id} | ${c.grade} | ${c.claim} | ${val} | [${c.source.split(",")[0].split(".")[0].slice(0, 60)}](${link}) | ${c.usedIn.join(", ") || "—"} |\n`;
+  ev += `| ${c.id} | ${c.grade} | ${c.claim} | ${val} | [${(c.source.length > 70 ? c.source.slice(0, 68).trimEnd() + "…" : c.source).replace(/\|/g, "/")}](${link}) | ${c.usedIn.join(", ") || "—"} |\n`;
 }
 
 let tp = HDR("PolySync telemetry plan");
