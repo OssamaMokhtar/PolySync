@@ -1,0 +1,43 @@
+{
+  "asOf": "2026-09-24",
+  "northStar": {
+    "name": "Adapted sessions completed per athlete per week",
+    "why": "Requires all three parts to work: the engine delivered a plan, it changed in response to the athlete, and the athlete did it (doc 11).",
+    "formula": "count(session_completed where adapted = true) / active athletes / week"
+  },
+  "inputs": [
+    { "name": "Plan adherence", "formula": "session_completed / sessions prescribed" },
+    { "name": "Coach minutes per athlete-month", "formula": "sum(coach_decision.active_s)/60 + coach_console_active_min, per active athlete-month", "why": "Decides software vs services (ADR-003, ADR-008)" },
+    { "name": "Escalation rate by schedule segment", "formula": "coach_escalation / adaptation_requested, split by onboarding flexibility segment", "why": "Replaces the simulated driver (GAPS #14)" },
+    { "name": "Rule rejection rate", "formula": "bounds_rejected / adaptation_proposed", "why": "Model quality proxy; coach-queue load" },
+    { "name": "Cost per accepted adaptation", "formula": "sum(llm_call.cost_usd) / adaptations accepted", "why": "Unit cost of the AI layer" }
+  ],
+  "guardrails": [
+    { "name": "Contraindication leaks", "threshold": "0", "action": "Block release" },
+    { "name": "Pain flags escalated", "threshold": "100%", "action": "Block release" },
+    { "name": "Unsafe proposals reaching an athlete", "threshold": "0", "action": "Block release" }
+  ],
+  "events": [
+    { "name": "readiness_band_recorded", "properties": ["band", "source"], "status": "planned" },
+    { "name": "adaptation_requested", "properties": ["day", "band", "session_modality"], "status": "planned" },
+    { "name": "pain_flag_raised", "properties": ["region", "source"], "status": "planned" },
+    { "name": "adaptation_proposed", "properties": ["source", "rules_checked"], "status": "planned" },
+    { "name": "bounds_rejected", "properties": ["uid", "rules"], "status": "instrumented", "where": "app/server.ts (plan route)" },
+    { "name": "hybrid_proposal_rejected", "properties": ["uid", "rules"], "status": "instrumented", "where": "app/server.ts (/api/hybrid/week)" },
+    { "name": "coach_escalation", "properties": ["uid", "reason"], "status": "instrumented", "where": "app/server.ts (/api/hybrid/adapt)" },
+    { "name": "coach_decision", "properties": ["decision", "latency_s", "active_s", "rule"], "status": "planned" },
+    { "name": "coach_console_active_min", "properties": ["coach_id", "athletes"], "status": "planned" },
+    { "name": "llm_call", "properties": ["model", "tokens_in", "tokens_out", "cost_usd", "purpose"], "status": "planned" },
+    { "name": "session_completed", "properties": ["modality", "adapted", "rpe_reported"], "status": "planned" },
+    { "name": "roster_activated", "properties": ["club_id", "athletes"], "status": "planned" },
+    { "name": "onboarding_completed", "properties": ["days_available", "doubles_ok", "priority"], "status": "planned" }
+  ],
+  "studies": [
+    { "id": "coach-time-diary", "what": "Pre-pilot: 3 clubs log coach minutes per athlete-week for 2 weeks of hand programming", "when": "Pilot week -2 to 0" },
+    { "id": "coach-interviews", "what": "Semi-structured interviews with 5 club owners and their head coaches: hours, rates, pain points", "when": "Weeks 1-3" },
+    { "id": "pilot-loi", "what": "Letters of intent stating price per athlete-month", "when": "Weeks 3-6" },
+    { "id": "payroll-ranges", "what": "Club payroll on-cost ranges (no individual data)", "when": "During LOI talks" },
+    { "id": "cloud-bill", "what": "Monthly infrastructure bill divided by active athletes", "when": "Pilot months 1-3" },
+    { "id": "processor-statements", "what": "Payment and invoicing fees", "when": "First invoice" }
+  ]
+}

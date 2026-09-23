@@ -1,0 +1,399 @@
+{
+  "$schema": "./schemas/evidence.schema.json",
+  "asOf": "2026-09-24",
+  "gradingRubric": {
+    "A": "Primary or verified: peer-reviewed study, government statistics, vendor's own pricing page, our own CI output. Page opened on the access date.",
+    "B": "Two independent secondary sources agree, or one reputable aggregate with a stated sample size.",
+    "C": "One secondary source, or company-reported figures repeated by a single outlet, or sources that conflict.",
+    "D": "Model-generated, unsourced or contradicted. Never a model input or a headline."
+  },
+  "claims": [
+    {
+      "id": "SCI-001",
+      "topic": "science",
+      "claim": "Concurrent training does not significantly reduce maximal-strength gains versus strength training alone",
+      "value": -0.06,
+      "unit": "SMD (95% CI -0.20 to 0.09; p = 0.446)",
+      "source": "Schumann M. et al. Compatibility of Concurrent Aerobic and Strength Training for Skeletal Muscle Size and Function. Sports Medicine 52 (2022). 43 studies, 1,090 participants",
+      "url": "https://link.springer.com/doi/10.1007/s40279-021-01587-7",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "engine.H2",
+        "strategy.positioning"
+      ]
+    },
+    {
+      "id": "SCI-002",
+      "topic": "science",
+      "claim": "Concurrent training does not significantly reduce muscle hypertrophy",
+      "value": -0.01,
+      "unit": "SMD (95% CI -0.16 to 0.18; p = 0.919)",
+      "source": "Schumann et al., Sports Medicine 2022",
+      "url": "https://link.springer.com/doi/10.1007/s40279-021-01587-7",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "strategy.positioning"
+      ]
+    },
+    {
+      "id": "SCI-003",
+      "topic": "science",
+      "claim": "Concurrent training does significantly attenuate explosive-strength (power) gains",
+      "value": -0.28,
+      "unit": "SMD (95% CI -0.48 to -0.08; p = 0.007)",
+      "source": "Schumann et al., Sports Medicine 2022",
+      "url": "https://link.springer.com/doi/10.1007/s40279-021-01587-7",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "engine.H2",
+        "strategy.positioning"
+      ]
+    },
+    {
+      "id": "SCI-004",
+      "topic": "science",
+      "claim": "Explosive-strength attenuation was larger when aerobic and strength work were in the same session than when separated by at least 3 h; running vs cycling, frequency, training status and age did not moderate the effect",
+      "value": 3,
+      "unit": "hours minimum separation",
+      "source": "Schumann et al., Sports Medicine 2022 (moderator analysis: same session p = 0.043; >= 3 h separation p > 0.05)",
+      "url": "https://link.springer.com/doi/10.1007/s40279-021-01587-7",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "engine.H1",
+        "engine.H2"
+      ]
+    },
+    {
+      "id": "SCI-005",
+      "topic": "science",
+      "claim": "Recovery between concurrent sessions matters: strength gains were lower with 0 h than 6 h or 24 h, and VO2peak improved most with 24 h. 'Daily training without a recovery period between sessions (C-0h) and, to a lesser extent, training twice a day (C-6h), is not optimal'",
+      "value": 24,
+      "unit": "hours (best of 0 / 6 / 24 h tested); n = 58 amateur rugby players, 7 weeks",
+      "source": "Robineau J. et al. Specific Training Effects of Concurrent Aerobic and Strength Exercises Depend on Recovery Duration. J Strength Cond Res 30(3), 2016",
+      "url": "https://formation.ffr.fr/sites/default/files/documents/doc/2016-12/Specific%20training%20effects%20of%20concurrent%20aerobic%20and%20strength%20exercises%20depend%20on%20recovery%20duration.pdf",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "engine.H1",
+        "engine.H4"
+      ]
+    },
+    {
+      "id": "SCI-006",
+      "topic": "science",
+      "claim": "A graded program built on the 10% weekly-progression rule did not reduce running injuries versus a standard program (20.8% vs 20.3%, n = 532 novice runners, RCT)",
+      "value": 0.5,
+      "unit": "percentage-point difference in injury incidence",
+      "source": "Buist I. et al. No Effect of a Graded Training Program on the Number of Running-Related Injuries in Novice Runners. Am J Sports Med 36(1), 2008",
+      "url": "https://journals.sagepub.com/doi/abs/10.1177/0363546507307505",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "engine.H5",
+        "strategy.claims-we-refuse"
+      ]
+    },
+    {
+      "id": "SCI-007",
+      "topic": "science",
+      "claim": "The ACWR 'sweet spot' (0.8-1.3) was not protective: 27.5% of all injuries (83% in pentathletes) occurred inside it",
+      "value": 27.5,
+      "unit": "% of injuries inside the sweet spot",
+      "source": "Sedeaud A. et al. Does an Optimal Relationship Between Injury Risk and Workload Represented by the 'Sweet Spot' Really Exist? Frontiers in Physiology 2020",
+      "url": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2020.01034/full",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "engine.H6",
+        "strategy.claims-we-refuse"
+      ]
+    },
+    {
+      "id": "SCI-008",
+      "topic": "science",
+      "claim": "Older meta-analysis reported smaller strength, hypertrophy and power gains with concurrent training than strength training alone",
+      "value": null,
+      "unit": "direction only",
+      "source": "Wilson J.M. et al. Concurrent training: a meta-analysis. J Strength Cond Res 26(8), 2012 - summarised by Stronger by Science; primary abstract not opened (publisher paywall, Europe PMC rate-limited)",
+      "url": "https://www.strongerbyscience.com/research-spotlight-interference-effect/",
+      "accessed": "2026-09-24",
+      "grade": "C",
+      "usedIn": [
+        "strategy.context"
+      ]
+    },
+    {
+      "id": "MKT-001",
+      "topic": "market",
+      "claim": "HYROX participants in the 2025/26 season",
+      "value": 1500000,
+      "unit": "participants",
+      "source": "Company-reported; carried by SportsPro and endurance.biz (July 2026) independently",
+      "url": "https://endurance.biz/2026/industry-news/targeting-2-million-athletes-hyrox-expands-global-calendar-for-2026-27-season/",
+      "altUrl": "https://www.sportspro.com/features/finance-investment/hyrox-business-model-mass-participation-private-equity-investment/",
+      "accessed": "2026-09-24",
+      "grade": "B",
+      "usedIn": [
+        "market.bottomUp",
+        "strategy.why-now"
+      ]
+    },
+    {
+      "id": "MKT-002",
+      "topic": "market",
+      "claim": "HYROX participants in the 2024/25 season",
+      "value": 570000,
+      "unit": "participants",
+      "source": "SportsPro (company-reported)",
+      "url": "https://www.sportspro.com/features/finance-investment/hyrox-business-model-mass-participation-private-equity-investment/",
+      "accessed": "2026-09-24",
+      "grade": "C",
+      "usedIn": [
+        "strategy.why-now"
+      ]
+    },
+    {
+      "id": "MKT-003",
+      "topic": "market",
+      "claim": "HYROX-affiliated gyms worldwide",
+      "value": 15000,
+      "unit": "gyms (company target: 24,000 by end of 2026)",
+      "source": "SportsPro (company-reported, single outlet)",
+      "url": "https://www.sportspro.com/features/finance-investment/hyrox-business-model-mass-participation-private-equity-investment/",
+      "accessed": "2026-09-24",
+      "grade": "C",
+      "usedIn": [
+        "market.bottomUp"
+      ]
+    },
+    {
+      "id": "MKT-004",
+      "topic": "market",
+      "claim": "HYROX 2026 volume forecast conflicts between outlets: 2 million targeted for the 2026/27 season vs 'over 2.5 million athletes in 2026'",
+      "value": null,
+      "unit": "conflict",
+      "source": "endurance.biz (20 Jul 2026) vs SportsPro",
+      "url": "https://endurance.biz/2026/industry-news/targeting-2-million-athletes-hyrox-expands-global-calendar-for-2026-27-season/",
+      "accessed": "2026-09-24",
+      "grade": "C",
+      "usedIn": []
+    },
+    {
+      "id": "MKT-005",
+      "topic": "market",
+      "claim": "HYROX race weekends: 105 in 2025/26; 107 planned for 2026/27 across 30+ countries",
+      "value": 105,
+      "unit": "race weekends",
+      "source": "SportsPro (105) and endurance.biz (107 planned, 30+ countries)",
+      "url": "https://endurance.biz/2026/industry-news/targeting-2-million-athletes-hyrox-expands-global-calendar-for-2026-27-season/",
+      "accessed": "2026-09-24",
+      "grade": "B",
+      "usedIn": [
+        "strategy.why-now"
+      ]
+    },
+    {
+      "id": "MKT-006",
+      "topic": "market",
+      "claim": "UAE: HYROX Abu Dhabi sold out; at least four UAE gyms run HYROX prep classes (GritnCode, F45, GymNation, Warehouse Gym)",
+      "value": 4,
+      "unit": "named UAE gyms (lower bound)",
+      "source": "The National, 16 Jul 2025",
+      "url": "https://www.thenationalnews.com/lifestyle/wellbeing/2025/07/16/hyrox-abu-dhabi-fitness-race/",
+      "accessed": "2026-09-24",
+      "grade": "B",
+      "usedIn": [
+        "strategy.beachhead"
+      ]
+    },
+    {
+      "id": "MKT-007",
+      "topic": "market",
+      "claim": "GymNation is an official HYROX Performance Center and Training Club with HYROX classes in Dubai, Abu Dhabi, Sharjah and Al Ain",
+      "value": null,
+      "unit": "fact",
+      "source": "GymNation UAE HYROX page",
+      "url": "https://gymnation.com/en-ae/hyrox-classes/",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "strategy.beachhead",
+        "pilot.targets"
+      ]
+    },
+    {
+      "id": "PRC-001",
+      "topic": "pricing",
+      "claim": "TrainHeroic coach plan: up to 50 athletes",
+      "value": 74.99,
+      "unit": "USD/month (= 1.50 per athlete at capacity)",
+      "source": "TrainHeroic pricing page",
+      "url": "https://www.trainheroic.com/pricing/",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "model.pricingFloor",
+        "strategy.pricing"
+      ]
+    },
+    {
+      "id": "PRC-002",
+      "topic": "pricing",
+      "claim": "TrueCoach Pro plan: up to 50 active clients",
+      "value": 136.99,
+      "unit": "USD/month (= 2.74 per client at capacity)",
+      "source": "TrueCoach pricing page",
+      "url": "https://truecoach.co/pricing/",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "model.pricingFloor",
+        "strategy.pricing"
+      ]
+    },
+    {
+      "id": "PRC-003",
+      "topic": "pricing",
+      "claim": "Ladder (consumer strength app) Pro plan",
+      "value": 29.99,
+      "unit": "USD/month (14.99/month billed annually)",
+      "source": "Ladder pricing page",
+      "url": "https://www.joinladder.com/pricing",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "model.pricingCeiling",
+        "strategy.pricing"
+      ]
+    },
+    {
+      "id": "PRC-004",
+      "topic": "pricing",
+      "claim": "Strava + Runna bundle (US)",
+      "value": 149.99,
+      "unit": "USD/year",
+      "source": "Strava press release, 2 Jul 2025",
+      "url": "https://press.strava.com/articles/strava-runna-launch-combined-subscription-bundle",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "strategy.pricing"
+      ]
+    },
+    {
+      "id": "CST-001",
+      "topic": "cost",
+      "claim": "US median wage, fitness trainers and instructors (May 2025)",
+      "value": 22.67,
+      "unit": "USD/hour",
+      "source": "US Bureau of Labor Statistics, Occupational Outlook Handbook",
+      "url": "https://www.bls.gov/ooh/personal-care-and-service/fitness-trainers-and-instructors.htm",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "model.coachRate.us"
+      ]
+    },
+    {
+      "id": "CST-002",
+      "topic": "cost",
+      "claim": "Average personal-trainer salary in Dubai (219 salaries reported, updated 13 Aug 2026)",
+      "value": 4556,
+      "unit": "AED/month",
+      "source": "Indeed UAE salary data",
+      "url": "https://ae.indeed.com/career/personal-trainer/salaries/Dubai",
+      "accessed": "2026-09-24",
+      "grade": "B",
+      "usedIn": [
+        "model.coachRate.uae"
+      ]
+    },
+    {
+      "id": "CST-003",
+      "topic": "cost",
+      "claim": "Gemini 3.5 Flash list price, paid tier (the model app/server.ts calls)",
+      "value": {
+        "inputPer1M": 1.5,
+        "outputPer1M": 9.0
+      },
+      "unit": "USD per 1M tokens",
+      "source": "Google AI for Developers, Gemini API pricing",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "model.inference"
+      ]
+    },
+    {
+      "id": "CST-004",
+      "topic": "cost",
+      "claim": "AED is pegged to the USD",
+      "value": 3.6725,
+      "unit": "AED per USD",
+      "source": "Central Bank of the UAE fixed peg (long-standing; page not opened in this pass)",
+      "url": "https://www.centralbank.ae/",
+      "accessed": "2026-09-24",
+      "grade": "B",
+      "usedIn": [
+        "model.fx"
+      ]
+    },
+    {
+      "id": "REG-001",
+      "topic": "regulatory",
+      "claim": "UAE PDPL defines sensitive personal data to include 'any data relating to such person's health and physical, psychological, mental, genetic or sexual condition'; it excludes personal health data regulated by other legislation and free-zone entities with their own data-protection laws",
+      "value": null,
+      "unit": "legal text",
+      "source": "Federal Decree-Law No. 45 of 2021 on the Protection of Personal Data, Articles 1 and 2 (official UAE legislation portal)",
+      "url": "https://uaelegislation.gov.ae/en/legislations/1972/download",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "adr.006",
+        "risk.REG-01"
+      ]
+    },
+    {
+      "id": "OWN-001",
+      "topic": "product",
+      "claim": "Safety-layer eval results on main of this repo",
+      "value": {
+        "contraindicationLeaks": 0,
+        "plans": 8640,
+        "unsafeBlocked": 2067,
+        "unsafeTotal": 2067,
+        "safeAccepted": 194,
+        "safeTotal": 194
+      },
+      "unit": "counts",
+      "source": "evals/results/latest.json, produced by CI",
+      "url": "../../evals/results/latest.json",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "portal.overview",
+        "caseStudy.results"
+      ]
+    },
+    {
+      "id": "OWN-002",
+      "topic": "product",
+      "claim": "Simulated amber-day escalation rate by schedule shape (share of hard sessions the engine cannot reschedule within rules H1-H9)",
+      "value": "see results file",
+      "unit": "rate by days-available x doubles",
+      "source": "evals/results/hybrid-latest.json, amber_escalation_by_schedule (CI). Simulation of the engine's own rules; real-world rates are unmeasured",
+      "url": "../../evals/results/hybrid-latest.json",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "model.escalationRate",
+        "adr.008"
+      ]
+    }
+  ]
+}

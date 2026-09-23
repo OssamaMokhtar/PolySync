@@ -34,7 +34,7 @@ Prompts and model versions are deployed artefacts under version control, not con
 
 ## 4. Rollback
 
-Trigger: any hard-block gate breach, or coach-agreement drop > 5 pts. Mechanism: revert to pinned model + prompt bundle; the deterministic engine is unaffected, so athletes keep training through a rollback. Time to restore: TBD. Decision owner: TBD — name a person.
+Trigger: any hard-block gate breach, or coach-agreement drop > 5 pts. Mechanism: revert to pinned model + prompt bundle; the deterministic engine is unaffected, so athletes keep training through a rollback. Time to restore: TBD. Decision owner: **Ossama Mokhtar** (named 2026-09-24, [decision log](10-decision-log.md#operating-decisions)).
 
 ## 5. Compliance posture
 

@@ -61,6 +61,9 @@ jobs:
           done
           exit $fail
 
+      - name: Product layer valid and generated docs current (evidence, model, risks, telemetry)
+        run: node product/scripts/build.mjs --check
+
       - name: No unresolved conflict markers
         run: |
           if grep -rnE '^(<<<<<<<|>>>>>>>|=======$)' --include='*.md' .; then

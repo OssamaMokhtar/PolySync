@@ -98,3 +98,68 @@ Each ADR states what was rejected and the measurable condition that would revers
 **Reversal trigger.** Beachhead segment saturated (TBD% penetration of reachable orgs) or a second region's inbound demand exceeds TBD% of pipeline unprompted.
 
 **Status note:** Beachhead named and the ADR is now complete. This closes gap #3 from GAPS.md (filled 2026-09-23).
+
+---
+
+## ADR-006: Validate in the UAE, scale in the US
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar · Closes GAPS #11
+
+**Context.** ADR-005 named US boutique hybrid gyms as the beachhead. The founder is in Dubai, the first pilot has to be run in person, and the UAE has a dense, fast-growing HYROX scene. HYROX Abu Dhabi sold out, and at least four UAE gym brands run HYROX prep classes, including GymNation, an official HYROX Performance Center and Training Club in four emirates ([evidence](../product/data/evidence.json) MKT-006, MKT-007).
+
+| Option | Pros | Cons | Verdict |
+|---|---|---|---|
+| US first (ADR-005 as written) | Largest market; simplest privacy regime | No in-person access for coach interviews and pilot support; slow first signal | Rejected for the pilot |
+| **UAE pilot, US scale** | Founder on site; HYROX clubs reachable directly; bilingual AR/EN is a real differentiator | UAE PDPL treats health and physical-condition data as sensitive (REG-001), so a DPIA comes before the pilot, not after | **Chosen** |
+| Both at once | Wider funnel | Two regimes, two DPIAs, split attention for a solo builder | Rejected |
+
+**Consequences.**
+- ADR-005's US segment stays the **scale** beachhead.
+- The pilot targets 3 UAE HYROX training clubs (see [pilot plan](../product/pilot-plan.md)).
+- A DPIA under the UAE PDPL is required before any athlete data is collected. Whether the health-data carve-out or a free-zone regime (DIFC, ADGM) applies needs legal review (GAPS #6).
+
+**Reversal trigger.** Fewer than 2 of 5 UAE club owners interviewed sign a pilot letter of intent within 6 weeks. Then run the same interview script with 5 US boutique gyms before building anything else.
+
+---
+
+## ADR-007: Claims we refuse to make
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar
+
+**Context.** Fitness products routinely claim injury prevention from load rules. We checked the evidence behind our own rules.
+- A 10%-per-week progression rule did not reduce injuries in a 532-runner RCT (SCI-006).
+- 27.5% of injuries in one elite cohort happened inside the ACWR "sweet spot" (SCI-007).
+
+**Decision.**
+- The weekly load limit (H5, B7) and the acute:chronic signal (H6) stay in the product as **conservative limits that route to a coach**. They are never marketed as injury prevention.
+- PolySync makes no claim it cannot measure. "Resolves the interference trade-off" is a claim about scheduling, which the evals check. "Reduces injuries" or "makes you faster" are outcome claims, and they wait for pilot data.
+
+**Rejected.** Using the ACWR sweet spot as a safety claim. It is easy to market and not supported.
+
+**Reversal trigger.** Pilot or published evidence showing a specific load rule changes injury incidence in hybrid athletes.
+
+---
+
+## ADR-008: Segment and price by schedule flexibility
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar
+
+**Context.** The hybrid eval simulates amber-readiness days across 3,240 athlete schedules ([results](../evals/results/hybrid-latest.json), `amber_escalation_by_schedule`). When the engine cannot reschedule within the rules, the case goes to a coach. Escalation falls from 90–100% for athletes with 3–4 fixed days to about 25% for athletes with 6–7 available days who accept doubles. Coach minutes are the dominant variable cost (ADR-003), so schedule flexibility decides gross margin.
+
+**Decision.**
+1. Onboarding captures available days and whether doubles are acceptable, before anything else.
+2. The pilot recruits competitive HYROX athletes, who typically train 5+ days, first.
+3. Pricing and coach capacity are modelled per flexibility segment ([financial model](../product/financial-model.md)).
+
+**Rejected.** A single blended price and coach ratio. It hides the segment that makes the business services-heavy.
+
+**Reversal trigger.** Pilot escalation rates by segment differ from the simulation by more than 2x. Then re-fit the model to observed rates.
+
+---
+
+## Operating decisions
+
+| Decision | Owner | Date |
+|---|---|---|
+| Rollback decision owner (doc 08 §4) | Ossama Mokhtar | 2026-09-24 |
+| Data ownership on offboarding: org owns roster and programme data; athlete owns and can export personal physiological data ([doc 02 decision](02-data-ownership-decision.md)) | Ossama Mokhtar | 2026-09-23 |
