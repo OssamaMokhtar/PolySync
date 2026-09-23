@@ -1,6 +1,6 @@
 # PolySync — Evaluation and Evidence
 
-> Status: PROPOSED (design) · TBD (all results) · Owner: Ossama Mokhtar
+> Status: AUTHORED (safety-layer results, 2026-09-23) · PROPOSED (model-in-the-loop sets) · Owner: Ossama Mokhtar
 
 **Purpose.** The claim this product makes, the harness that tests it, and what still fails. This is the document that separates a shipped AI product from a demo.
 
@@ -16,7 +16,7 @@ Three claims, three gates. Each is falsifiable.
 |---|---|---|---|---|---|
 | Golden programming | 150 athlete-weeks | Synthetic + consented real histories | 2+ S&C coaches, disagreements adjudicated | Yes | **Designed — not run** |
 | Safety adversarial | 120 | Hand-written | Coach + clinician review | Yes | **Designed — not run** |
-| Contraindication | 80 | Injury-history × protocol matrix | Deterministic ground truth | Yes | **Designed — not run** |
+| Contraindication | 49 labelled pairs + 8,640 engine plans | Injury × exercise matrix | Audit draft (AI-assisted), not coach-reviewed | Yes | **Run 2026-09-23 — 0 leaks** (safety layer only) |
 | Prompt injection | 60 | Payloads in coach notes, athlete free text, wearable device names | Security review | Yes | **Designed — not run** |
 | Regression | Grows with every incident | Production failures | — | Yes | **Designed — not run** |
 
@@ -27,8 +27,8 @@ Three claims, three gates. Each is falsifiable.
 | Metric | Definition | Gate (PROPOSED) | Current |
 |---|---|---|---|
 | Safety escalation recall | Red-tier cases correctly escalated | ≥ 0.99 | **TBD — not measured** |
-| Load-bound violation rate | Applied deltas outside engine bounds | **0 — hard block** | **TBD — not measured** |
-| Contraindication leak | Contraindicated protocol reaching context | **0 — hard block** | **TBD — not measured** |
+| Load-bound violation rate | Applied deltas outside engine bounds | **0 — hard block** | **0 / 2,067 adversarial proposals** (deterministic checker; 2026-09-23) |
+| Contraindication leak | Contraindicated exercise in an engine plan | **0 — hard block** | **0 / 8,640 plans** (2026-09-23) |
 | Coach agreement | Proposed deltas approved unamended | ≥ 0.75 | **TBD — not measured** |
 | Groundedness | Cited protocol supports the claim | ≥ 0.95 | **TBD — not measured** |
 | Injection resistance | Payloads that alter prescription | **0** | **TBD — not measured** |
@@ -40,7 +40,7 @@ CI blocks merge on any hard-block breach or any gate regression > 2 pts. Wire th
 
 ## 4. Results
 
-**No results yet.** This is GAPS #1 (Severe). The eval harness is designed; the first run is the next priority. When results exist, report absolute numbers with n. If the set is 40 cases, say 40 — a percentage on a small set is manufactured precision and a good interviewer will catch it.
+**First run: 23 Sep 2026, safety layer only.** See [`evals/README.md`](../evals/README.md) and [`evals/results/latest.json`](../evals/results/latest.json). The engine, bounds checker and routing pass every gate: 0 contraindication leaks in 8,640 engine plans, 2,067 of 2,067 unsafe proposals blocked and escalated, 194 of 194 safe proposals accepted. These are deterministic tests of the code against its own rules. They say nothing yet about model quality or whether the rules are right. The model-in-the-loop sets are still unrun, so GAPS #1 is narrowed, not closed. When results exist, report absolute numbers with n. If the set is 40 cases, say 40 — a percentage on a small set is manufactured precision and a good interviewer will catch it.
 
 ## 5. Known failure modes
 

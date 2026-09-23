@@ -1,54 +1,34 @@
-# Eval Suite — PolySync
+# PolySync evals
 
-**Status:** Structure defined — eval cases to be written after codebase is available.
+> Status: AUTHORED · first run 2026-09-23 · runs in CI on every push
 
-## Purpose
+## What runs today: the safety layer
 
-The eval suite measures whether PolySync's coaching recommendations are useful, safe, and acceptable to coaches and athletes. The core question: "Does the LLM-proposed adaptation improve the athlete's training, or does it need to be rejected by the bounds checker or the coach?"
+`evals/run.ts` tests the deterministic layer between any model and the athlete: the programming engine, the bounds checker (rules B1–B9) and the routing in `prescribe()`. Latest results: [`results/latest.json`](results/latest.json).
 
-## Eval Categories
+| Set | n | Result | Gate |
+|---|---|---|---|
+| Contraindication rule table vs hand labels | 49 injury × exercise pairs | 49/49 agree | 0 disagreements |
+| Contraindication leak in engine plans | 8,640 plans (profile grid) | 0 leaks | 0, hard block |
+| Engine plans within bounds | 8,640 | 8,640 | all |
+| Unsafe proposals blocked (8 mutation types) | 2,067 | 2,067 blocked, right rule each time | all |
+| Blocked proposals escalated to coach | 2,067 | 2,067 | all |
+| Safe proposals accepted (library substitutions) | 194 | 194 | all |
 
-### 1. Bounds Checker Eval
+**How to read this.** Every number above is deterministic code tested against its own specification, plus 49 hand labels. It shows the safety layer does what it claims. It does **not** show the rules are clinically right: the hand labels are an AI-assisted audit draft, and no coach or clinician has reviewed them (GAPS #4). The profile grid is synthetic.
 
-- **Purpose:** Verify that the bounds checker correctly accepts safe proposals and rejects unsafe proposals.
-- **Metric:** Accuracy (percentage of proposals correctly classified as safe/unsafe)
-- **Failure condition:** Bounds checker accepts a proposal that would cause injury (critical failure)
+## What does not run yet
 
-### 2. Coaching Recommendation Quality Eval
+| Set (docs/07) | Why not |
+|---|---|
+| Golden programming (150 athlete-weeks) | Needs coach-labelled data |
+| Safety adversarial from free text (pain mid-conversation, illness, under-fuelling) | Needs a classifier and labelled set |
+| Prompt injection against a live model | Needs model-in-the-loop runs; M5/M8 only test how the checker handles hostile output |
+| Coach agreement, groundedness | Needs coaches and the signed protocol library |
 
-- **Purpose:** Measure whether LLM-proposed adaptations are high-quality coaching suggestions.
-- **Metric:** Coach acceptance rate (percentage of proposals the coach accepts without modification)
-- **Secondary metrics:** Proposal relevance, proposal specificity, proposal safety (does it respect the athlete's context?)
-
-### 3. Athlete Context Eval
-
-- **Purpose:** Verify that proposals respect the athlete's context (current training load, injury history, available equipment, goals).
-- **Metric:** Context adherence rate (percentage of proposals that respect all relevant context)
-- **Failure condition:** Proposal ignores a critical context element (e.g., proposes high-intensity work for an injured athlete)
-
-### 4. Explanation Quality Eval
-
-- **Purpose:** Measure whether the LLM's explanations of the programming engine's decisions are clear, accurate, and useful.
-- **Metric:** Explanation clarity (coach rating), explanation accuracy (does the explanation match the actual decision?)
-
-### 5. Escalation Eval
-
-- **Purpose:** Verify that out-of-bounds proposals are correctly escalated to the coach.
-- **Metric:** Escalation accuracy (percentage of out-of-bounds proposals correctly escalated)
-- **Failure condition:** Out-of-bounds proposal reaches the athlete without coach review (critical failure)
-
-## Eval Execution
+## Run
 
 ```bash
-npm run test:eval        # Run eval suite
-npm run test:eval -- --watch  # Run in watch mode
-npm run test:eval -- --coverage  # Run with coverage
+cd app && npm run eval                     # prints results, exits non-zero on any gate failure
+cd app && WRITE_RESULTS=1 npm run eval     # also rewrites results/latest.json
 ```
-
-## CI Integration
-
-Evals run in CI on every push and pull request. A failed eval blocks the merge.
-
-## Relationship to Improvement Plan
-
-This eval suite is Phase 2 of the PolySync improvement plan. See [[01-Improvement-Plan-PolySync]].

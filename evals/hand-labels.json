@@ -1,0 +1,21 @@
+{
+  "_about": "Hand-labelled injury x exercise pairs, drafted in the 23 Sep 2026 audit (AI-assisted, reviewed by nobody with coaching or clinical credentials yet). Used to check the v0 contraindication table against an independent judgement. Replace with coach labels when GAPS #4 closes.",
+  "avoid": {
+    "right_knee": ["barbell-squat", "dumbbell-lunge", "bulgarian-split-squat", "box-jump", "leg-extension", "jump-squat", "wall-sit", "leg-press", "step-ups"],
+    "left_shoulder": ["barbell-overhead-press", "dumbbell-shoulder-press", "dip", "upright-row", "lateral-raise"],
+    "lower_back": ["barbell-deadlift", "barbell-bent-over-row", "kettlebell-swing", "romanian-deadlift", "superman"],
+    "right_wrist": ["push-up", "burpee", "plank-up-down"],
+    "left_ankle": ["box-jump", "jump-rope", "calve-raise", "broad-jump"],
+    "right_elbow": ["bicep-curl", "tricep-push-down", "dip"],
+    "neck": ["shrug"],
+    "hip": ["hip-thrust", "bulgarian-split-squat"]
+  },
+  "allow": {
+    "right_knee": ["barbell-bench-press", "lat-pulldown", "bicep-curl", "push-up"],
+    "left_shoulder": ["leg-press", "hamstring-curl", "glute-bridge", "bodyweight-squat"],
+    "lower_back": ["bicep-curl", "lat-pulldown", "leg-extension"],
+    "right_wrist": ["leg-press", "hamstring-curl"],
+    "left_ankle": ["lat-pulldown", "seated-cable-row"],
+    "right_elbow": ["leg-press", "glute-bridge"]
+  }
+}

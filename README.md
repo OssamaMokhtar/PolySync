@@ -31,19 +31,18 @@ Also see the full diagram: [`docs/architecture-diagram.png`](docs/architecture-d
 
 ## Product status (honest)
 
-PolySync's **documentation in this repo is the design authority**. The product is designed with strong rationale but not yet proven with measured results:
-
 | Layer | Status |
 |---|---|
 | Decision log (5 ADRs, reversal triggers, beachhead named) | **Authored** |
-| System architecture, data model, AI architecture, RAG design | **Authored** |
-| Hybrid programming engine (the actual domain logic) | **Authored** |
-| Eval harness (5 sets designed, gates proposed) | **Designed — no results yet** |
-| Coach minutes / athlete-month (unit economics) | **Designed — not measured** |
-| Protocol library (the moat) | **Designed — not coach-signed** |
-| Live deployment | **Not deployed** — code on a branch, not a runnable service in this repo |
+| Runtime code (React + Express + Firebase + Gemini) | **In this repo** under [`app/`](app/) since 23 Sep 2026, moved from PolyVerses with history |
+| Deterministic engine + bounds checker (ADR-004) | **Built and enforced** in [`app/src/engine/`](app/src/engine/). Gemini output is a proposal that must pass rules B1–B9 |
+| Safety-layer evals | **Run in CI**: 0 contraindication leaks in 8,640 engine plans; 2,067/2,067 unsafe proposals blocked and escalated ([results](evals/results/latest.json)) |
+| Model-in-the-loop evals (golden programming, free-text safety, live injection) | **Designed, not run** |
+| Coach minutes / athlete-month (unit economics) | **Not measured** |
+| Protocol library and contraindication rules (the moat) | **v0, not coach-signed** |
+| Live deployment | **Not deployed** |
 
-This is not a contradiction to resolve by drift. A reviewer evaluating **product thinking** should evaluate the docs. A reviewer evaluating **deployability** should note the code is not yet unified. See [`docs/00-unified-product-status.md`](docs/00-unified-product-status.md) for the full account.
+See [`docs/00-unified-product-status.md`](docs/00-unified-product-status.md) for the full account.
 
 ## Documentation
 
@@ -58,17 +57,17 @@ Start with:
 
 ## Evaluation status
 
-PolySync has **designed** an eval harness with 5 sets and proposed gates, but has **zero results**:
+The safety layer is measured; the model is not. [`evals/run.ts`](evals/run.ts) runs on every push and fails the build on any breach:
 
-| Eval set | n (target) | Status |
+| Set | n | Result |
 |---|---|---|
-| Golden programming | 150 athlete-weeks | Designed — not run |
-| Safety adversarial | 120 | Designed — not run |
-| Contraindication | 80 | Designed — not run |
-| Prompt injection | 60 | Designed — not run |
-| Regression | Grows with incidents | Designed — not run |
+| Rule table vs hand labels | 49 pairs | 49/49 agree |
+| Contraindication leak (engine plans) | 8,640 | 0 |
+| Unsafe proposals blocked (8 mutation types) | 2,067 | 2,067 |
+| Blocked proposals escalated to coach | 2,067 | 2,067 |
+| Safe proposals accepted | 194 | 194 |
 
-CI gates are proposed, not yet wired. The single most important next step is running the first eval set. See [GAPS #1](docs/GAPS.md).
+These are deterministic checks of the code against its own v0 rules. They do not show the rules are clinically right (no coach review yet) or that model proposals are any good. The five model-in-the-loop sets in [doc 07](docs/07-evaluation-and-evidence.md) are still unrun.
 
 ## Beachhead
 
@@ -76,20 +75,23 @@ CI gates are proposed, not yet wired. The single most important next step is run
 
 See [ADR-005](docs/10-decision-log.md) for the full decision and reversal trigger.
 
-## Repository status
+## Repository layout
 
-- **This repo** (`github.com/OssamaMokhtar/PolySync`) — canonical source of truth for design and docs
-- **Code** — on a PolyVerses branch; not yet a runnable service in this repo (being consolidated separately)
-- **Design artifacts** — in Claude Design / designer of record
+| Path | What |
+|---|---|
+| `docs/` | Design authority: architecture, ADRs, evaluation, gaps |
+| `app/` | Runtime code ([app/README.md](app/README.md)) |
+| `evals/` | Safety-layer eval runner, hand labels, results |
+| Design screens | Claude Design; not yet exported here (GAPS #8) |
 
-CI: [`github.com/OssamaMokhtar/PolySync/actions`](https://github.com/OssamaMokhtar/PolySync/actions) — typecheck and audit workflows present.
+CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (engine strict typecheck, type-error ratchet, tests, evals, build, bundle check, audit) and [`docs.yml`](.github/workflows/docs.yml) (links, Mermaid, status headers).
 
 ## Gaps (ranked)
 
-See [`docs/GAPS.md`](docs/GAPS.md) for the full list. Top 3 by fill-order:
-1. **No eval results** — every gate is PROPOSED (Severe)
+See [`docs/GAPS.md`](docs/GAPS.md). Top open items:
+1. **No model-in-the-loop eval results** (Severe; narrowed now that the safety layer is measured)
 2. **Coach minutes / athlete-month unknown** (Severe)
-3. **Beachhead now named in ADR-005** (was High, now resolved)
+3. **Beachhead geography** (new #11): ADR-005 says US boutique gyms, while a Dubai-based UAE pilot is the practical first test. Decide before the DPIA.
 
 ## Contributing
 

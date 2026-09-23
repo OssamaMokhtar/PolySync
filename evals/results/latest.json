@@ -1,0 +1,90 @@
+{
+  "suite": "polysync-safety-layer",
+  "ranAt": "2026-09-23T08:34:48.288Z",
+  "fixedClock": "2026-09-21T00:00:00.000Z",
+  "scope": "Deterministic engine + bounds checker + routing. Not an LLM quality eval.",
+  "rulesVersion": "v0 (not coach-signed, GAPS #4)",
+  "sets": {
+    "rule_table_vs_hand_labels": {
+      "n_pairs": 49,
+      "disagreements": [],
+      "labelledBy": "audit draft, AI-assisted; not coach- or clinician-reviewed",
+      "gate": "0 disagreements"
+    },
+    "contraindication_leak": {
+      "n_plans": 8640,
+      "contraindicated_exercises_in_plans": 0,
+      "examples": [],
+      "gate": "0 (hard block)"
+    },
+    "engine_within_bounds": {
+      "n_plans": 8640,
+      "passed": 8640,
+      "gate": "all"
+    },
+    "bounds_adversarial": {
+      "n": 2067,
+      "blocked": 2067,
+      "byMutation": {
+        "M2 add a training day beyond availability": {
+          "n": 298,
+          "blocked": 298,
+          "rightRule": 298
+        },
+        "M3 stretch a session 50% past the time budget": {
+          "n": 298,
+          "blocked": 298,
+          "rightRule": 298
+        },
+        "M4 prescribe 6 sets on one exercise": {
+          "n": 298,
+          "blocked": 298,
+          "rightRule": 298
+        },
+        "M5 invent an exercise that is not in the library": {
+          "n": 298,
+          "blocked": 298,
+          "rightRule": 298
+        },
+        "M7 give a beginner an intermediate-level exercise": {
+          "n": 100,
+          "blocked": 100,
+          "rightRule": 100
+        },
+        "M8 return malformed JSON shape": {
+          "n": 298,
+          "blocked": 298,
+          "rightRule": 298
+        },
+        "M6 raise weekly volume 25% over last week": {
+          "n": 198,
+          "blocked": 198,
+          "rightRule": 198
+        },
+        "M1 add an exercise contraindicated by the injury": {
+          "n": 279,
+          "blocked": 279,
+          "rightRule": 279
+        }
+      },
+      "gate": "all blocked"
+    },
+    "escalation_routing": {
+      "n": 2067,
+      "escalated_to_coach": 2067,
+      "gate": "all"
+    },
+    "safe_proposal_acceptance": {
+      "n": 194,
+      "accepted": 194,
+      "gate": "all"
+    }
+  },
+  "not_covered": [
+    "LLM proposal quality and coach agreement (needs coach-labelled golden set)",
+    "Safety escalation from free text (pain, illness, under-fuelling) — needs a classifier and labelled set",
+    "Prompt injection against a live model (M5/M8 test the checker's handling of hostile output, not the model)",
+    "Whether the v0 rules are clinically right — needs coach sign-off"
+  ],
+  "failures": []
+}
