@@ -1,6 +1,6 @@
 # Coach Onboarding — PolySync
 
-**Status:** Flow design — to be implemented.
+> Status: PROPOSED · Owner: Ossama Mokhtar
 
 ## The Coach's Role
 
