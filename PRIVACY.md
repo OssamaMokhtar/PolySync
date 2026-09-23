@@ -37,4 +37,4 @@ For privacy inquiries, contact the maintainer.
 
 ---
 
-*See [Improvement Plan — PolySync](../../Obsidian/Portfolio-Due-Diligence/01-Improvement-Plan-PolySync.md) for the full compliance roadmap.*
+*See [Gaps and roadmap](docs/GAPS.md) for the full compliance roadmap.*

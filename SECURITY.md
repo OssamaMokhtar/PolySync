@@ -48,4 +48,4 @@ Contact the maintainer directly. Do not open a public issue for security vulnera
 
 ---
 
-*See [Improvement Plan — PolySync](../../Obsidian/Portfolio-Due-Diligence/01-Improvement-Plan-PolySync.md) for the full security hardening roadmap.*
+*See [security and deployment](docs/08-security-and-deployment.md) for the full security hardening roadmap.*

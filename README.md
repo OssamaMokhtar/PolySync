@@ -2,11 +2,11 @@
 
 **AI coaching for hybrid athletes.** B2B2C, with a human coach in the loop.
 
-Hybrid athletes chase endurance and strength adaptations at the same time. Those adaptations interfere with each other, and mainstream apps don't resolve it — they run two plans in parallel and let the athlete absorb the collision. PolySync makes that trade-off explicitly, every week, and shows its work.
+Hybrid athletes chase endurance and strength adaptations at the same time. Those adaptations interfere with each other, and mainstream apps don't resolve it — they run two plans in parallel and let the athlete or coach arbitrate. PolySync treats training as a control problem, not a chat problem.
 
 ## The load-bearing decision
 
-The **deterministic programming engine** owns every load prescription. The LLM explains, converses, and *proposes* adaptations as structured deltas — every one of which must clear a bounds checker before it reaches an athlete. Anything outside safe bounds goes to a named human coach as a draft.
+The **deterministic programming engine** owns every load prescription. The LLM explains, converses, and *proposes* adaptations as structured deltas — every one of which must clear a bounds checker before it can produce athlete-facing output.
 
 Four consequences:
 - Safety is auditable to an org buyer's risk function.
@@ -93,7 +93,7 @@ See [`docs/GAPS.md`](docs/GAPS.md) for the full list. Top 3 by fill-order:
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ---
 
