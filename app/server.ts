@@ -11,6 +11,10 @@ import {
   Timestamp
 } from "firebase/firestore";
 import crypto from "crypto";
+import { authenticate } from "./server/auth";
+import firebaseConfig from "./firebase-applet-config.json";
+
+const firebaseProjectId: string = (firebaseConfig as { projectId: string }).projectId;
 import {
   FitnessProfile, WeeklyPlan, WorkoutLogEntry, CheckIn,
   RecoveryAssessment, WorkoutExercise, ExerciseInputCompat, PlanOutputCompat,
@@ -22,6 +26,8 @@ import {
 import { generatePlan } from "./src/engine/planEngine";
 import { prescribe, checkPlan } from "./src/engine/boundsChecker";
 import type { EngineProfile } from "./src/engine/types";
+import { generateHybridWeek, prescribeHybrid, adaptDay, type HybridProfile } from "./src/engine/hybrid";
+import { parseHybridProfile } from "./server/hybridInput";
 import { EXERCISE_LIBRARY, getSubstituteExercises } from "./src/ExerciseLibrary";
 
 // Week, date formatting helpers
@@ -155,13 +161,21 @@ interface WearableInput {
   workoutSessions?: { duration: number; type: string; calories: number }[];
 }
 
-function requireAuth(req: express.Request, res: express.Response): string | null {
-  const uid = req.headers["x-user-id"] as string | undefined;
-  if (!uid) {
-    res.status(401).json({ error: "Unauthorized: x-user-id header required" });
+/**
+ * Resolve the caller's uid from a verified Firebase ID token (server/auth.ts).
+ * Sends 401 and returns null when there is no valid identity.
+ */
+async function requireAuth(req: express.Request, res: express.Response): Promise<string | null> {
+  const r = await authenticate(req.headers, {
+    projectId: firebaseProjectId,
+    allowDevHeader: process.env.ALLOW_DEV_USER_HEADER === "1",
+    production: process.env.NODE_ENV === "production",
+  });
+  if ("error" in r) {
+    res.status(r.status).json({ error: r.error });
     return null;
   }
-  return uid;
+  return r.uid;
 }
 
 async function getProfile(uid: string): Promise<FitnessProfile | null> {
@@ -176,7 +190,7 @@ async function saveProfile(uid: string, profile: FitnessProfile): Promise<void> 
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
 
@@ -211,7 +225,7 @@ async function startServer() {
 
   // F01 — Profile Agent: save fitness profile
   app.post("/api/fitness/profile", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const profile = req.body as Partial<FitnessProfile>;
@@ -243,7 +257,7 @@ async function startServer() {
 
   // F01 — Profile Agent: get fitness profile
   app.get("/api/fitness/profile", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const profile = await getProfile(uid);
@@ -260,7 +274,7 @@ async function startServer() {
 
   // F11 — Compliance Gate: set health data consent
   app.post("/api/fitness/consent", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { consent } = req.body as { consent: boolean };
@@ -281,7 +295,7 @@ async function startServer() {
 
   // F02 — Workout Generator: generate weekly plan
   app.post("/api/fitness/generate-plan", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const profile = await getProfile(uid);
@@ -328,9 +342,47 @@ async function startServer() {
     }
   });
 
+  // Hybrid scheduling (doc 12): the engine places strength, power and endurance
+  // sessions under rules H1-H9. A client or model may send a proposed week; it
+  // reaches the athlete only if prescribeHybrid() accepts it.
+  app.post("/api/hybrid/week", async (req, res) => {
+    const uid = await requireAuth(req, res);
+    if (!uid) return;
+    const parsed = parseHybridProfile(req.body?.profile);
+    if ("error" in parsed) {
+      res.status(400).json({ error: parsed.error });
+      return;
+    }
+    const engineWeek = generateHybridWeek(parsed.profile);
+    const result = prescribeHybrid(parsed.profile, engineWeek, req.body?.proposal, { previous: req.body?.previous });
+    if (req.body?.proposal !== undefined && result.prescribedBy === "engine") {
+      console.log(JSON.stringify({ event: "hybrid_proposal_rejected", uid, rules: result.findings.filter((f) => f.severity === "block").map((f) => f.rule) }));
+    }
+    res.json(result);
+  });
+
+  app.post("/api/hybrid/adapt", async (req, res) => {
+    const uid = await requireAuth(req, res);
+    if (!uid) return;
+    const parsed = parseHybridProfile(req.body?.profile);
+    if ("error" in parsed) {
+      res.status(400).json({ error: parsed.error });
+      return;
+    }
+    const sig = req.body?.signal;
+    if (!sig || typeof sig.day !== "number" || !["green", "amber", "red"].includes(sig.readiness)) {
+      res.status(400).json({ error: "signal must have day (0-6) and readiness (green|amber|red)" });
+      return;
+    }
+    const week = req.body?.week ?? generateHybridWeek(parsed.profile);
+    const a = adaptDay(week, parsed.profile, sig);
+    if (a.escalate) console.log(JSON.stringify({ event: "coach_escalation", uid, reason: a.steps[a.steps.length - 1]?.outcome }));
+    res.json(a);
+  });
+
   // F02 — get current week's plan
   app.get("/api/fitness/plan", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const q = query(
@@ -353,7 +405,7 @@ async function startServer() {
 
   // F03 — Exercise Library Agent: find substitution
   app.post("/api/fitness/substitute", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { exerciseId, reason, preferredEquipment } = req.body as {
@@ -375,7 +427,7 @@ async function startServer() {
 
   // F09 — Motivation Coach: submit check-in
   app.post("/api/fitness/checkin", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const input = req.body as CheckInInput;
@@ -406,7 +458,7 @@ async function startServer() {
 
   // F05 — Log workout
   app.post("/api/fitness/log-workout", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const workout = req.body as WorkoutLogEntry;
@@ -435,7 +487,7 @@ async function startServer() {
 
   // F04 — Recovery Analyst: compute recovery score
   app.post("/api/fitness/recovery", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const input = req.body as RecoveryInput;
@@ -459,7 +511,7 @@ async function startServer() {
 
   // F06 — Coaching Chat Agent (Phase 6: SSE streaming + follow-up chips + response timing + multilingual)
   app.post("/api/fitness/chat", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { message, sessionId, lang } = req.body as ChatRequest;
@@ -647,7 +699,7 @@ async function startServer() {
 
   // F07 — Form Coach Agent
   app.post("/api/fitness/form-cue", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { exerciseId, userDescription } = req.body as {
@@ -687,7 +739,7 @@ async function startServer() {
 
   // F08 — Nutrition Advisor Agent
   app.post("/api/fitness/nutrition", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { query, profile } = req.body as NutritionRequest;
@@ -742,7 +794,7 @@ async function startServer() {
   // or browser-specific APIs that are only available in secure contexts.
 
   app.post("/api/fitness/wearable/ingest", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { source, data } = req.body as {
@@ -807,7 +859,7 @@ async function startServer() {
   });
 
   app.get("/api/fitness/wearable", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const wearableRef = doc(db, "users", uid, "wearableData", "current");
@@ -834,7 +886,7 @@ async function startServer() {
   });
 
   app.post("/api/fitness/wearable/disconnect", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { source } = req.body as { source: string };
@@ -847,7 +899,7 @@ async function startServer() {
 
   // 3.3 — Streaks & Consistency
   app.get("/api/fitness/streaks", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const workoutsRef = collection(db, "users", uid, "workouts");
@@ -924,7 +976,7 @@ async function startServer() {
 
   // 5.2 — Personalized insights dashboard
   app.get("/api/fitness/insights", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       // Fetch all data in parallel
@@ -1113,7 +1165,7 @@ async function startServer() {
   
   // 5.2 — Personalized insights dashboard
   app.get("/api/fitness/insights", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const [profileSnap, checksSnap, logsSnap, recoverySnap] = await Promise.all([
@@ -1224,7 +1276,7 @@ async function startServer() {
 
   // 3.4 — Notification preferences
   app.post("/api/fitness/settings/notifications", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { dailyDigestTime, workoutReminders, checkInReminders } = req.body as {
@@ -1247,7 +1299,7 @@ async function startServer() {
   });
 
   app.get("/api/fitness/settings/notifications", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const settingsRef = doc(db, "users", uid, "settings", "notifications");
@@ -1269,7 +1321,7 @@ async function startServer() {
 
   // 4.6 — Data export (GDPR/CCPA compliance)
   app.post("/api/fitness/export", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { format } = req.body as { format?: string };
@@ -1319,7 +1371,7 @@ async function startServer() {
 
   // 4.7 — GDPR/CCPA account deletion
   app.post("/api/fitness/settings/delete-account", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { confirm } = req.body as { confirm?: string };
@@ -1357,7 +1409,7 @@ async function startServer() {
     }
   });
   app.post("/api/fitness/adapt-plan", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { reason, workoutData } = req.body as { reason?: string; workoutData?: any };
@@ -1371,7 +1423,7 @@ async function startServer() {
 
   // GET /api/fitness/progress — aggregated progress data
   app.get("/api/fitness/progress", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const workoutsSnap = await getDocs(
@@ -1402,7 +1454,7 @@ async function startServer() {
 
   // DELETE /api/fitness/data — GDPR/CCPA data deletion request
   app.delete("/api/fitness/data", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       // Delete all fitness data for this user (simplified batch delete)
@@ -1421,7 +1473,7 @@ async function startServer() {
   });
   // 6.2 — AI-powered workout summary (What went well / Could improve / Next focus)
   app.post("/api/fitness/workout-summary", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { workoutId } = req.body as { workoutId?: string };
@@ -1501,6 +1553,8 @@ Be encouraging and actionable. Keep each section concise.`;
     }
   });
 
+  registerExternalRoutes(app);
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -1517,7 +1571,7 @@ Be encouraging and actionable. Keep each section concise.`;
 
   // 6.2b — Weight entry logging endpoint
   app.post("/api/fitness/weight", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const { weight, note } = req.body as { weight?: number; note?: string };
@@ -1540,7 +1594,7 @@ Be encouraging and actionable. Keep each section concise.`;
   });
 
   app.get("/api/fitness/weight/history", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const entriesSnap = await getDocs(
@@ -2144,9 +2198,14 @@ async function getStravaStats(accessToken: string): Promise<any> {
 
 
 
+
+// Routes that were declared at module level, outside startServer(), so the
+// production bundle crashed on boot with "app is not defined" (found 24 Sep
+// 2026 when CI first booted the server). Registered inside startServer() now.
+function registerExternalRoutes(app: express.Express) {
   // 5.3 — External exercise search
   app.get("/api/fitness/external/exercises", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     const { q } = req.query as { q?: string };
     if (!q) return res.json({ results: [] });
@@ -2161,7 +2220,7 @@ async function getStravaStats(accessToken: string): Promise<any> {
 
   // 5.3 — External nutrition search
   app.get("/api/fitness/external/nutrition", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     const { q } = req.query as { q?: string };
     if (!q) return res.json({ results: [], error: "No query" });
@@ -2176,7 +2235,7 @@ async function getStravaStats(accessToken: string): Promise<any> {
 
   // 5.3 — Strava connection status
   app.get("/api/fitness/external/strava", async (req, res) => {
-    const uid = requireAuth(req, res);
+    const uid = await requireAuth(req, res);
     if (!uid) return;
     try {
       const wearableRef = doc(db, "users", uid, "wearableData", "current");
@@ -2188,6 +2247,6 @@ async function getStravaStats(accessToken: string): Promise<any> {
       res.json({ connected: false });
     }
   });
-
+}
 
 startServer();

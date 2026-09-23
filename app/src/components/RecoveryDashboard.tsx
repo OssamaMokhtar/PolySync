@@ -3,6 +3,7 @@ import { Activity, Heart, Moon, Zap, TrendingDown, TrendingUp, AlertTriangle, Ch
 import { WearableDataPoint, RecoveryAssessment } from '../types';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { apiFetch } from '../api';
 
 interface RecoveryDashboardProps {
   userId: string;
@@ -17,9 +18,9 @@ export function RecoveryDashboard({ userId }: RecoveryDashboardProps) {
   useEffect(() => {
     const fetchRecovery = async () => {
       try {
-        const res = await fetch('/api/fitness/recovery', {
+        const res = await apiFetch('/api/fitness/recovery', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ wearableData: [] }),
         });
         if (res.ok) {

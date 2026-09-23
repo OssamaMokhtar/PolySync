@@ -34,10 +34,10 @@ jobs:
       - name: App typecheck ratchet (fails if type errors increase)
         run: npm run typecheck:ratchet
 
-      - name: Unit tests (engine, bounds checker, routing)
+      - name: Unit tests (engine, hybrid rules H1-H9, bounds checker, routing, auth)
         run: npm test
 
-      - name: Safety-layer evals (hard gates, results reported with n)
+      - name: Evals: safety layer + hybrid layer (hard gates, results reported with n)
         run: npm run eval
 
       - name: Build
@@ -45,6 +45,15 @@ jobs:
 
       - name: Client bundle carries no Gemini client or key
         run: npm run check-bundle
+
+      - name: Production bundle boots; anonymous and x-user-id requests get 401
+        run: npm run boot-check
+
+      - name: Client never asserts its own identity (ID token only)
+        run: |
+          if grep -rn "x-user-id" src; then
+            echo "::error::client code sends x-user-id; use apiFetch (Firebase ID token)"; exit 1
+          fi
 
       - name: Dependency audit (high and critical fail the build)
         run: npm audit --omit=dev --audit-level=high

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface FormCueButtonProps {
   exerciseId: string;
@@ -17,9 +18,9 @@ export function FormCueButton({ exerciseId, exerciseName, userId }: FormCueButto
     if (!query.trim() || loading) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/fitness/form-cue', {
+      const res = await apiFetch('/api/fitness/form-cue', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ exerciseId, userDescription: query.trim() }),
       });
       if (!res.ok) throw new Error('Form cue request failed');

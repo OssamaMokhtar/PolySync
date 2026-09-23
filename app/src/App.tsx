@@ -19,6 +19,7 @@ import { InsightsDashboard } from './components/InsightsDashboard';
 import { SubscriptionStatus, ExportButton, DeleteAccountButton } from './components/SettingsComponents';
 import { FormCueButton } from './components/FormCueButton';
 import { NutritionPanel } from './components/NutritionPanel';
+import { apiFetch } from './api';
 
 type FitnessTab = 'today' | 'weekly' | 'progress' | 'insights' | 'coach' | 'settings';
 
@@ -40,9 +41,9 @@ async function promptForWeight(userId: string): Promise<number | null> {
 
 async function logWeightEntry(userId: string, weight: number) {
   const entry: WeightEntry = { userId, date: Date.now(), weight };
-  const res = await fetch('/api/fitness/weight', {
+  const res = await apiFetch('/api/fitness/weight', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(entry),
   });
   if (!res.ok) console.error('Failed to log weight:', await res.text());
@@ -95,9 +96,7 @@ export default function App() {
   const fetchStreak = async () => {
     if (!currentUser) return;
     try {
-      const res = await fetch('/api/fitness/streaks', {
-        headers: { 'x-user-id': currentUser.uid },
-      });
+      const res = await apiFetch('/api/fitness/streaks');
       if (res.ok) {
         const data = await res.json();
         setStreak(data.currentStreak || 0);
@@ -122,9 +121,7 @@ export default function App() {
   const fetchPlan = async () => {
     if (!currentUser) return;
     try {
-      const res = await fetch('/api/fitness/plan', {
-        headers: { 'x-user-id': currentUser.uid }
-      });
+      const res = await apiFetch('/api/fitness/plan');
       if (res.ok) {
         const data = await res.json();
         setPlan(data.plan);
@@ -137,9 +134,9 @@ export default function App() {
   const generatePlan = async () => {
     if (!currentUser || !profile) return;
     try {
-      const res = await fetch('/api/fitness/generate-plan', {
+      const res = await apiFetch('/api/fitness/generate-plan', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       });
       if (res.ok) {
@@ -225,9 +222,9 @@ export default function App() {
         createdAt: Date.now(),
       };
 
-      const res = await fetch('/api/fitness/log-workout', {
+      const res = await apiFetch('/api/fitness/log-workout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(workoutData)
       });
       if (res.ok) {
@@ -606,9 +603,9 @@ export default function App() {
   const handleSendMessage = async (message: string): Promise<ChatResponse> => {
     if (!currentUser) throw new Error('Not authenticated');
     const lang = (profile as any)?.language as SupportedLanguage || 'en';
-    const res = await fetch('/api/fitness/chat?stream=true', {
+    const res = await apiFetch('/api/fitness/chat?stream=true', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-user-id': currentUser.uid },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, lang, context: { profile, recentWorkouts: [], currentPlan: plan } }),
     });
     if (!res.ok) throw new Error('Chat request failed');

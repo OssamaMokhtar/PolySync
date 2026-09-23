@@ -3,6 +3,7 @@ import { Zap, Crown, AlertTriangle, Download, Trash2 } from 'lucide-react';
 import { SubscriptionTier, TIER_FEATURES, UserSubscription } from '../types';
 import { auth, db } from '../firebase';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { apiFetch } from '../api';
 
 interface SpecialModeSelectorProps {
   currentMode: string;
@@ -128,9 +129,9 @@ export function ExportButton({ userId }: ExportButtonProps) {
   const handleExport = async (format: 'json' | 'csv') => {
     setExporting(true);
     try {
-      const res = await fetch('/api/fitness/export', {
+      const res = await apiFetch('/api/fitness/export', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ format }),
       });
       if (!res.ok) throw new Error('Export failed');
@@ -191,9 +192,9 @@ export function DeleteAccountButton({ userId }: DeleteAccountButtonProps) {
     if (!confirm('This will permanently delete ALL your data: workouts, plans, chat history, wearable data, profile, and settings. This action cannot be undone. Type "DELETE" to confirm.')) return;
     setDeleting(true);
     try {
-      await fetch('/api/fitness/settings/delete-account', {
+      await apiFetch('/api/fitness/settings/delete-account', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirm: 'DELETE' }),
       });
       alert('Account deletion requested. Your data will be removed within 30 days per GDPR/CCPA policy.');

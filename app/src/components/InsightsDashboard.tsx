@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { TrendingUp, TrendingDown, Award, Flame, Calendar, BarChart3, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface InsightsDashboardProps {
   userId: string;
@@ -32,8 +33,7 @@ export function InsightsDashboard({ userId }: InsightsDashboardProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/fitness/insights', {
-        headers: { 'x-user-id': userId },
+      const res = await apiFetch('/api/fitness/insights', {
         signal,
       });
       if (!res.ok) throw new Error('Failed to load insights');

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Utensils, AlertTriangle, Sparkles } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface NutritionPanelProps {
   profile: { goal?: string; level?: string } | null;
@@ -17,9 +18,9 @@ export function NutritionPanel({ profile, userId }: NutritionPanelProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/fitness/nutrition', {
+      const res = await apiFetch('/api/fitness/nutrition', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: query.trim(), profile }),
       });
       if (!res.ok) throw new Error('Nutrition request failed');

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { apiFetch } from '../api';
 
 interface CoachChatProps {
   profile: FitnessProfile | null;
@@ -138,9 +139,9 @@ export function CoachChat({ profile, recentWorkouts, currentPlan, onSendMessage,
 
     try {
       const controller = new AbortController();
-      const response = await fetch('/api/fitness/chat?stream=true', {
+      const response = await apiFetch('/api/fitness/chat?stream=true', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'stream-user' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage, lang: chatLanguage }),
         signal: controller.signal,
       });

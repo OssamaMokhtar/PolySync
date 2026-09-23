@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { WorkoutLogEntry } from '../types';
+import { apiFetch } from '../api';
 
 interface ProgressDashboardProps {
   userId: string;
@@ -29,12 +30,8 @@ export function ProgressDashboard({ userId }: ProgressDashboardProps) {
     const fetchProgress = async () => {
       try {
         const [progRes, streakRes] = await Promise.all([
-          fetch(`/api/fitness/progress?range=${timeRange}`, {
-            headers: { 'x-user-id': userId },
-          }),
-          fetch('/api/fitness/streaks', {
-            headers: { 'x-user-id': userId },
-          }),
+          apiFetch(`/api/fitness/progress?range=${timeRange}`),
+          apiFetch('/api/fitness/streaks'),
         ]);
         if (progRes.ok) {
           const prog = await progRes.json();

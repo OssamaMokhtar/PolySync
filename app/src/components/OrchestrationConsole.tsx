@@ -11,6 +11,7 @@ import { AgentNetworkDiagram } from './AgentNetworkDiagram';
 import { RechartsHeatmap } from './RechartsHeatmap';
 import { auth, db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+import { apiFetch } from '../api';
 
 interface SavedDocument {
   id: string;
@@ -611,7 +612,7 @@ export function OrchestrationConsole({ productName, productDescription, activeRo
     updateAgentStatus('workout_generator', 'running');
     
     try {
-      const response = await fetch('/api/evaluate', {
+      const response = await apiFetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -651,7 +652,7 @@ export function OrchestrationConsole({ productName, productDescription, activeRo
       updateAgentStatus('plan_adaptor', 'running');
       addLog('[Plan Adaptor] Validating error budgets in target US-East active networks...');
       
-      const rollbackResponse = await fetch('/api/evaluate', {
+      const rollbackResponse = await apiFetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

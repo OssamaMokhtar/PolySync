@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Zap, Heart, Moon, Smile, AlertTriangle, ChevronRight } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface CheckInProps {
   workoutId?: string;
@@ -45,9 +46,9 @@ export function CheckInForm({ workoutId, onComplete }: CheckInProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const res = await fetch('/api/fitness/checkin', {
+      const res = await apiFetch('/api/fitness/checkin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'current-user' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           energyLevel: data.energyLevel,
           mood: data.mood,
