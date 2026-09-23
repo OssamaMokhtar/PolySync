@@ -1,6 +1,6 @@
 {
   "suite": "polysync-safety-layer",
-  "ranAt": "2026-09-23T08:34:48.288Z",
+  "ranAt": "2026-09-23T21:47:36.554Z",
   "fixedClock": "2026-09-21T00:00:00.000Z",
   "scope": "Deterministic engine + bounds checker + routing. Not an LLM quality eval.",
   "rulesVersion": "v0 (not coach-signed, GAPS #4)",

@@ -1,0 +1,152 @@
+{
+  "suite": "polysync-hybrid-layer",
+  "ranAt": "2026-09-23T21:47:34.740Z",
+  "scope": "Hybrid scheduling engine + rules H1-H9 + routing + daily adaptation. Deterministic; not an LLM quality eval.",
+  "rulesVersion": "v1-literature (parameters from product/data/evidence.json; not coach-signed, GAPS #4)",
+  "sets": {
+    "engine_weeks_valid": {
+      "n_profiles": 3240,
+      "passed": 3240,
+      "gate": "all"
+    },
+    "no_silent_drops": {
+      "requested": 17820,
+      "placed": 15834,
+      "reported_shortfall": 1986,
+      "gate": "placed + shortfall = requested"
+    },
+    "adversarial_blocked": {
+      "n": 3593,
+      "blocked": 3593,
+      "byMutation": {
+        "HM1 strength 2 h after a hard run on the same day": {
+          "n": 444,
+          "blocked": 444,
+          "rightRule": 444,
+          "routedToEngineWithCoach": 444
+        },
+        "HM2 power 1 h after an easy run": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM3 non-priority quality first on a shared day": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM4 raise weekly load 25% over last week": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM5 schedule a session on an unavailable day": {
+          "n": 371,
+          "blocked": 371,
+          "rightRule": 371,
+          "routedToEngineWithCoach": 371
+        },
+        "HM6 keep a hard session on an amber-readiness day": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM7 train through a red flag (pain or illness)": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        },
+        "HM8 injected text instead of a week": {
+          "n": 463,
+          "blocked": 463,
+          "rightRule": 463,
+          "routedToEngineWithCoach": 463
+        }
+      },
+      "gate": "all blocked by the expected rule and routed to engine + coach"
+    },
+    "safe_proposals_accepted": {
+      "n": 463,
+      "accepted": 463,
+      "gate": "all"
+    },
+    "amber_adaptation": {
+      "n": 13674,
+      "adapted": 5163,
+      "escalated": 8511,
+      "adapted_but_invalid": 0,
+      "gate": "0 invalid (every adapted week passes H1-H9 incl. H5 vs the week it replaces); escalation is an allowed outcome"
+    },
+    "pain_flag_escalation": {
+      "n": 2263,
+      "escalated": 2263,
+      "gate": "all"
+    },
+    "amber_escalation_by_schedule": {
+      "byDaysAndDoubles": {
+        "3d-doubles": {
+          "n": 1416,
+          "escalated": 1275,
+          "rate": 0.9
+        },
+        "3d-singles": {
+          "n": 954,
+          "escalated": 954,
+          "rate": 1
+        },
+        "4d-doubles": {
+          "n": 1458,
+          "escalated": 876,
+          "rate": 0.601
+        },
+        "4d-singles": {
+          "n": 1206,
+          "escalated": 1161,
+          "rate": 0.963
+        },
+        "5d-doubles": {
+          "n": 1458,
+          "escalated": 540,
+          "rate": 0.37
+        },
+        "5d-singles": {
+          "n": 1368,
+          "escalated": 1212,
+          "rate": 0.886
+        },
+        "6d-doubles": {
+          "n": 1458,
+          "escalated": 342,
+          "rate": 0.235
+        },
+        "6d-singles": {
+          "n": 1440,
+          "escalated": 1008,
+          "rate": 0.7
+        },
+        "7d-doubles": {
+          "n": 1458,
+          "escalated": 360,
+          "rate": 0.247
+        },
+        "7d-singles": {
+          "n": 1458,
+          "escalated": 783,
+          "rate": 0.537
+        }
+      },
+      "gate": "none (reported; feeds product/data/model.json coach-minutes driver)"
+    }
+  },
+  "not_covered": [
+    "Whether literature defaults (6 h separation, +10% load limit) suit a given athlete: needs coach sign-off",
+    "Athlete outcomes (adherence, performance): needs a pilot",
+    "Model proposal quality: the model is not in this loop"
+  ],
+  "failures": []
+}

@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "strict": true, "noEmit": true, "resolveJsonModule": true },
-  "include": ["src/engine/**/*.ts", "src/ExerciseLibrary.ts", "../evals/run.ts"]
+  "include": ["src/engine/**/*.ts", "src/ExerciseLibrary.ts", "../evals/run.ts", "../evals/hybrid-run.ts"]
 }
