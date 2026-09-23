@@ -2,6 +2,8 @@
 
 **AI coaching for hybrid athletes.** B2B2C, with a human coach in the loop.
 
+**Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [gaps](docs/GAPS.md)
+
 Hybrid athletes chase endurance and strength adaptations at the same time. Those adaptations interfere with each other, and mainstream apps don't resolve it — they run two plans in parallel and let the athlete or coach arbitrate. PolySync treats training as a control problem, not a chat problem.
 
 ## The load-bearing decision
@@ -46,7 +48,7 @@ See [`docs/00-unified-product-status.md`](docs/00-unified-product-status.md) for
 
 ## Documentation
 
-Full set in [`docs/`](docs/) — 17 documents covering architecture, data model, AI architecture, RAG grounding, evaluation harness, decision log, unit economics, security, and the hybrid programming engine.
+Full set in [`docs/`](docs/README.md) — 17 documents covering architecture, data model, AI architecture, RAG grounding, evaluation harness, decision log, unit economics, security, and the hybrid programming engine.
 
 Start with:
 - [Unified product status](docs/00-unified-product-status.md) — where the product lives, what is real vs designed vs TBD
