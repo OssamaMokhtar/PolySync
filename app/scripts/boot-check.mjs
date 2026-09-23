@@ -23,5 +23,10 @@ const anon = await fetch(base + "/api/hybrid/week", { method: "POST", headers: {
 if (anon.status !== 401) fail(`unauthenticated request returned ${anon.status}, expected 401`);
 const spoof = await fetch(base + "/api/fitness/plan", { headers: { "x-user-id": "victim" } });
 if (spoof.status !== 401) fail(`x-user-id impersonation returned ${spoof.status} in production, expected 401`);
+const unknown = await fetch(base + "/api/does-not-exist");
+if (unknown.status !== 404 || !(unknown.headers.get("content-type") ?? "").includes("json")) fail(`unknown API path returned ${unknown.status} ${unknown.headers.get("content-type")}, expected a JSON 404 (not the SPA shell)`);
+const weight = await fetch(base + "/api/fitness/weight/history");
+if (weight.status !== 401) fail(`/api/fitness/weight/history returned ${weight.status}, expected 401 (route shadowed by the SPA catch-all?)`);
+if (!unknown.headers.get("ratelimit-limit")) fail("API responses carry no RateLimit-Limit header");
 srv.kill();
-console.log("boot-check OK: production bundle boots; SPA 200; anonymous 401; x-user-id impersonation 401");
+console.log("boot-check OK: production bundle boots; SPA 200; anonymous 401; x-user-id impersonation 401; unknown API 404 JSON; late routes reachable; rate limit on");

@@ -12,7 +12,7 @@ The PolySync safety architecture is documented in [docs/04-ai-architecture.md](d
 4. **Escalation pipeline** sends out-of-bounds proposals to a named human coach as a draft.
 
 **Consequences:**
-- Prompt injection cannot change training load (the LLM has no write path to the programming engine).
+- The LLM has no write path to the programming engine. Its output, including any injected instructions, reaches an athlete only as a plan that passes every rule (B1–B9, H1–H9); anything else is blocked and the engine's plan stands. The rules bound a proposal; they do not judge its quality.
 - A model provider outage degrades the explanation, not the training.
 - Eval gates are meaningful because prescription is reproducible.
 

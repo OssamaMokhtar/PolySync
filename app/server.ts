@@ -26,8 +26,9 @@ import {
 import { generatePlan } from "./src/engine/planEngine";
 import { prescribe, checkPlan } from "./src/engine/boundsChecker";
 import type { EngineProfile } from "./src/engine/types";
-import { generateHybridWeek, prescribeHybrid, adaptDay, type HybridProfile } from "./src/engine/hybrid";
-import { parseHybridProfile } from "./server/hybridInput";
+import { generateHybridWeek, prescribeHybrid, adaptDay, type HybridProfile, type HybridWeek } from "./src/engine/hybrid";
+import { parseHybridProfile, parseSignal, parseWeek } from "./server/hybridInput";
+import { logEvent, rateLimit } from "./server/ops";
 import { EXERCISE_LIBRARY, getSubstituteExercises } from "./src/ExerciseLibrary";
 
 // Week, date formatting helpers
@@ -192,7 +193,9 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: "100kb" }));
+  // Per-client limit on the API: protects model spend and the coach queue.
+  app.use("/api", rateLimit({ windowMs: 60_000, max: Number(process.env.API_RATE_PER_MIN) || 60 }));
 
   // Instantiate Gemini API Client safely on the server side
   let ai: GoogleGenAI | null = null;
@@ -326,7 +329,7 @@ async function startServer() {
       }
       const result = prescribe(engineProfile, enginePlan, proposal);
       if (result.proposal && !result.proposal.accepted) {
-        console.log(JSON.stringify({ event: "bounds_rejected", uid, rules: result.proposal.violations.map((x) => x.rule) }));
+        logEvent("bounds_rejected", { uid, rules: result.proposal.violations.map((x) => x.rule) });
       }
       const plan = { ...result.plan, userId: uid, createdAt: Date.now() as any, updatedAt: Date.now() as any };
       await savePlan(uid, plan as any);
@@ -348,36 +351,65 @@ async function startServer() {
   app.post("/api/hybrid/week", async (req, res) => {
     const uid = await requireAuth(req, res);
     if (!uid) return;
-    const parsed = parseHybridProfile(req.body?.profile);
-    if ("error" in parsed) {
-      res.status(400).json({ error: parsed.error });
-      return;
+    try {
+      const parsed = parseHybridProfile(req.body?.profile);
+      if ("error" in parsed) {
+        res.status(400).json({ error: parsed.error });
+        return;
+      }
+      let previous: HybridWeek | undefined;
+      if (req.body?.previous !== undefined) {
+        const pw = parseWeek(req.body.previous, "previous");
+        if ("error" in pw) {
+          res.status(400).json({ error: pw.error });
+          return;
+        }
+        previous = pw.week;
+      }
+      const engineWeek = generateHybridWeek(parsed.profile);
+      const result = prescribeHybrid(parsed.profile, engineWeek, req.body?.proposal, { previous });
+      if (req.body?.proposal !== undefined && result.prescribedBy === "engine") {
+        logEvent("hybrid_proposal_rejected", { uid, rules: result.findings.filter((f) => f.severity === "block").map((f) => f.rule) });
+      }
+      res.json(result);
+    } catch (err) {
+      logEvent("route_error", { route: "/api/hybrid/week", message: String((err as Error)?.message ?? err) });
+      res.status(500).json({ error: "Failed to build the week" });
     }
-    const engineWeek = generateHybridWeek(parsed.profile);
-    const result = prescribeHybrid(parsed.profile, engineWeek, req.body?.proposal, { previous: req.body?.previous });
-    if (req.body?.proposal !== undefined && result.prescribedBy === "engine") {
-      console.log(JSON.stringify({ event: "hybrid_proposal_rejected", uid, rules: result.findings.filter((f) => f.severity === "block").map((f) => f.rule) }));
-    }
-    res.json(result);
   });
 
   app.post("/api/hybrid/adapt", async (req, res) => {
     const uid = await requireAuth(req, res);
     if (!uid) return;
-    const parsed = parseHybridProfile(req.body?.profile);
-    if ("error" in parsed) {
-      res.status(400).json({ error: parsed.error });
-      return;
+    try {
+      const parsed = parseHybridProfile(req.body?.profile);
+      if ("error" in parsed) {
+        res.status(400).json({ error: parsed.error });
+        return;
+      }
+      const sig = parseSignal(req.body?.signal);
+      if ("error" in sig) {
+        res.status(400).json({ error: sig.error });
+        return;
+      }
+      let week = generateHybridWeek(parsed.profile);
+      if (req.body?.week !== undefined) {
+        const pw = parseWeek(req.body.week, "week");
+        if ("error" in pw) {
+          res.status(400).json({ error: pw.error });
+          return;
+        }
+        week = pw.week;
+      }
+      const a = adaptDay(week, parsed.profile, sig.signal);
+      if (a.outcome === "escalated") logEvent("coach_escalation", { uid, reason: a.steps[a.steps.length - 1]?.outcome });
+      if (a.outcome === "downgraded") logEvent("session_downgraded", { uid, day: sig.signal.day });
+      if (a.outcome === "moved") logEvent("session_moved", { uid, day: sig.signal.day });
+      res.json(a);
+    } catch (err) {
+      logEvent("route_error", { route: "/api/hybrid/adapt", message: String((err as Error)?.message ?? err) });
+      res.status(500).json({ error: "Failed to adapt the day" });
     }
-    const sig = req.body?.signal;
-    if (!sig || typeof sig.day !== "number" || !["green", "amber", "red"].includes(sig.readiness)) {
-      res.status(400).json({ error: "signal must have day (0-6) and readiness (green|amber|red)" });
-      return;
-    }
-    const week = req.body?.week ?? generateHybridWeek(parsed.profile);
-    const a = adaptDay(week, parsed.profile, sig);
-    if (a.escalate) console.log(JSON.stringify({ event: "coach_escalation", uid, reason: a.steps[a.steps.length - 1]?.outcome }));
-    res.json(a);
   });
 
   // F02 — get current week's plan
@@ -1553,21 +1585,6 @@ Be encouraging and actionable. Keep each section concise.`;
     }
   });
 
-  registerExternalRoutes(app);
-
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req: express.Request, res: express.Response) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
 
   // 6.2b — Weight entry logging endpoint
   app.post("/api/fitness/weight", async (req, res) => {
@@ -1607,6 +1624,28 @@ Be encouraging and actionable. Keep each section concise.`;
       res.status(500).json({ error: "Failed to get weight history" });
     }
   });
+
+  registerExternalRoutes(app);
+
+  // Unknown API paths get a JSON 404, never the SPA shell. Registered after
+  // every route so the catch-all below cannot shadow any of them.
+  app.use("/api", (_req: express.Request, res: express.Response) => {
+    res.status(404).json({ error: "Not found" });
+  });
+
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req: express.Request, res: express.Response) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server standing by on port ${PORT}`);
@@ -1876,7 +1915,7 @@ async function generateAdaptation(uid: string, completedWorkout: any): Promise<W
   // cap); otherwise the current plan stands and the block is logged for review.
   const verdict = checkPlan(adapted, toEngineProfile(profile), currentPlan as any);
   if (!verdict.ok) {
-    console.log(JSON.stringify({ event: "bounds_rejected", uid, source: "adaptation", rules: verdict.violations.map((x) => x.rule) }));
+    logEvent("bounds_rejected", { uid, source: "adaptation", rules: verdict.violations.map((x) => x.rule) });
     return currentPlan;
   }
 
@@ -2248,5 +2287,9 @@ function registerExternalRoutes(app: express.Express) {
     }
   });
 }
+
+process.on("unhandledRejection", (reason) => {
+  logEvent("unhandled_rejection", { message: String((reason as Error)?.message ?? reason) });
+});
 
 startServer();

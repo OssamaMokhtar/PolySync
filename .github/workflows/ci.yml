@@ -34,11 +34,18 @@ jobs:
       - name: App typecheck ratchet (fails if type errors increase)
         run: npm run typecheck:ratchet
 
-      - name: Unit tests (engine, hybrid rules H1-H9, bounds checker, routing, auth)
+      - name: Unit tests (engine, hybrid rules H1-H9, bounds checker, routing, auth, input validation, rate limit)
         run: npm test
 
       - name: "Evals: safety layer + hybrid layer (hard gates, results reported with n)"
-        run: npm run eval
+        run: WRITE_RESULTS=1 npm run eval
+
+      - name: Committed eval results match this run (only the timestamp may differ)
+        working-directory: .
+        run: |
+          if ! git diff --exit-code -I '"ranAt"' -- evals/results/; then
+            echo "::error::evals/results/ is stale; run 'WRITE_RESULTS=1 npm run eval' in app/ and commit"; exit 1
+          fi
 
       - name: Build
         run: npm run build
@@ -46,12 +53,12 @@ jobs:
       - name: Client bundle carries no Gemini client or key
         run: npm run check-bundle
 
-      - name: Production bundle boots; anonymous and x-user-id requests get 401
+      - name: Production bundle boots; anonymous and x-user-id requests get 401; unknown API paths get a JSON 404
         run: npm run boot-check
 
       - name: Client never asserts its own identity (ID token only)
         run: |
-          if grep -rn "x-user-id" src; then
+          if grep -rni "x-user-id" src; then
             echo "::error::client code sends x-user-id; use apiFetch (Firebase ID token)"; exit 1
           fi
 
