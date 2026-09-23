@@ -1,0 +1,8 @@
+{
+  "name": "PolySync AI Fitness Coach",
+  "description": "AI-powered personal fitness coach with adaptive workout plans, conversational LLM coaching, wearable integration, recovery analysis, and multi-agent orchestration. Built on the PolyVerses multi-agent architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
