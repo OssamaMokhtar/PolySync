@@ -201,6 +201,29 @@ Each ADR states what was rejected and the measurable condition that would revers
 
 ---
 
+## ADR-011: One wedge, three gated options; the super-app expansion is not the plan
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar · Reaffirms ADR-005 (one sport context, one beachhead) · Evidence: [idea validation vision](../product/idea-validation-vision.md)
+
+**Context.** An expanded "super-app" narrative proposed adding martial-arts AI shadowing, a global coach marketplace, computer vision trained on social-media video, automatic athlete tiers, body-photo tracking, a youth-football "golden ratio" and a five-region launch. Each claim was checked against a primary source ([validation data](../product/data/validation.json)). Three load-bearing claims are unverifiable or wrong, one statistic contradicts itself, and three ideas cross legal or safety lines.
+
+**Decision.**
+1. PolySync stays one product: the hybrid engine, the coach console and the athlete app, piloted in UAE HYROX clubs (ADR-005, ADR-006, ADR-010).
+2. Three expansions become options, each with a cheap test and a kill criterion before any code: **A** technique drills for slow skills through club coaches; **B** youth football through academies; **C** a coach marketplace beyond clubs, only after 20+ coaches actively use the console.
+3. Not built: training models on scraped social-media video; body-fat estimates from photos; any named player's likeness; five regions at once.
+
+**Rejected.**
+- The full super-app: five businesses, three surfaces and five regulatory regimes for one engineer.
+- Dropping the ideas outright: A and B have plausible buyers and cheap tests.
+
+**Consequences.**
+- The roadmap gains three gated items and three "not planned" items.
+- UAE Federal Law 2/2019 (health data localisation) joins the pilot's counsel questions (risk REG-03).
+
+**Reversal trigger.** An option's test passes its bar (A: 30%+ of 20 concierge athletes would pay and coaches agree on scores; B: an academy co-designs and pays; C: 20+ active console coaches). Then it gets its own ADR and build plan.
+
+---
+
 ## Operating decisions
 
 | Decision | Owner | Date |

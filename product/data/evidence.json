@@ -515,6 +515,105 @@
       "usedIn": [
         "competitors"
       ]
+    },
+    {
+      "id": "COM-007",
+      "topic": "competition",
+      "claim": "Consumer AI martial-arts coaching apps already exist on the app stores (JAB AI on iOS and Android; also Fight AI, Braule, MartialMe)",
+      "value": null,
+      "unit": "",
+      "source": "JAB AI - Martial Arts Coach, App Store listing",
+      "url": "https://apps.apple.com/us/app/jab-ai-martial-arts-coach/id6751054115",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "validation.N2"
+      ]
+    },
+    {
+      "id": "COM-008",
+      "topic": "competition",
+      "claim": "Review of five AI boxing apps: identical feedback across different videos; one tracked about 10 of 70 punches; a single side-on camera cannot see weight transfer. Publisher sells a competing app",
+      "value": null,
+      "unit": "",
+      "source": "Heavy Bag Pro, 'Do AI boxing apps actually work?'",
+      "url": "https://heavybag.pro/do-ai-boxing-apps-actually-work/",
+      "accessed": "2026-09-24",
+      "grade": "C",
+      "usedIn": [
+        "validation.N2"
+      ]
+    },
+    {
+      "id": "COM-009",
+      "topic": "competition",
+      "claim": "Camera-based youth football skills and scouting apps already exist (aiScout; Ballogy)",
+      "value": null,
+      "unit": "",
+      "source": "aiScout, Google Play listing",
+      "url": "https://play.google.com/store/apps/details?id=com.aiscout.player",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "validation.N5"
+      ]
+    },
+    {
+      "id": "COM-010",
+      "topic": "competition",
+      "claim": "A 45-day review of Zing Coach found its camera form-feedback claims misleading in practice",
+      "value": null,
+      "unit": "",
+      "source": "Techpoint Africa, Zing Coach AI review",
+      "url": "https://techpoint.africa/guide/zing-coach-ai-review/",
+      "accessed": "2026-09-24",
+      "grade": "C",
+      "usedIn": [
+        "validation.N2"
+      ]
+    },
+    {
+      "id": "SCI-009",
+      "topic": "science",
+      "claim": "McKay et al. define six participant tiers (sedentary to world class) by training and performance calibre, i.e. training volume and competition level, not by movement quality",
+      "value": null,
+      "unit": "",
+      "source": "McKay A.K.A. et al. Defining Training and Performance Caliber: A Participant Classification Framework. IJSPP 17 (2022)",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/34965513/",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "validation.N4"
+      ]
+    },
+    {
+      "id": "REG-003",
+      "topic": "regulatory",
+      "claim": "UAE Federal Law No. 2 of 2019 (ICT in health fields), Article 13: health data related to health services provided in the UAE may not be stored, processed, generated or transferred outside the UAE unless the health authority or Minister approves; whether it reaches consumer wellness apps is not settled",
+      "value": null,
+      "unit": "",
+      "source": "Latham & Watkins, 'New UAE Law Regulates Healthcare Data' (2019)",
+      "url": "https://www.lw.com/en/insights/2019/06/new-uae-law-regulates-healthcare-data",
+      "accessed": "2026-09-24",
+      "grade": "B",
+      "usedIn": [
+        "validation.N8",
+        "risk.REG-03"
+      ]
+    },
+    {
+      "id": "REG-004",
+      "topic": "regulatory",
+      "claim": "YouTube's Terms of Service prohibit unauthorized downloads and scraping; third-party AI training on a creator's videos is off by default and needs the creator to opt in",
+      "value": null,
+      "unit": "",
+      "source": "YouTube Help, 'Your content & third-party training'",
+      "url": "https://support.google.com/youtube/answer/15509945?hl=en",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "validation.N7"
+      ]
     }
   ]
 }

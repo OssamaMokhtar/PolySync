@@ -32,6 +32,7 @@ const metrics = read("product/data/metrics.json");
 const competitors = read("product/data/competitors.json");
 const roadmap = read("product/data/roadmap.json");
 const pilotStatus = read("product/data/pilot-status.json");
+const validation = read("product/data/validation.json");
 const safety = read("evals/results/latest.json");
 const hybrid = read("evals/results/hybrid-latest.json");
 const decisionLog = readFileSync(P("docs/10-decision-log.md"), "utf8");
@@ -137,6 +138,24 @@ for (const r of risks.risks) {
     const g = l.match(/^GAPS #(\d+)$/);
     if (g && !new RegExp(`^\\| ${g[1]} \\|`, "m").test(gaps)) errors.push(`risk ${r.id}: GAPS #${g[1]} not in GAPS.md`);
   }
+}
+
+// ── Validate the idea validation (ADR-011) ──────────────────────────────────
+// Every verdict is on the declared scale; "validated" needs evidence; every
+// evidence id exists; every option's reference resolves.
+const OPTION_STATUS = ["build", "test", "wait", "dont"];
+for (const c of validation.claims) {
+  if (!validation.verdictScale[c.verdict]) errors.push(`validation ${c.id}: verdict '${c.verdict}' is not on the scale`);
+  for (const id of c.evidence) if (!E.has(id)) errors.push(`validation ${c.id}: unknown evidence ${id}`);
+  if (c.verdict === "validated" && c.evidence.length === 0) errors.push(`validation ${c.id}: a validated claim needs evidence`);
+}
+for (const v of validation.validated) {
+  if (!v.evidence.length) errors.push(`validation finding '${v.finding}': needs evidence`);
+  for (const id of v.evidence) if (!E.has(id)) errors.push(`validation finding '${v.finding}': unknown evidence ${id}`);
+}
+for (const o of validation.options) {
+  if (!OPTION_STATUS.includes(o.status)) errors.push(`validation option ${o.id}: status must be one of ${OPTION_STATUS.join("/")}`);
+  if (!refOk(o.ref)) errors.push(`validation option ${o.id}: reference ${o.ref} does not resolve`);
 }
 
 if (errors.length) {
@@ -322,6 +341,20 @@ for (const hz of roadmap.horizons) {
   rm += "\n";
 }
 
+const VERDICT_MARK = { validated: "✓", "real-constraint": "!", plausible: "◐", misread: "✕", misused: "✕", unverified: "?", folklore: "?", contradicted: "✕", "not-feasible": "✕", "thin-margin": "◐", "red-line": "⛔" };
+const STATUS_WORD = { build: "Build", test: "Test first", wait: "Wait", dont: "Don't build" };
+let iv = HDR(validation.title);
+iv += `**${validation.verdict.headline}** ${validation.verdict.summary}\n\n**Input.** ${validation.input}\n\n`;
+iv += `## Claim by claim\n\n| # | Narrative | Claim | What the check found | Verdict | So what | Evidence |\n|---|---|---|---|---|---|---|\n`;
+for (const c of validation.claims) iv += `| ${c.id} | ${c.narrative} | ${c.claim} | ${c.check} | ${VERDICT_MARK[c.verdict] ?? ""} **${c.verdict}** | ${c.implication} | ${src(c.evidence) || "—"} |\n`;
+iv += `\n**Verdict scale.** ${Object.entries(validation.verdictScale).map(([k, v]) => `**${k}**: ${v}.`).join(" ")}\n\n`;
+iv += `## What is validated\n\n${validation.validated.map((v) => `- ${v.finding} (${src(v.evidence)})`).join("\n")}\n\n`;
+iv += `## One wedge, three gated options (ADR-011)\n\n| Track | Decision | Cheapest test before code | Kill criterion |\n|---|---|---|---|\n`;
+for (const o of validation.options) iv += `| **${o.id}** · ${o.track} | ${STATUS_WORD[o.status]} | ${o.test} | ${o.kill} |\n`;
+iv += `\n## The vision, if the gates pass\n\n| Stage | What PolySync becomes | Gate |\n|---|---|---|\n${validation.vision.map((v) => `| ${v.stage} | ${v.what} | ${v.gate} |`).join("\n")}\n\n`;
+iv += `## Corrections to the input narrative\n\n${validation.corrections.map((c) => `- ${c}`).join("\n")}\n\n`;
+iv += `## Where this lives\n\n- Data: [validation.json](data/validation.json) and new evidence in [evidence.json](data/evidence.json)\n- Decision: [ADR-011](../docs/10-decision-log.md#adr-011-one-wedge-three-gated-options-the-super-app-expansion-is-not-the-plan)\n- Risk: REG-03 in the [risk register](risk-register.md)\n- Roadmap: options and not-planned items in the [roadmap](roadmap.md)\n- ProjectOS: the Validation section\n`;
+
 const files = {
   "product/financial-model.md": fm,
   "product/risk-register.md": rr,
@@ -329,6 +362,7 @@ const files = {
   "product/telemetry-plan.md": tp,
   "product/competitive-landscape.md": cl,
   "product/roadmap.md": rm,
+  "product/idea-validation-vision.md": iv,
   "product/generated/model-output.json": JSON.stringify(output, null, 2) + "\n",
 };
 

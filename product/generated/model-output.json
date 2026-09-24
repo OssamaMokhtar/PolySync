@@ -7,9 +7,9 @@
     "hypotheses": 19,
     "decisions": 2,
     "evidenceGrades": {
-      "A": 23,
-      "B": 6,
-      "C": 5,
+      "A": 27,
+      "B": 7,
+      "C": 7,
       "D": 0
     }
   },
@@ -527,6 +527,16 @@
       "likelihood": 3,
       "impact": 4,
       "mitigated": true
+    },
+    {
+      "id": "REG-03",
+      "category": "regulatory",
+      "risk": "UAE Federal Law 2/2019 (ICT in health fields) may require athlete health data to stay in the UAE; the pilot's hosting plan does not account for it",
+      "score": 12,
+      "residual": 12,
+      "likelihood": 3,
+      "impact": 4,
+      "mitigated": false
     },
     {
       "id": "AI-01",

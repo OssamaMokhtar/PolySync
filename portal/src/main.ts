@@ -1,7 +1,7 @@
 import "./styles.css";
 import { computeUnit, marketWage, segmentOutcomes } from "../../product/scripts/model-core.mjs";
 import { HYBRID_PARAMS, RULE_EVIDENCE, type HybridRuleId } from "../../app/src/engine/hybrid";
-import { adrs, blob, outcomeTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, competitors, roadmap, pilotStatus, type Cap, type Risk } from "./data";
+import { adrs, blob, outcomeTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, competitors, roadmap, pilotStatus, validation, type Cap, type Risk } from "./data";
 import { chartCard, groupedColumns, h, legend, tableView, tornado } from "./charts";
 import { engineDemo } from "./demo";
 import { BEFORE_AFTER, loadMapScreen } from "./loadmap";
@@ -39,6 +39,7 @@ const NAV = [
   ["engine", "Engine"],
   ["athlete", "App"],
   ["market", "Market"],
+  ["validation", "Validation"],
   ["economics", "Economics"],
   ["risks", "Risks"],
   ["roadmap", "Roadmap"],
@@ -332,6 +333,104 @@ function marketSection(): HTMLElement {
     h("p", { class: "text-sm" }, h("a", { href: blob("product/competitive-landscape.md") }, "Competitive landscape"), " · ", h("a", { href: `${blob("docs/10-decision-log.md")}#adr-009-sell-the-coach-console-and-the-audit-trail-not-the-scheduler` }, "ADR-009"), " · ", h("span", { class: "muted" }, `Checked ${competitors.asOf}`)));
 }
 
+// Verdict → (mark, colour, group). Icon + word always ship with colour.
+const VERDICT: Record<string, [string, string, "holds" | "test" | "weak" | "stop"]> = {
+  validated: ["✓", "var(--good-ink)", "holds"],
+  "real-constraint": ["!", "var(--ink)", "holds"],
+  plausible: ["?", "var(--ink-2)", "test"],
+  "thin-margin": ["≈", "var(--ink-2)", "test"],
+  unverified: ["○", "var(--bad-ink)", "weak"],
+  misread: ["↺", "var(--bad-ink)", "weak"],
+  misused: ["↺", "var(--bad-ink)", "weak"],
+  folklore: ["○", "var(--bad-ink)", "weak"],
+  contradicted: ["✕", "var(--bad-ink)", "weak"],
+  "not-feasible": ["✕", "var(--bad-ink)", "weak"],
+  "red-line": ["⛔", "var(--bad-ink)", "stop"],
+};
+const OPTION_WORD: Record<string, string> = { build: "Build now", test: "Test cheaply", wait: "Gated", dont: "Don't build" };
+const OPTION_COLOUR: Record<string, string> = { build: "var(--good-ink)", test: "var(--s1)", wait: "var(--ink-2)", dont: "var(--bad-ink)" };
+
+function verdictTag(v: string): HTMLElement {
+  const [mark, colour] = VERDICT[v] ?? ["·", "var(--ink-2)"];
+  return h("span", { class: "state", style: `color:${colour};white-space:nowrap`, title: validation.verdictScale[v] ?? "" }, h("span", { "aria-hidden": "true" }, mark), ` ${v.replace("-", " ")}`);
+}
+
+function validationSection(): HTMLElement {
+  const count = (g: string) => validation.claims.filter((c) => VERDICT[c.verdict]?.[2] === g).length;
+  const refLink = (ref: string) => /\//.test(ref) ? h("a", { href: blob(ref) }, ref.split("/").pop() ?? ref) : h("a", { href: `${blob("docs/10-decision-log.md")}#adr-011-one-wedge-three-gated-options-the-super-app-expansion-is-not-the-plan` }, ref);
+
+  // Claims table with a verdict filter (one row of controls above the table).
+  const groups: [string, string][] = [["all", "All"], ["holds", "Holds"], ["test", "Needs a test"], ["weak", "Wrong or unsupported"], ["stop", "Red line"]];
+  let active = "all";
+  const body = h("div", { class: "overflow-x-auto" });
+  const render = () => {
+    const rows = validation.claims.filter((c) => active === "all" || VERDICT[c.verdict]?.[2] === active);
+    const t = h("table", { class: "data vtable" });
+    t.append(h("thead", {}, h("tr", {}, ...["#", "Narrative claim", "What the check found", "Verdict", "So what for PolySync"].map((x) => h("th", { scope: "col" }, x)))));
+    const tb = h("tbody", {});
+    for (const c of rows) {
+      const src = h("div", { class: "mt-1" });
+      c.evidence.forEach((id) => src.append(evidenceChip(id), " "));
+      tb.append(h("tr", {},
+        h("th", { scope: "row", class: "font-mono text-xs" }, c.id),
+        h("td", {}, h("div", { class: "text-xs muted" }, c.narrative), h("div", {}, c.claim)),
+        h("td", { class: "ink-2", "data-label": "What the check found" }, c.check, c.evidence.length ? src : ""),
+        h("td", { "data-label": "Verdict" }, verdictTag(c.verdict)),
+        h("td", { "data-label": "So what for PolySync" }, c.implication)));
+    }
+    t.append(tb);
+    body.replaceChildren(t);
+  };
+  const chips = h("div", { class: "flex flex-wrap gap-2", role: "group", "aria-label": "Filter claims by verdict" });
+  const btns: HTMLElement[] = [];
+  for (const [k, label] of groups) {
+    const n = k === "all" ? validation.claims.length : count(k);
+    const b = h("button", { class: "chip", type: "button", "aria-pressed": String(k === active) }, `${label} · ${n}`);
+    b.addEventListener("click", () => { active = k; btns.forEach((x, i) => x.setAttribute("aria-pressed", String(groups[i][0] === k))); render(); });
+    btns.push(b); chips.append(b);
+  }
+  render();
+
+  const options = h("div", { class: "grid md:grid-cols-2 xl:grid-cols-5 gap-3 [&>*]:min-w-0" }, ...validation.options.map((o) =>
+    h("div", { class: "card p-4 flex flex-col gap-2", style: `border-top:4px solid ${OPTION_COLOUR[o.status]}` },
+      h("div", { class: "flex items-baseline justify-between gap-2" }, h("span", { class: "font-mono text-sm font-semibold" }, o.id === "X" ? "Out" : o.id === "CORE" ? "Core" : `Option ${o.id}`), h("span", { class: "state", style: `color:${o.status === "test" ? "var(--ink)" : OPTION_COLOUR[o.status]}` }, OPTION_WORD[o.status])),
+      h("div", { class: "font-semibold text-sm leading-snug" }, o.track),
+      o.test !== "—" ? h("div", { class: "text-xs" }, h("span", { class: "muted" }, "Test: "), o.test) : "",
+      o.kill !== "—" ? h("div", { class: "text-xs" }, h("span", { class: "muted" }, "Kill if: "), o.kill) : "",
+      h("div", { class: "text-xs mt-auto" }, refLink(o.ref)))));
+
+  const vision = h("ol", { class: "grid md:grid-cols-4 gap-3 [&>*]:min-w-0" }, ...validation.vision.map((v, i) =>
+    h("li", { class: "card p-4 flex flex-col gap-2", style: i === 0 ? "border-left:4px solid var(--good-ink)" : "" },
+      h("div", { class: "state" }, v.stage),
+      h("div", { class: "text-sm" }, v.what),
+      h("div", { class: "text-xs mt-auto" }, h("span", { class: "muted" }, "Gate: "), v.gate))));
+
+  const validated = h("ul", { class: "flex flex-col gap-2 text-sm" }, ...validation.validated.map((v) => {
+    const src = h("span", {});
+    v.evidence.forEach((id) => src.append(" ", evidenceChip(id)));
+    return h("li", {}, h("span", { "aria-hidden": "true", style: "color:var(--good-ink)" }, "✓ "), v.finding, src);
+  }));
+
+  return h("section", { class: "flex flex-col gap-4" },
+    sectionTitle("validation", "Idea validation", `An expanded “super-app” narrative for PolySync, checked claim by claim against primary sources on ${validation.asOf}. Treated as hypotheses, not evidence.`),
+    h("div", { class: "card p-5", style: "border-left:4px solid var(--s1)" },
+      h("div", { class: "state" }, "The verdict · ADR-011"),
+      h("p", { class: "mt-2 text-lg font-semibold max-w-4xl leading-snug" }, validation.verdict.headline),
+      h("p", { class: "mt-2 ink-2 max-w-4xl" }, validation.verdict.summary)),
+    h("div", { class: "grid grid-cols-2 sm:grid-cols-4 gap-3" },
+      statTile("Claims checked", String(validation.claims.length), "From the expansion narrative", "Checked"),
+      statTile("Hold up", String(count("holds")), "Validated or a real constraint", "Checked"),
+      statTile("Wrong or unsupported", String(count("weak")), "Unverified, misread, misused, folklore, contradicted, not feasible", "Checked"),
+      statTile("Red lines", String(count("stop")), "Legal or safety; do not build", "Checked")),
+    h("div", { class: "card p-5 flex flex-col gap-3" }, h("h3", { class: "font-semibold" }, "Claim by claim"), chips, body),
+    h("div", { class: "grid lg:grid-cols-2 gap-4 [&>*]:min-w-0" },
+      h("div", { class: "card p-5" }, h("h3", { class: "font-semibold mb-3" }, "What is validated"), validated),
+      h("div", { class: "card p-5" }, h("h3", { class: "font-semibold mb-3" }, "Corrections to the narrative"), h("ul", { class: "flex flex-col gap-2 text-sm list-disc pl-5" }, ...validation.corrections.map((c) => h("li", {}, c))))),
+    h("div", { class: "flex flex-col gap-2" }, h("h3", { class: "font-semibold" }, "One wedge, three gated options"), h("p", { class: "text-sm ink-2 max-w-3xl" }, "Each option has a cheap test and a kill criterion set before any data. Nothing moves to build until its test passes."), options),
+    h("div", { class: "flex flex-col gap-2" }, h("h3", { class: "font-semibold" }, "The vision, if the gates pass"), vision),
+    h("p", { class: "text-sm" }, h("a", { href: blob("product/idea-validation-vision.md") }, "Idea validation vision (full)"), " · ", h("a", { href: `${blob("docs/10-decision-log.md")}#adr-011-one-wedge-three-gated-options-the-super-app-expansion-is-not-the-plan` }, "ADR-011"), " · ", h("a", { href: blob("product/risk-register.md") }, "Risk REG-03 (UAE health-data localisation)")));
+}
+
 const STATUS_STYLE: Record<string, string> = { done: "var(--good-ink)", "in-progress": "var(--s1)", next: "var(--ink)", planned: "var(--ink-2)", gated: "var(--ink-2)", killed: "var(--bad-ink)" };
 
 function roadmapSection(): HTMLElement {
@@ -431,6 +530,7 @@ app.append(
     h("section", { class: "flex flex-col gap-4" }, sectionTitle("engine", "Engine", "Change the athlete, then try a model proposal. The verdicts come from the same code CI tests."), engineDemo(), rulesTable()),
     appSection(),
     marketSection(),
+    validationSection(),
     economics(),
     riskSection(),
     roadmapSection(),

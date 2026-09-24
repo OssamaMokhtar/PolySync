@@ -17,6 +17,7 @@ Horizons are sequenced by GAPS.md's fill order and the ADR reversal triggers, no
 | Adversarial review: 7 findings fixed | done | [`case-study.md`](../product/case-study.md) |
 | UX/UI baseline review and design brief | done | [`13-ux-review.md`](../docs/13-ux-review.md) |
 | Athlete Load screen prototype on the engine (polished from Claude Design) | done | [`loadmap.ts`](../portal/src/loadmap.ts) |
+| Idea validation of the super-app expansion: 11 claims checked, one wedge and three gated options | done | [`idea-validation-vision.md`](../product/idea-validation-vision.md) |
 
 ## Now · 0-6 weeks: unblock the pilot
 
@@ -51,5 +52,11 @@ Horizons are sequenced by GAPS.md's fill order and the ADR reversal triggers, no
 | Item | Status | Reference | Why / gate |
 |---|---|---|---|
 | Widen autonomous bounds for green-tier days only | gated | ADR-003 | Coach agreement at or above 90% for 3 months |
+| Option A: technique drills for slow skills, via club coaches (concierge test first) | gated | ADR-011 | 30%+ of 20 concierge athletes would pay; coaches agree on scores |
+| Option B: youth football through academies | gated | ADR-011 | One academy co-designs and pays |
+| Option C: coach marketplace beyond clubs | gated | ADR-011 | 20+ coaches actively use the console |
 | Managed coaching service | killed | [`strategy.md`](../product/strategy.md) | Services economics: $11-13 (UAE) and $32-39 (US) per athlete-month to break even, against an $8 software price |
+| Vision models trained on scraped social-media video | killed | ADR-011 | YouTube's terms prohibit scraping; third-party AI training is off unless creators opt in (REG-004) |
+| Body-fat estimates from progress photos | killed | ADR-011 | An unmeasured number and an eating-disorder risk; conflicts with the safety layer |
+| Five-region launch | killed | ADR-011 | Five regulatory regimes for one engineer; ADR-005 and ADR-006 sequence regions |
 

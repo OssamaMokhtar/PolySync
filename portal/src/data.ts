@@ -12,6 +12,7 @@ import pilotMd from "../../product/pilot-plan.md?raw";
 import competitorsFile from "../../product/data/competitors.json";
 import roadmapFile from "../../product/data/roadmap.json";
 import pilotStatusFile from "../../product/data/pilot-status.json";
+import validationFile from "../../product/data/validation.json";
 
 export type Cap = "yes" | "claimed" | "partial" | "no" | "unknown";
 export interface Competitor { name: string; category: string; buyer: string; price: string; interference: Cap; readiness: Cap; coachInLoop: Cap; auditable: Cap; evidence: string[]; note: string }
@@ -19,6 +20,19 @@ export const competitors = competitorsFile as unknown as { asOf: string; method:
 export interface RoadmapItem { title: string; ref: string; status: string; why?: string; gate?: string }
 export const roadmap = roadmapFile as unknown as { rule: string; horizons: { id: string; label: string; window: string; items: RoadmapItem[] }[] };
 export const pilotStatus = pilotStatusFile as unknown as { state: string; note: string; bars: { n: number; status: string; observed: string | number | null; source: string | null }[] };
+
+export interface ValidationClaim { id: string; narrative: string; claim: string; check: string; verdict: string; evidence: string[]; implication: string }
+export interface ValidationOption { id: string; track: string; status: "build" | "test" | "wait" | "dont"; test: string; kill: string; ref: string }
+export const validation = validationFile as unknown as {
+  asOf: string; title: string; input: string;
+  verdict: { headline: string; summary: string };
+  verdictScale: Record<string, string>;
+  claims: ValidationClaim[];
+  validated: { finding: string; evidence: string[] }[];
+  options: ValidationOption[];
+  vision: { stage: string; what: string; gate: string }[];
+  corrections: string[];
+};
 
 export const REPO = "https://github.com/OssamaMokhtar/PolySync";
 export const blob = (path: string) => `${REPO}/blob/main/${path.replace(/^(\.\.\/)+/, "")}`;

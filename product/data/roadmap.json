@@ -51,6 +51,11 @@
           "title": "Athlete Load screen prototype on the engine (polished from Claude Design)",
           "ref": "portal/src/loadmap.ts",
           "status": "done"
+        },
+        {
+          "title": "Idea validation of the super-app expansion: 11 claims checked, one wedge and three gated options",
+          "ref": "product/idea-validation-vision.md",
+          "status": "done"
         }
       ]
     },
@@ -165,10 +170,46 @@
           "gate": "Coach agreement at or above 90% for 3 months"
         },
         {
+          "title": "Option A: technique drills for slow skills, via club coaches (concierge test first)",
+          "ref": "ADR-011",
+          "status": "gated",
+          "gate": "30%+ of 20 concierge athletes would pay; coaches agree on scores"
+        },
+        {
+          "title": "Option B: youth football through academies",
+          "ref": "ADR-011",
+          "status": "gated",
+          "gate": "One academy co-designs and pays"
+        },
+        {
+          "title": "Option C: coach marketplace beyond clubs",
+          "ref": "ADR-011",
+          "status": "gated",
+          "gate": "20+ coaches actively use the console"
+        },
+        {
           "title": "Managed coaching service",
           "ref": "product/strategy.md",
           "status": "killed",
           "gate": "Services economics: $11-13 (UAE) and $32-39 (US) per athlete-month to break even, against an $8 software price"
+        },
+        {
+          "title": "Vision models trained on scraped social-media video",
+          "ref": "ADR-011",
+          "status": "killed",
+          "gate": "YouTube's terms prohibit scraping; third-party AI training is off unless creators opt in (REG-004)"
+        },
+        {
+          "title": "Body-fat estimates from progress photos",
+          "ref": "ADR-011",
+          "status": "killed",
+          "gate": "An unmeasured number and an eating-disorder risk; conflicts with the safety layer"
+        },
+        {
+          "title": "Five-region launch",
+          "ref": "ADR-011",
+          "status": "killed",
+          "gate": "Five regulatory regimes for one engineer; ADR-005 and ADR-006 sequence regions"
         }
       ]
     }

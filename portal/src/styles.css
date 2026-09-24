@@ -222,3 +222,12 @@ table.market td.cap-yes span { color: var(--good-ink); }
 .ph-tabs span.on { color: var(--p-accent); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .ph-region { transition: none; } }
 @media (max-width: 420px) { .phone { border-width: 0; border-radius: 0; height: auto; } .ph-scroll { overflow: visible; } }
+
+/* Validation claims: stack rows as cards on narrow screens */
+@media (max-width: 640px) {
+  table.vtable thead { display: none; }
+  table.vtable, table.vtable tbody, table.vtable tr, table.vtable th, table.vtable td { display: block; width: auto; }
+  table.vtable tr { padding: 12px 0; border-bottom: 1px solid var(--ring); }
+  table.vtable th, table.vtable td { border: 0; padding: 4px 0; }
+  table.vtable td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+}
