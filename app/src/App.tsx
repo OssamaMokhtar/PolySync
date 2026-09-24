@@ -9,7 +9,7 @@ import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { FitnessProfile, WeeklyPlan, WorkoutLogEntry, SupportedLanguage, LANGUAGE_CONFIG, ChatResponse } from './types';
-import { EXERCISE_LIBRARY, EXERCISE_BY_ID } from './ExerciseLibrary';
+import { EXERCISE_BY_ID } from './ExerciseLibrary';
 import { CoachChat } from './components/CoachingChat';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RecoveryDashboard } from './components/RecoveryDashboard';
@@ -17,6 +17,7 @@ import { ProgressDashboard } from './components/ProgressDashboard';
 import { CheckInForm } from './components/CheckInForm';
 import { InsightsDashboard } from './components/InsightsDashboard';
 import { SubscriptionStatus, ExportButton, DeleteAccountButton } from './components/SettingsComponents';
+import { sessionContent } from './lib/session';
 import { FormCueButton } from './components/FormCueButton';
 import { NutritionPanel } from './components/NutritionPanel';
 import { apiFetch } from './api';
@@ -32,23 +33,6 @@ const LANGUAGES: { code: SupportedLanguage; flag: string; name: string }[] = [
   { code: 'zh', flag: '🇨🇳', name: '中文' },
 ];
 
-async function promptForWeight(userId: string): Promise<number | null> {
-  const weight = window.prompt ? window.prompt('Enter your current body weight (kg):') : null;
-  if (weight === null || weight === '') return null;
-  const parsed = parseFloat(weight);
-  return isNaN(parsed) || parsed <= 0 ? null : parsed;
-}
-
-async function logWeightEntry(userId: string, weight: number) {
-  const entry: WeightEntry = { userId, date: Date.now(), weight };
-  const res = await apiFetch('/api/fitness/weight', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(entry),
-  });
-  if (!res.ok) console.error('Failed to log weight:', await res.text());
-}
-
 export default function App() {
   const [onboarded, setOnboarded] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -58,6 +42,7 @@ export default function App() {
   const [plan, setPlan] = useState<WeeklyPlan | null>(null);
   const [todayWorkout, setTodayWorkout] = useState<{ day: any; workout: any } | null>(null);
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [restTimer, setRestTimer] = useState<number | null>(null);
   const [currentSet, setCurrentSet] = useState<{ exerciseId: string; setNumber: number } | null>(null);
   const [exerciseLogs, setExerciseLogs] = useState<Record<string, any[]>>({});
@@ -187,13 +172,6 @@ export default function App() {
   const handleSubmitWorkout = async (completed: boolean) => {
     if (!currentUser || !plan || !todayWorkout) return;
     try {
-      // If completing, show weight entry prompt first
-      if (completed) {
-        const weight = await promptForWeight(currentUser.uid);
-        if (weight !== null) {
-          await logWeightEntry(currentUser.uid, weight);
-        }
-      }
       const workoutData: WorkoutLogEntry = {
         userId: currentUser.uid,
         planId: plan.id || plan.weekNumber.toString(),
@@ -232,7 +210,7 @@ export default function App() {
           setCheckInWorkoutId(todayWorkout.workout.workoutName);
           setShowCheckIn(true);
         } else {
-          alert('Workout skipped. Your plan will adapt for next week.');
+          setNotice('Session skipped. Rest counts too; your next session is still on your plan.');
         }
         setExerciseLogs({});
         setTodayWorkout(null);
@@ -274,16 +252,23 @@ export default function App() {
     }
 
     const { day, workout } = todayWorkout;
-    const exercises = workout.exercises || EXERCISE_LIBRARY.slice(0, 5).map((ex, i) => ({
-      exerciseId: i.toString(),
-      name: ex.name,
-      category: ex.category,
-      primaryMuscles: ex.targetMuscles,
-      prescribedSets: 3,
-      prescribedReps: '8-12',
-      prescribedRestSeconds: 60,
-      sets: [],
-    }));
+    const content = sessionContent(workout);
+    if (content.kind === "empty") {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center" role="status">
+          <h3 className="text-lg font-medium mb-2">{workout.workoutName || "Today's session"} isn't ready</h3>
+          <p className="text-[#A1A1AA] text-sm max-w-md">{content.reason}</p>
+          <button
+            onClick={generatePlan}
+            className="mt-4 px-4 py-3 min-h-[44px] bg-[#0B6FB8] text-white rounded-lg text-sm font-medium hover:bg-[#0A62A3] transition"
+          >
+            Rebuild my plan
+          </button>
+        </div>
+      );
+    }
+    const exercises = content.exercises as any[];
+
 
     return (
       <div className="flex flex-col">
@@ -725,58 +710,11 @@ export default function App() {
               <ChevronRight className="w-4 h-4 text-[#71717A]" />
             </button>
 
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg border border-[#27272A] hover:bg-[#16161A] transition text-left">
-              <Heart className="w-4 h-4 text-[#00A3FF]" />
-              <div className="flex-1">
-                <div className="text-sm font-medium">Wearable Connections</div>
-                <div className="text-xs text-[#71717A]">Connect Apple HealthKit or Google Fit</div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-[#71717A]" />
-            </button>
-
-            {/* HealthKit Connect Card */}
-            <div className="mt-3 p-4 bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl">
-              <h3 className="text-sm font-semibold mb-3">Connect a Wearable</h3>
-              <p className="text-xs text-[#71717A] mb-4">
-                Connect your wearable to get recovery scores, sleep tracking, and personalized coaching adjustments.
+            <div className="mt-3 p-4 bg-[#121215]/90 border border-[#27272A] rounded-xl">
+              <h3 className="text-sm font-semibold mb-1">Wearables</h3>
+              <p className="text-xs text-[#A1A1AA]">
+                Wearable sync isn't available yet. Until it is, your plan adapts to the check-in you give after each session.
               </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => alert('Apple HealthKit integration — connect via Safari on iOS/macOS')}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-[#27272A] hover:bg-[#16161A] transition text-left"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A2AAAD] to-[#5C6370] flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.98-2.61.02-2.69-1.06-.08-1.04.99-1.88 1.97-2.15.39-.12.85-.16 1.22-.16h.01c.49 0 .98.13 1.35.43.37.3.61.7.67 1.16.06.46-.09.93-.39 1.28-.13.13-.27.2-.45.2H17c-.69 0-1.25-.45-1.45-1.1C15.35 19.5 15.83 19.95 17.05 20.28zM12.03 21.7c-.32.32-.84.34-1.22.08-.38-.26-.54-.76-.44-1.26.08-.42.34-.88.78-1.24.19-.16.42-.25.69-.25h.05c.46 0 .82.3 1 .74.18.44.15.96-.1 1.3-.09.12-.2.2-.36.2h-.32c-.5 0-.92-.42-.94-1 0-.02-.01-.05-.01-.08zM8.06 22.01c-.57.57-1.52.6-2.15.12-.62-.48-.68-1.52-.23-2.22.46-.7.75-1.01 1.1-1.41.13-.16.31-.25.51-.25h.08c.37 0 .67.22.89.58.22.36.26.82.06 1.22-.06.13-.15.22-.28.28H8.2c-.35 0-.67-.19-.83-.54-.14-.32-.17-.66-.07-1 .04-.14.1-.28.1-.3zM4.16 21.52c-.76.46-1.71.21-2.17-.3-.47-.5-.54-1.28-.14-1.92.4-.66.58-1.1.62-1.72.04-.62-.12-1.18-.64-1.68-.17-.17-.39-.27-.64-.27h-.04c-.47 0-.85.3-1.04.75-.19.45-.15.98.12 1.45.09.13.19.22.33.28h.34c.42 0 .77-.28.94-.72.16-.42.15-.89-.08-1.34-.06-.13-.14-.2-.26-.25z"/></svg>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">Apple HealthKit</div>
-                    <div className="text-xs text-[#71717A] mt-0.5">iOS / macOS</div>
-                  </div>
-                  <div className="ml-auto">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#10B981]">Connect</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => alert('Google Fit integration — connect via OAuth')}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-[#27272A] hover:bg-[#16161A] transition text-left"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4285F4] to-[#34A853] flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">G</span>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">Google Fit</div>
-                    <div className="text-xs text-[#71717A] mt-0.5">Android / Web</div>
-                  </div>
-                  <div className="ml-auto">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B]">Connect</span>
-                  </div>
-                </button>
-              </div>
-              <div className="mt-3 pt-3 border-t border-[#27272A]">
-                <p className="text-xs text-[#71717A]">
-                  No wearables connected yet.
-                </p>
-              </div>
             </div>
 
             <button className="w-full flex items-center gap-3 p-3 rounded-lg border border-[#27272A] hover:bg-[#16161A] transition text-left">
@@ -964,6 +902,12 @@ export default function App() {
       </nav>
 
       <div className="flex-1">
+        {activeTab === 'today' && notice && (
+          <div role="status" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-[#27272A] bg-[#16161A] px-4 py-3 text-sm text-[#E4E4E7]">
+            <span>{notice}</span>
+            <button onClick={() => setNotice(null)} className="min-h-[44px] px-3 text-[#A1A1AA] hover:text-[#E4E4E7]">Dismiss</button>
+          </div>
+        )}
         {activeTab === 'today' && renderToday()}
         {activeTab === 'weekly' && renderWeeklyPlan()}
         {activeTab === 'progress' && renderProgress()}

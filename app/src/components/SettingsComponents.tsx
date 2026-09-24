@@ -1,56 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Zap, Crown, AlertTriangle, Download, Trash2 } from 'lucide-react';
+import { Crown, Download, Trash2 } from 'lucide-react';
 import { SubscriptionTier, TIER_FEATURES, UserSubscription } from '../types';
 import { auth, db } from '../firebase';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { apiFetch } from '../api';
-
-interface SpecialModeSelectorProps {
-  currentMode: string;
-  onModeChange: (mode: string) => void;
-}
-
-const MODES = [
-  { value: 'none', label: 'Standard', description: 'Regular fitness programming', color: 'bg-[#10B981]' },
-  { value: 'glp1', label: 'GLP-1 Mode', description: 'Adjusted for weight-loss medication users', color: 'bg-[#F59E0B]' },
-  { value: 'postpartum', label: 'Postpartum', description: 'Safe return-to-fitness programming', color: 'bg-[#EC4899]' },
-  { value: 'injury_rehab', label: 'Injury Rehab', description: 'Accommodates declared injuries', color: 'bg-[#EF4444]' },
-];
-
-export function SpecialModeSelector({ currentMode, onModeChange }: SpecialModeSelectorProps) {
-  return (
-    <div className="bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-xl p-4">
-      <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-        <Zap className="w-4 h-4 text-[#F59E0B]" />
-        Special Mode
-      </h3>
-      <p className="text-xs text-[#71717A] mb-3">
-        Adjust programming for specific conditions. Enable only if applicable.
-      </p>
-      <div className="grid grid-cols-2 gap-2">
-        {MODES.map(mode => (
-          <button
-            key={mode.value}
-            onClick={() => onModeChange(mode.value)}
-            className={`flex flex-col items-start p-3 rounded-xl border transition text-left ${currentMode === mode.value ? 'bg-[#F59E0B]/10 border-[#F59E0B]/40' : 'bg-[#0D0D14] border-[#27272A] hover:border-[#3f3f46]'}`}
-          >
-            <div className={`w-2 h-2 rounded-full ${mode.color} mb-1.5`} />
-            <div className="text-sm font-medium text-[#E4E4E7]">{mode.label}</div>
-            <div className="text-xs text-[#71717A] mt-0.5">{mode.description}</div>
-          </button>
-        ))}
-      </div>
-      {currentMode !== 'none' && (
-        <div className="mt-3 pt-3 border-t border-[#27272A]">
-          <div className="flex items-start gap-2 text-xs text-[#71717A]">
-            <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#F59E0B]" />
-            <span>Special mode is active. Your workouts and nutrition advice will be adjusted accordingly. Consult a healthcare provider before starting any new program.</span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 interface SubscriptionStatusProps {
   userId: string;
@@ -110,10 +63,7 @@ export function SubscriptionStatus({ userId }: SubscriptionStatusProps) {
       </div>
 
       {tier === 'free' && (
-        <button className="w-full mt-3 py-2 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-[#F59E0B] text-sm font-medium hover:bg-[#F59E0B]/20 transition flex items-center justify-center gap-2">
-          <Crown className="w-4 h-4" />
-          Upgrade to Premium ($12/mo)
-        </button>
+        <p className="w-full mt-3 text-xs text-[#A1A1AA]">Premium isn't available yet. Everything you use today stays free.</p>
       )}
     </div>
   );
@@ -125,6 +75,7 @@ interface ExportButtonProps {
 
 export function ExportButton({ userId }: ExportButtonProps) {
   const [exporting, setExporting] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
   const handleExport = async (format: 'json' | 'csv') => {
     setExporting(true);
@@ -135,17 +86,16 @@ export function ExportButton({ userId }: ExportButtonProps) {
         body: JSON.stringify({ format }),
       });
       if (!res.ok) throw new Error('Export failed');
-      const blob = await res.json();
-      // For now, download a placeholder
-      const content = JSON.stringify({ message: 'Export coming soon', format, userId }, null, 2);
-      const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
+      const body = format === 'csv' ? await res.text() : JSON.stringify(await res.json(), null, 2);
+      const url = URL.createObjectURL(new Blob([body], { type: format === 'csv' ? 'text/csv' : 'application/json' }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `polysync-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `polysync-export-${new Date().toISOString().split('T')[0]}.${format}`;
       a.click();
       URL.revokeObjectURL(url);
+      setStatus('Your export has downloaded.');
     } catch {
-      alert('Export not available yet.');
+      setStatus("We couldn't export your data. Check your connection and try again.");
     } finally {
       setExporting(false);
     }
@@ -176,6 +126,7 @@ export function ExportButton({ userId }: ExportButtonProps) {
           {exporting ? 'Exporting...' : 'Export as CSV'}
         </button>
       </div>
+      {status && <p role="status" className="text-xs text-[#A1A1AA] mt-2">{status}</p>}
     </div>
   );
 }
@@ -185,43 +136,53 @@ interface DeleteAccountButtonProps {
 }
 
 export function DeleteAccountButton({ userId }: DeleteAccountButtonProps) {
-  const [confirming, setConfirming] = useState(false);
+  const [typed, setTyped] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
   const handleDelete = async () => {
-    if (!confirm('This will permanently delete ALL your data: workouts, plans, chat history, wearable data, profile, and settings. This action cannot be undone. Type "DELETE" to confirm.')) return;
+    if (typed !== 'DELETE') return;
     setDeleting(true);
     try {
-      await apiFetch('/api/fitness/settings/delete-account', {
+      const res = await apiFetch('/api/fitness/settings/delete-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirm: 'DELETE' }),
       });
-      alert('Account deletion requested. Your data will be removed within 30 days per GDPR/CCPA policy.');
+      setStatus(res.ok ? 'Your data has been deleted.' : "We couldn't delete your data. Nothing was removed. Try again, or contact support.");
     } catch {
-      alert('Failed to request deletion. Please try again.');
+      setStatus("We couldn't reach the server. Nothing was removed. Try again when you're online.");
     } finally {
       setDeleting(false);
-      setConfirming(false);
+      setTyped('');
     }
   };
 
   return (
-    <div className="bg-[#121215]/90 backdrop-blur-xl border border-[#EF4444]/20 rounded-xl p-4 mt-4">
-      <div className="flex items-center gap-2 text-sm text-[#EF4444] font-medium mb-2">
-        <Trash2 className="w-4 h-4" />
-        Delete Account
+    <div className="bg-[#121215]/90 border border-[#EF4444]/20 rounded-xl p-4 mt-4">
+      <div className="flex items-center gap-2 text-sm text-[#F87171] font-medium mb-2">
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
+        Delete account
       </div>
-      <p className="text-xs text-[#71717A] mb-3">
-        Permanently delete all your data. Complies with GDPR/CCPA right to erasure (30-day window).
+      <p className="text-xs text-[#A1A1AA] mb-3">
+        Deletes your profile, plans, workouts, check-ins and chat history. This can't be undone.
       </p>
+      <label htmlFor="delete-confirm" className="block text-xs text-[#A1A1AA] mb-1">Type DELETE to confirm</label>
+      <input
+        id="delete-confirm"
+        value={typed}
+        onChange={(e) => setTyped(e.target.value)}
+        autoComplete="off"
+        className="w-full min-h-[44px] mb-2 bg-[#0D0D14] border border-[#27272A] rounded-lg px-3 text-sm text-[#E4E4E7]"
+      />
       <button
         onClick={handleDelete}
-        disabled={deleting}
-        className="w-full py-2 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] text-sm font-medium hover:bg-[#EF4444]/20 transition disabled:opacity-50"
+        disabled={deleting || typed !== 'DELETE'}
+        className="w-full min-h-[44px] rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/40 text-[#F87171] text-sm font-medium hover:bg-[#EF4444]/20 transition disabled:opacity-60"
       >
-        {deleting ? 'Requesting deletion...' : 'Request data deletion'}
+        {deleting ? 'Deleting…' : 'Delete my data'}
       </button>
+      {status && <p role="status" className="text-xs text-[#E4E4E7] mt-2">{status}</p>}
     </div>
   );
 }

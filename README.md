@@ -108,7 +108,7 @@ flowchart LR
 
 ```bash
 cd app && npm install
-npm test                 # 51 tests: engine, hybrid rules, routing, auth, input validation, rate limit
+npm test                 # 53 tests: engine, hybrid rules, routing, auth, input validation, rate limit, session content
 npm run eval             # safety-layer + hybrid-layer evals (non-zero exit on any breach)
 npm run build && npm run boot-check
 node ../product/scripts/build.mjs --check      # product layer

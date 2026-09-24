@@ -62,6 +62,15 @@ jobs:
             echo "::error::client code sends x-user-id; use apiFetch (Firebase ID token)"; exit 1
           fi
 
+      - name: "No browser dialogs or invented workouts in the app (UX-01, UX-10)"
+        run: |
+          if grep -rnE "\balert\(|window\.prompt|\bconfirm\(" src; then
+            echo "::error::use in-app status or sheets, not browser dialogs"; exit 1
+          fi
+          if grep -rn "EXERCISE_LIBRARY.slice" src; then
+            echo "::error::never fill a session from the exercise library; the engine is the only source"; exit 1
+          fi
+
       - name: Dependency audit (high and critical fail the build)
         run: npm audit --omit=dev --audit-level=high
 

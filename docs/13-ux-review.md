@@ -83,6 +83,11 @@ Each screen is accepted only if it meets its criteria, plus the global ones.
 - Unused PolyVerses components and the d3 and Recharts dependencies are removed.
 - ProjectOS link colour now passes 4.5:1 in both themes.
 - ProjectOS touch targets are now 44 px.
+- **2026-09-24, P0 fixes:**
+  - **UX-01 (Today):** never fills an empty session from the exercise library; it shows "isn't ready" and "Rebuild my plan" (`app/src/lib/session.ts`, tested).
+  - **U1 (clinical modes):** removed from onboarding, the unused Settings screen and the selector. The server forces "none". A scope notice says to talk to a professional instead.
+  - **UX-10 (fake integrations):** the HealthKit and Google Fit buttons are replaced by an honest status line. Export downloads the real server data instead of a placeholder. Deletion uses a typed confirmation, checks the response and reports the true outcome. The "Upgrade" button had no action and is now a status line. The weight prompt and skip alert are replaced by in-app status.
+  - **CI:** now fails on browser dialogs or a library fallback.
 
 Everything marked "Onboarding rebuild" or "Design merge" waits for the Claude Design screens.
 

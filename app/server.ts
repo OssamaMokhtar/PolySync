@@ -246,7 +246,7 @@ async function startServer() {
         focus: profile.focus || [],
         biometrics: profile.biometrics,
         healthDataConsent: profile.healthDataConsent || false,
-        specialMode: profile.specialMode || "none",
+        specialMode: "none", // clinical modes removed (UX-03); never trust a client value here
         createdAt: profile.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
