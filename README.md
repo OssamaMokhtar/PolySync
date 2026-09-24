@@ -2,13 +2,13 @@
 
 **AI coaching for hybrid athletes, where the model can propose but never prescribe.** B2B2C: clubs buy coach capacity; a human coach handles what the engine cannot resolve.
 
-**[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
+**[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · [One-page PRD](product/prd.md) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Competitive landscape](product/competitive-landscape.md) · [Roadmap](product/roadmap.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
 
-**Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [hybrid engine](docs/12-hybrid-athlete-programming-engine.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [gaps](docs/GAPS.md)
+**Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [hybrid engine](docs/12-hybrid-athlete-programming-engine.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [UX review](docs/13-ux-review.md) · [gaps](docs/GAPS.md)
 
-![A prompt-injected model output is blocked by rule H9; the athlete keeps the engine's week and a coach is asked](docs/screens/engine-blocks-injection.png)
+![ProjectOS walkthrough: a prompt injection and a cross-midnight spacing attack are blocked, a safe edit is accepted, and an amber day is handled with and without doubles](docs/media/projectos-walkthrough.gif)
 
-*A model output tries to override the limits. Rule H9 blocks it, the athlete keeps the engine's week, and the case goes to a coach. Screenshot of [ProjectOS](https://ossamamokhtar.github.io/PolySync/), which runs [`app/src/engine/hybrid.ts`](app/src/engine/hybrid.ts) unchanged.*
+*32 seconds of [ProjectOS](https://ossamamokhtar.github.io/PolySync/), which runs [`app/src/engine/hybrid.ts`](app/src/engine/hybrid.ts) unchanged in the browser. [Full 70-second walkthrough (MP4)](docs/media/projectos-walkthrough.mp4) covers the market finding, live economics, roadmap and pilot tracker.*
 
 ## The load-bearing decision
 
@@ -56,11 +56,17 @@ The coach-time difference between segments is small (about 2.6 minutes per athle
 
 An earlier cut of this finding said 62% of amber days escalate to a coach. An adversarial review showed that was an artifact of an engine that could only move or escalate. With make-easy-in-place, escalations in the grid fell to 0 and the finding changed from "rigid athletes cost more" to "rigid athletes train worse" ([case study](product/case-study.md#what-i-got-wrong-and-how-the-review-caught-it)).
 
+## The market finding
+
+Three consumer apps at $9–10 a month already claim interference-aware hybrid scheduling ([landscape](product/competitive-landscape.md)). So PolySync does not sell the scheduler. It sells what none of the 11 products checked combine: a club buyer, a coach who reviews what the software cannot resolve, and rules plus safety evals a club can audit. The next build is the coach console ([ADR-009](docs/10-decision-log.md#adr-009-sell-the-coach-console-and-the-audit-trail-not-the-scheduler)).
+
 ## Product layer
 
 | | |
 |---|---|
-| [Strategy](product/strategy.md) | Customer, positioning, moat, pricing, go-to-market, non-goals |
+| [One-page PRD](product/prd.md) | Problem, users, P0 requirements with acceptance criteria and state, metrics, non-goals |
+| [Strategy](product/strategy.md) · [Competitive landscape](product/competitive-landscape.md) | Customer, positioning, moat, pricing, go-to-market; 12 products compared on four capabilities, sourced (ADR-009) |
+| [Roadmap](product/roadmap.md) | Done / Now / Next / Later / Gated, sequenced by the gaps that block the pilot; a "done" item must point to a file |
 | [Financial model](product/financial-model.md) · [xlsx](product/generated/polysync-unit-economics.xlsx) | Club ROI, coach capacity (~40 → ~210 athletes per coach), software margin, managed-service break-even; 19 of 24 drivers are hypotheses, each mapped to the event that will measure it |
 | [Pilot plan](product/pilot-plan.md) | UAE, 3 HYROX clubs, 8 weeks, pass bars set before data ([ADR-006](docs/10-decision-log.md#adr-006-validate-in-the-uae-scale-in-the-us)) |
 | [Risk register](product/risk-register.md) | 15 risks; a mitigation counts only with a test, gate or decision behind it |
@@ -94,7 +100,7 @@ flowchart LR
 | Engine: single-modality plans + bounds checker (B1–B9) | **Built**, enforced on the plan route |
 | Engine: hybrid scheduling (H1–H9), adaptation (move, make easy, escalate), API (`/api/hybrid/week`, `/adapt`) | **Built** 24 Sep 2026; literature parameters, **not coach-signed** |
 | API: verified Firebase ID tokens, validated inputs, per-user rate limit, JSON event logs; production boot check | **Built** 24 Sep 2026 (the server used to trust a client header and crashed on boot) |
-| Athlete UI on the hybrid engine | **Not yet** (GAPS #13); the engine runs in [ProjectOS](https://ossamamokhtar.github.io/PolySync/) |
+| Coach console; athlete app on the hybrid engine | **Not yet** (GAPS #13, #16). Acceptance criteria in the [UX review](docs/13-ux-review.md); the engine runs in [ProjectOS](https://ossamamokhtar.github.io/PolySync/) |
 | Server data access in production | **Blocked**: client SDK without credentials (GAPS #12, P0 before the pilot) |
 | Model-in-the-loop evals, coach minutes, users | **Not measured**; the [pilot](product/pilot-plan.md) measures coach minutes and users |
 
