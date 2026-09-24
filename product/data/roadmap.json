@@ -1,0 +1,165 @@
+{
+  "asOf": "2026-09-24",
+  "rule": "Horizons are sequenced by GAPS.md's fill order and the ADR reversal triggers, not by dates. A 'done' item must point to a file in this repo; the product build fails otherwise.",
+  "horizons": [
+    {
+      "id": "done",
+      "label": "Done",
+      "window": "Shipped and gated in CI",
+      "items": [
+        {
+          "title": "Hybrid engine: rules H1-H9, move / make easy / escalate",
+          "ref": "app/src/engine/hybrid.ts",
+          "status": "done"
+        },
+        {
+          "title": "The model proposes, the engine prescribes (ADR-004), enforced on both plan routes",
+          "ref": "app/src/engine/boundsChecker.ts",
+          "status": "done"
+        },
+        {
+          "title": "Verified ID tokens, validated inputs, rate limit, event logs",
+          "ref": "app/server/ops.ts",
+          "status": "done"
+        },
+        {
+          "title": "Safety and hybrid evals: 7,877 attacks, results diffed in CI",
+          "ref": "evals/README.md",
+          "status": "done"
+        },
+        {
+          "title": "Product layer generated from data: model, risks, evidence, telemetry",
+          "ref": "product/scripts/build.mjs",
+          "status": "done"
+        },
+        {
+          "title": "Beachhead, data ownership, rollback owner decided",
+          "ref": "docs/10-decision-log.md",
+          "status": "done"
+        },
+        {
+          "title": "Adversarial review: 7 findings fixed",
+          "ref": "product/case-study.md",
+          "status": "done"
+        },
+        {
+          "title": "UX/UI baseline review and design brief",
+          "ref": "docs/13-ux-review.md",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "now",
+      "label": "Now",
+      "window": "0-6 weeks: unblock the pilot",
+      "items": [
+        {
+          "title": "Server data layer on the Firebase Admin SDK",
+          "ref": "GAPS #12",
+          "status": "next",
+          "why": "Blocks the pilot outright"
+        },
+        {
+          "title": "DPIA and sub-processor register for UAE PDPL",
+          "ref": "GAPS #6",
+          "status": "next",
+          "why": "Blocks the pilot outright"
+        },
+        {
+          "title": "Coach console and athlete flows on the hybrid engine (Claude Design screens)",
+          "ref": "GAPS #13",
+          "status": "in-progress",
+          "why": "The buyer's value is coach capacity; there is no coach screen yet"
+        },
+        {
+          "title": "Onboarding rebuild: doubles first, consent before health data, no clinical modes",
+          "ref": "GAPS #16",
+          "status": "next",
+          "why": "ADR-008 decided but not built; UX review U1-U3"
+        },
+        {
+          "title": "Two HYROX coaches sign the rule sheet",
+          "ref": "GAPS #4",
+          "status": "next",
+          "why": "Longest lead time; starts in parallel"
+        },
+        {
+          "title": "Pre-pilot coach time diary, 2 weeks, 3 clubs",
+          "ref": "study:coach-time-diary",
+          "status": "next",
+          "why": "Pass bar 2 baseline; the model's biggest driver"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "label": "Next",
+      "window": "2-4 months: the UAE pilot",
+      "items": [
+        {
+          "title": "3 UAE HYROX clubs, 8 weeks, flexible athletes first",
+          "ref": "product/pilot-plan.md",
+          "status": "planned",
+          "why": "Measures coach minutes and amber-day outcomes (GAPS #2, #14)"
+        },
+        {
+          "title": "Model-in-the-loop evals: live injection set and golden athlete-weeks",
+          "ref": "GAPS #1",
+          "status": "planned",
+          "why": "The largest unmeasured claim"
+        },
+        {
+          "title": "Rules across the week boundary (Sunday evening to Monday morning)",
+          "ref": "docs/07-evaluation-and-evidence.md",
+          "status": "planned",
+          "why": "Known failure mode"
+        }
+      ]
+    },
+    {
+      "id": "later",
+      "label": "Later",
+      "window": "4-9 months: after pass bars",
+      "items": [
+        {
+          "title": "Price from measured coach minutes, not hypotheses",
+          "ref": "product/financial-model.md",
+          "status": "gated",
+          "gate": "Pilot pass bars 1-3"
+        },
+        {
+          "title": "US boutique hybrid gyms through coach networks",
+          "ref": "ADR-006",
+          "status": "gated",
+          "gate": "UAE pilot passes; ADR-006 scale step"
+        },
+        {
+          "title": "Club dashboard: coach capacity and adherence rollup",
+          "ref": "product/telemetry-plan.md",
+          "status": "gated",
+          "gate": "First paid renewal in sight"
+        }
+      ]
+    },
+    {
+      "id": "gated",
+      "label": "Gated",
+      "window": "Only when a trigger fires",
+      "items": [
+        {
+          "title": "Widen autonomous bounds for green-tier days only",
+          "ref": "ADR-003",
+          "status": "gated",
+          "gate": "Coach agreement at or above 90% for 3 months"
+        },
+        {
+          "title": "Managed coaching service",
+          "ref": "product/strategy.md",
+          "status": "killed",
+          "gate": "Services economics: $11-13 (UAE) and $32-39 (US) per athlete-month to break even, against an $8 software price"
+        }
+      ]
+    }
+  ]
+}

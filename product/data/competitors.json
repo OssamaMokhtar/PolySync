@@ -1,0 +1,194 @@
+{
+  "asOf": "2026-09-24",
+  "method": "Desk research on vendor pages opened 2026-09-24, plus prices already graded in evidence.json. 'claimed' means the vendor says it; we did not use or audit the product. Only PolySync's 'yes' values come from our own CI.",
+  "capabilities": {
+    "interference": {
+      "label": "Interference-aware",
+      "description": "Schedules strength and endurance to limit interference"
+    },
+    "readiness": {
+      "label": "Readiness-adaptive",
+      "description": "Adapts the plan to readiness or recovery signals"
+    },
+    "coachInLoop": {
+      "label": "Coach in the loop",
+      "description": "A human coach reviews what the software cannot resolve"
+    },
+    "auditable": {
+      "label": "Auditable",
+      "description": "Publishes its rules and safety evals, so a club can audit why a plan was given"
+    }
+  },
+  "competitors": [
+    {
+      "name": "PolySync",
+      "category": "This product",
+      "buyer": "Club",
+      "price": "$8 per athlete-month (hypothesis)",
+      "interference": "yes",
+      "readiness": "yes",
+      "coachInLoop": "partial",
+      "auditable": "yes",
+      "evidence": [
+        "OWN-001",
+        "OWN-002"
+      ],
+      "note": "Routing to a coach is built; the coach console is not (GAPS #13)"
+    },
+    {
+      "name": "Hypla",
+      "category": "Consumer hybrid AI",
+      "buyer": "Athlete",
+      "price": "$10/month",
+      "interference": "claimed",
+      "readiness": "partial",
+      "coachInLoop": "claimed",
+      "auditable": "no",
+      "evidence": [
+        "COM-001"
+      ],
+      "note": "Says it never schedules heavy lifting after a long run"
+    },
+    {
+      "name": "HybridX",
+      "category": "Consumer hybrid AI",
+      "buyer": "Athlete",
+      "price": "$9/month",
+      "interference": "claimed",
+      "readiness": "unknown",
+      "coachInLoop": "no",
+      "auditable": "no",
+      "evidence": [
+        "COM-002"
+      ],
+      "note": "Garmin two-way sync; 'coach chat' is in-app"
+    },
+    {
+      "name": "Athletica",
+      "category": "Consumer hybrid AI",
+      "buyer": "Athlete (coach tier)",
+      "price": "Not shown",
+      "interference": "claimed",
+      "readiness": "claimed",
+      "coachInLoop": "partial",
+      "auditable": "no",
+      "evidence": [
+        "COM-003"
+      ],
+      "note": "Closest overall: HRV readiness plus strength-run sequencing"
+    },
+    {
+      "name": "Strava + Runna",
+      "category": "Consumer running",
+      "buyer": "Athlete",
+      "price": "$149.99/year",
+      "interference": "no",
+      "readiness": "partial",
+      "coachInLoop": "no",
+      "auditable": "no",
+      "evidence": [
+        "PRC-004"
+      ],
+      "note": "Running plans; strength is not scheduled against runs"
+    },
+    {
+      "name": "Ladder",
+      "category": "Consumer strength",
+      "buyer": "Athlete",
+      "price": "$29.99/month",
+      "interference": "no",
+      "readiness": "no",
+      "coachInLoop": "partial",
+      "auditable": "no",
+      "evidence": [
+        "PRC-003"
+      ],
+      "note": "Team programmes led by a coach, not individual review"
+    },
+    {
+      "name": "WHOOP",
+      "category": "Wearable",
+      "buyer": "Athlete",
+      "price": "Membership",
+      "interference": "no",
+      "readiness": "claimed",
+      "coachInLoop": "no",
+      "auditable": "no",
+      "evidence": [
+        "COM-006"
+      ],
+      "note": "$10.1B valuation; recovery data, not programming"
+    },
+    {
+      "name": "TrainHeroic",
+      "category": "Coach platform",
+      "buyer": "Coach",
+      "price": "$1.50 per athlete-month at capacity",
+      "interference": "no",
+      "readiness": "no",
+      "coachInLoop": "yes",
+      "auditable": "no",
+      "evidence": [
+        "PRC-001"
+      ],
+      "note": "Delivers the coach's plan; the trade-off is the coach's job"
+    },
+    {
+      "name": "TrueCoach",
+      "category": "Coach platform",
+      "buyer": "Coach",
+      "price": "$2.74 per client-month at capacity",
+      "interference": "no",
+      "readiness": "no",
+      "coachInLoop": "yes",
+      "auditable": "no",
+      "evidence": [
+        "PRC-002"
+      ],
+      "note": "Delivery software"
+    },
+    {
+      "name": "ABC Trainerize",
+      "category": "Coach platform",
+      "buyer": "Coach / club",
+      "price": "From ~$23/month plus add-ons",
+      "interference": "no",
+      "readiness": "no",
+      "coachInLoop": "yes",
+      "auditable": "no",
+      "evidence": [
+        "COM-004"
+      ],
+      "note": "Generic AI workout builder; paid add-ons for payments and nutrition"
+    },
+    {
+      "name": "FITR",
+      "category": "Coach platform",
+      "buyer": "Coach / gym",
+      "price": "Not shown",
+      "interference": "unknown",
+      "readiness": "unknown",
+      "coachInLoop": "yes",
+      "auditable": "no",
+      "evidence": [
+        "COM-005"
+      ],
+      "note": "'Fitr AI' for programming; markets to HYROX coaches"
+    },
+    {
+      "name": "Future",
+      "category": "Human coaching",
+      "buyer": "Athlete",
+      "price": "$129-399/month",
+      "interference": "unknown",
+      "readiness": "partial",
+      "coachInLoop": "yes",
+      "auditable": "no",
+      "evidence": [
+        "MKT-009"
+      ],
+      "note": "Dropped its AI coaching beta in Jun 2026"
+    }
+  ],
+  "finding": "Interference-aware scheduling is no longer a differentiator: three consumer apps at $9-10 a month claim it. No product we checked combines a club buyer, a coach in the loop and rules plus safety evals a club can audit. That combination, not the scheduler, is what PolySync sells (ADR-009)."
+}

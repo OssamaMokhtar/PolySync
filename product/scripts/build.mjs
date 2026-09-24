@@ -29,6 +29,9 @@ const evidence = read("product/data/evidence.json");
 const model = read("product/data/model.json");
 const risks = read("product/data/risks.json");
 const metrics = read("product/data/metrics.json");
+const competitors = read("product/data/competitors.json");
+const roadmap = read("product/data/roadmap.json");
+const pilotStatus = read("product/data/pilot-status.json");
 const safety = read("evals/results/latest.json");
 const hybrid = read("evals/results/hybrid-latest.json");
 const decisionLog = readFileSync(P("docs/10-decision-log.md"), "utf8");
@@ -80,6 +83,31 @@ for (const seg of model.segments) for (const k of seg.scheduleKeys) if (!escTabl
 const allKeys = model.segments.flatMap((x) => x.scheduleKeys);
 if (new Set(allKeys).size !== allKeys.length || allKeys.length !== Object.keys(escTable).length) errors.push("segments must partition every schedule shape in the eval exactly once");
 
+// ── Validate competitors, roadmap, pilot status ─────────────────────────────
+const CAP_VALUES = ["yes", "claimed", "partial", "no", "unknown"];
+for (const c of competitors.competitors) {
+  for (const k of Object.keys(competitors.capabilities)) if (!CAP_VALUES.includes(c[k])) errors.push(`competitor ${c.name}: ${k} must be one of ${CAP_VALUES.join("/")}`);
+  if (!c.evidence?.length) errors.push(`competitor ${c.name}: no evidence`);
+  for (const id of c.evidence ?? []) if (!E.has(id)) errors.push(`competitor ${c.name}: unknown evidence ${id}`);
+  if (c.name !== "PolySync" && Object.keys(competitors.capabilities).some((k) => c[k] === "yes" && k !== "coachInLoop")) errors.push(`competitor ${c.name}: only our own CI can show 'yes'; use 'claimed' for vendor statements`);
+}
+const refOk = (ref) => {
+  if (/^GAPS #\d+$/.test(ref)) return new RegExp(`^\\| ${ref.slice(6)} \\|`, "m").test(gaps);
+  if (/^ADR-\d{3}$/.test(ref)) return decisionLog.includes(`## ${ref}`);
+  if (/^(study|event):/.test(ref)) { const [k, n] = ref.split(":"); return k === "study" ? studyIds.has(n) : eventNames.has(n); }
+  return existsSync(P(ref));
+};
+for (const hz of roadmap.horizons) for (const it of hz.items) {
+  if (!refOk(it.ref)) errors.push(`roadmap "${it.title}": reference ${it.ref} does not resolve`);
+  if (it.status === "done" && !existsSync(P(it.ref))) errors.push(`roadmap "${it.title}": a done item must point to a file`);
+}
+const pilotBars = (readFileSync(P("product/pilot-plan.md"), "utf8").match(/^\| \d+ \| /gm) ?? []).length;
+if (pilotStatus.bars.length !== pilotBars) errors.push(`pilot-status has ${pilotStatus.bars.length} bars, pilot plan has ${pilotBars}`);
+for (const b of pilotStatus.bars) {
+  if (!["not-started", "measuring", "pass", "fail"].includes(b.status)) errors.push(`pilot bar ${b.n}: bad status ${b.status}`);
+  if (["pass", "fail"].includes(b.status) && (b.observed === null || !b.source)) errors.push(`pilot bar ${b.n}: ${b.status} needs an observed value and a source`);
+}
+
 // ── Headline numbers quoted in the README ───────────────────────────────────
 const fmtN = (n) => n.toLocaleString("en-US");
 const headline = {
@@ -90,6 +118,10 @@ const headline = {
 };
 headline.attackTypes = Object.keys(s.bounds_adversarial.byMutation).length + Object.keys(hybrid.sets.adversarial_blocked.byMutation).length;
 const readme = readFileSync(P("README.md"), "utf8");
+const prd = readFileSync(P("product/prd.md"), "utf8");
+if (!prd.includes(`${fmtN(headline.unsafeBlocked)} of ${fmtN(headline.unsafeTotal)} attacks`)) errors.push("product/prd.md does not quote the current attack result");
+const logged = metrics.events.filter((e) => e.status === "instrumented").length;
+if (!prd.includes(`${logged} of ${metrics.events.length} events logged`)) errors.push(`product/prd.md does not quote ${logged} of ${metrics.events.length} events logged`);
 if (!readme.includes(`(${headline.attackTypes} attack types`)) errors.push(`README does not quote the current number of attack types (${headline.attackTypes})`);
 for (const [a, b] of [["unsafeBlocked", "unsafeTotal"], ["safeAccepted", "safeTotal"]]) {
   const quoted = `${fmtN(headline[a])} / ${fmtN(headline[b])}`;
@@ -271,11 +303,32 @@ for (const e of metrics.events) {
 tp += `\n## Studies (hypotheses no event can measure)\n\n| Study | What | When | Replaces |\n|---|---|---|---|\n`;
 for (const st of metrics.studies) tp += `| ${st.id} | ${st.what} | ${st.when} | ${drivers.filter((d) => d.hypothesis?.measuredBy === `study:${st.id}`).map((d) => d.label).join("; ")} |\n`;
 
+const CAP = { yes: "● Yes", claimed: "◐ Claimed", partial: "◐ Partial", no: "○ No", unknown: "? Unknown" };
+let cl = HDR("PolySync competitive landscape");
+cl += `**The finding.** ${competitors.finding}\n\n${competitors.method}\n\n`;
+cl += `| Product | Category | Buyer | Price | ${Object.values(competitors.capabilities).map((x) => x.label).join(" | ")} | Note | Source |\n|---|---|---|---|${Object.keys(competitors.capabilities).map(() => "---").join("|")}|---|---|\n`;
+for (const c of competitors.competitors) cl += `| ${c.name === "PolySync" ? "**PolySync**" : c.name} | ${c.category} | ${c.buyer} | ${c.price} | ${Object.keys(competitors.capabilities).map((k) => CAP[c[k]]).join(" | ")} | ${c.note} | ${c.evidence.map((id) => `[${id}](data/evidence.json)`).join(", ")} |\n`;
+cl += `\n${Object.values(competitors.capabilities).map((x) => `**${x.label}:** ${x.description}.`).join(" ")}\n\n**Legend.** ● shown by our own CI · ◐ claimed by the vendor or partly present · ○ not offered · ? not stated.\n\n**What it means for the roadmap.** Stop selling the scheduler. Sell the coach console and the audit trail: the screens and evidence a club's head coach and risk owner need (ADR-009).\n`;
+
+let rm = HDR("PolySync roadmap");
+rm += `${roadmap.rule}\n\n`;
+for (const hz of roadmap.horizons) {
+  const done = hz.id === "done";
+  rm += `## ${hz.label} · ${hz.window}\n\n| Item | Status | Reference |${done ? "" : " Why / gate |"}\n|---|---|---|${done ? "" : "---|"}\n`;
+  for (const it of hz.items) {
+    const ref = existsSync(P(it.ref)) ? `[\`${it.ref.split("/").pop()}\`](../${it.ref})` : it.ref;
+    rm += `| ${it.title} | ${it.status} | ${ref} |${done ? "" : ` ${it.why ?? it.gate ?? ""} |`}\n`;
+  }
+  rm += "\n";
+}
+
 const files = {
   "product/financial-model.md": fm,
   "product/risk-register.md": rr,
   "product/evidence.md": ev,
   "product/telemetry-plan.md": tp,
+  "product/competitive-landscape.md": cl,
+  "product/roadmap.md": rm,
   "product/generated/model-output.json": JSON.stringify(output, null, 2) + "\n",
 };
 

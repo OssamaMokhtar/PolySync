@@ -158,6 +158,23 @@ Each ADR states what was rejected and the measurable condition that would revers
 
 **Reversal trigger.** In the pilot, the share of amber-day hard sessions kept differs from the simulation by more than 15 points in any segment (pass bar 4). Then re-fit the model to observed rates.
 
+## ADR-009: Sell the coach console and the audit trail, not the scheduler
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar
+
+**Context.** A competitor scan on 24 Sep 2026 ([landscape](../product/competitive-landscape.md)) found three consumer apps that already claim interference-aware hybrid scheduling for $9–10 a month: Hypla, HybridX and Athletica (COM-001 to COM-003). The 10 Sep radar said cross-sport load management was unclaimed; that is no longer true. Coach platforms (Trainerize, FITR, TrainHeroic) own the coach relationship but leave the strength-endurance trade-off to the coach or to a generic AI builder. Demand still leans human: only 10% of fitness participants prefer an AI-created workout (MKT-008), and Future dropped its AI coaching beta after four months (MKT-009).
+
+**Decision.**
+1. PolySync competes with coach platforms for the club, not with consumer apps for the athlete.
+2. The next build is the coach console (queue of lost sessions, escalations and pain flags, with the rule and evidence behind each) and the audit trail a club's risk owner can read. Not more scheduler features.
+3. The scheduler stays open (rules and evals published). It earns trust; it is not the moat.
+
+**Rejected.**
+- A consumer tier to compete at $9–10: no coach, no club, no differentiation.
+- Out-featuring consumer apps on scheduling: they ship faster and it does not change who pays.
+
+**Reversal trigger.** A coach platform ships interference-aware scheduling with coach review and published rules. Then the moat is only coach-signed protocols and outcome data (strategy §5), and the price must be re-tested.
+
 ---
 
 ## Operating decisions

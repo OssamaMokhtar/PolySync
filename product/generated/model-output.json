@@ -7,9 +7,9 @@
     "hypotheses": 19,
     "decisions": 2,
     "evidenceGrades": {
-      "A": 17,
-      "B": 5,
-      "C": 4,
+      "A": 23,
+      "B": 6,
+      "C": 5,
       "D": 0
     }
   },
@@ -541,11 +541,11 @@
     {
       "id": "MKT-03",
       "category": "market",
-      "risk": "A funded competitor ships hybrid scheduling (running apps adding strength, or coach platforms adding AI)",
-      "score": 12,
+      "risk": "Hybrid scheduling commoditises: consumer apps already claim it, and a coach platform could add it",
+      "score": 15,
       "residual": 9,
-      "likelihood": 3,
-      "impact": 4,
+      "likelihood": 5,
+      "impact": 3,
       "mitigated": true
     },
     {

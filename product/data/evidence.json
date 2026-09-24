@@ -394,6 +394,127 @@
         "model.escalationRate",
         "adr.008"
       ]
+    },
+    {
+      "id": "MKT-008",
+      "topic": "market",
+      "claim": "Share of fitness participants who prefer an AI-created workout over a human-led one (Les Mills 2026 Global Fitness Report, 10,000+ consumers, five continents)",
+      "value": 10,
+      "unit": "%",
+      "source": "Les Mills, 'We want humans, not algorithms' (11 Feb 2026)",
+      "url": "https://www.lesmills.com/articles/we-want-humans-not-algorithms",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "strategy.positioning",
+        "adr.009"
+      ]
+    },
+    {
+      "id": "MKT-009",
+      "topic": "market",
+      "claim": "Future (human-coached personal training, $129-399/month) launched a free AI coaching beta in Feb 2026 and discontinued it in Jun 2026 after member feedback, doubling down on human coaches",
+      "value": null,
+      "unit": "fact",
+      "source": "Athletech News, 19 Jun 2026; corroborated by Fitgearsource",
+      "url": "https://athletechnews.com/future-pulls-the-plug-on-ai-personal-training-commits-to-human-coaches/",
+      "accessed": "2026-09-24",
+      "grade": "B",
+      "usedIn": [
+        "strategy.positioning",
+        "adr.009"
+      ]
+    },
+    {
+      "id": "COM-001",
+      "topic": "competition",
+      "claim": "Hypla: consumer hybrid running + strength planner; says it factors fatigue transfer so athletes never lift heavy after a long run; AI adapts the plan; optional coach refinement",
+      "value": 10,
+      "unit": "USD/month",
+      "source": "Hypla website (vendor claims, product not audited)",
+      "url": "https://hypla.fit/",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "competitors",
+        "adr.009"
+      ]
+    },
+    {
+      "id": "COM-002",
+      "topic": "competition",
+      "claim": "HybridX: AI training planner for athletes who lift heavy and race long; sequences sessions to manage interference; Garmin two-way sync; premium includes AI generation and coach chat",
+      "value": 9,
+      "unit": "USD/month",
+      "source": "HybridX website (vendor claims, product not audited)",
+      "url": "https://www.hybridx.app/",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "competitors",
+        "adr.009"
+      ]
+    },
+    {
+      "id": "COM-003",
+      "topic": "competition",
+      "claim": "Athletica: AI coach for HYROX that analyses running and strength load, HRV readiness and training history, and adjusts intensity and sequencing; serves athletes and coaches",
+      "value": null,
+      "unit": "fact",
+      "source": "Athletica HYROX page (vendor claims; price not shown)",
+      "url": "https://athletica.ai/sports/hyrox",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "competitors",
+        "adr.009"
+      ]
+    },
+    {
+      "id": "COM-004",
+      "topic": "competition",
+      "claim": "ABC Trainerize coach plans after the 16 Mar 2026 price change: Grow ~$9-10/month (2 clients), Pro from ~$23-25/month (5-200 clients), Studio Plus ~$248-275/month per location; payments, nutrition and branded app are paid add-ons",
+      "value": {
+        "proFromUsdMonth": 23,
+        "studioPlusUsdMonth": 248
+      },
+      "unit": "USD/month",
+      "source": "Coachway pricing analysis, updated Sep 2026 (Trainerize's own page renders prices client-side and was not readable)",
+      "url": "https://coachway.io/articles/trainerize-pricing/",
+      "accessed": "2026-09-24",
+      "grade": "C",
+      "usedIn": [
+        "competitors"
+      ]
+    },
+    {
+      "id": "COM-005",
+      "topic": "competition",
+      "claim": "FITR: coach and gym platform to build, sell and deliver programming, with 'Fitr AI' for programming and branded apps; markets a HYROX coaching page featuring a HYROX coach",
+      "value": null,
+      "unit": "fact",
+      "source": "FITR HYROX page (vendor claims; partnership status not stated)",
+      "url": "https://www.coachwithfitr.com/hyrox",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "competitors",
+        "adr.009"
+      ]
+    },
+    {
+      "id": "COM-006",
+      "topic": "competition",
+      "claim": "WHOOP raised $575M (Series G, Mar 2026) at a $10.1B valuation",
+      "value": 10.1,
+      "unit": "USD billion",
+      "source": "WHOOP press center; TechCrunch 31 Mar 2026",
+      "url": "https://www.whoop.com/us/en/press-center/whoop-announces-series-g-funding/",
+      "accessed": "2026-09-24",
+      "grade": "A",
+      "usedIn": [
+        "competitors"
+      ]
     }
   ]
 }

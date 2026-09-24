@@ -1,7 +1,7 @@
 import "./styles.css";
 import { computeUnit, marketWage, segmentOutcomes } from "../../product/scripts/model-core.mjs";
 import { HYBRID_PARAMS, RULE_EVIDENCE, type HybridRuleId } from "../../app/src/engine/hybrid";
-import { adrs, blob, outcomeTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, type Risk } from "./data";
+import { adrs, blob, outcomeTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, competitors, roadmap, pilotStatus, type Cap, type Risk } from "./data";
 import { chartCard, groupedColumns, h, legend, tableView, tornado } from "./charts";
 import { engineDemo } from "./demo";
 import { evidenceChip } from "./evidence";
@@ -36,8 +36,10 @@ try {
 const NAV = [
   ["overview", "Overview"],
   ["engine", "Engine"],
+  ["market", "Market"],
   ["economics", "Economics"],
   ["risks", "Risks"],
+  ["roadmap", "Roadmap"],
   ["pilot", "Pilot"],
   ["evidence", "Evidence"],
   ["decisions", "Decisions"],
@@ -82,7 +84,8 @@ function overview(): HTMLElement {
     h("div", { id: "overview" },
       h("p", { class: "state" }, `As of ${model.asOf} · generated from the repo at build time`),
       h("h1", { class: "text-3xl sm:text-4xl font-semibold mt-2 max-w-4xl leading-tight" }, "AI coaching for hybrid athletes, where the model can propose but never prescribe."),
-      h("p", { class: "ink-2 mt-3 max-w-3xl" }, "A deterministic engine schedules strength, power and endurance under nine evidence-cited rules. The model explains and proposes; a proposal reaches the athlete only if every rule passes, and everything the engine cannot resolve goes to the club's coach. PolySync sells that coach capacity to clubs.")),
+      h("p", { class: "ink-2 mt-3 max-w-3xl" }, "A deterministic engine schedules strength, power and endurance under nine evidence-cited rules. The model explains and proposes; a proposal reaches the athlete only if every rule passes, and everything the engine cannot resolve goes to the club's coach. PolySync sells that coach capacity to clubs."),
+      h("div", { class: "flex flex-wrap gap-2 mt-4" }, ...([["One-page PRD", "product/prd.md"], ["Watch the 70-second walkthrough", "docs/media/projectos-walkthrough.mp4"], ["Case study", "product/case-study.md"], ["Strategy", "product/strategy.md"], ["Financial model", "product/financial-model.md"], ["Architecture docs", "docs/README.md"]] as const).map(([label, path], i) => h("a", { class: i === 0 ? "btn btn-primary" : "btn", href: blob(path) }, label)))),
     h("div", { class: "card p-6" },
       h("div", { class: "text-sm ink-2" }, "Unsafe proposals blocked before reaching an athlete"),
       h("div", { class: "font-semibold mt-1", style: "font-size:clamp(40px, 9vw, 56px);line-height:1.05" }, `${fmt.int(blocked)} of ${fmt.int(total)}`),
@@ -275,10 +278,81 @@ function riskSection(): HTMLElement {
     h("p", { class: "text-sm mt-2" }, h("a", { href: blob("product/risk-register.md") }, "Full risk register")));
 }
 
+const CAP_LABEL: Record<Cap, [string, string]> = {
+  yes: ["●", "Yes"],
+  claimed: ["◐", "Claimed by the vendor"],
+  partial: ["◐", "Partly"],
+  no: ["○", "No"],
+  unknown: ["?", "Not stated"],
+};
+
+function marketSection(): HTMLElement {
+  const caps = Object.entries(competitors.capabilities) as [keyof typeof competitors.capabilities, { label: string; description: string }][];
+  const t = h("table", { class: "data market" });
+  t.append(h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Product"), h("th", { scope: "col" }, "Buyer"), h("th", { scope: "col" }, "Price"), ...caps.map(([, c]) => h("th", { scope: "col", title: c.description }, c.label)), h("th", { scope: "col" }, "Source"))));
+  const tb = h("tbody", {});
+  for (const c of competitors.competitors) {
+    const ours = c.name === "PolySync";
+    const src = h("td", {});
+    c.evidence.forEach((id) => src.append(evidenceChip(id), " "));
+    tb.append(h("tr", ours ? { class: "ours" } : {},
+      h("th", { scope: "row" }, h("div", { class: "font-semibold" }, c.name), h("div", { class: "text-xs muted" }, c.category)),
+      h("td", {}, c.buyer),
+      h("td", { class: "tabnum" }, c.price),
+      ...caps.map(([k]) => h("td", { class: `cap cap-${c[k]}`, title: c.note }, h("span", { "aria-hidden": "true" }, CAP_LABEL[c[k]][0]), " ", ours && c[k] === "yes" ? "Yes · our CI" : CAP_LABEL[c[k]][1])),
+      src));
+  }
+  t.append(tb);
+  return h("section", { class: "flex flex-col gap-4" },
+    sectionTitle("market", "Market", "Who else solves this, and for whom. Vendor features are as vendors state them; we did not audit their products. PolySync's “Yes” comes from its own CI; a competitor's “Yes” means its own site plainly states it."),
+    h("div", { class: "card p-5", style: "border-left:4px solid var(--s1)" },
+      h("div", { class: "state" }, "The finding · ADR-009"),
+      h("p", { class: "mt-2 text-lg font-semibold max-w-4xl leading-snug" }, "Three consumer apps at $9–10 a month already claim interference-aware hybrid scheduling. So PolySync does not sell the scheduler."),
+      h("p", { class: "mt-2 ink-2 max-w-4xl" }, "It sells what none of the products we checked combine: a club buyer, a coach who reviews what software cannot resolve, and rules plus safety evals a club's risk owner can audit. The next build is the coach console, not more scheduling.")),
+    h("div", { class: "card p-5 overflow-x-auto" }, t),
+    h("p", { class: "text-sm" }, h("a", { href: blob("product/competitive-landscape.md") }, "Competitive landscape"), " · ", h("a", { href: `${blob("docs/10-decision-log.md")}#adr-009-sell-the-coach-console-and-the-audit-trail-not-the-scheduler` }, "ADR-009"), " · ", h("span", { class: "muted" }, `Checked ${competitors.asOf}`)));
+}
+
+const STATUS_STYLE: Record<string, string> = { done: "var(--good-ink)", "in-progress": "var(--s1)", next: "var(--ink)", planned: "var(--ink-2)", gated: "var(--ink-2)", killed: "var(--bad-ink)" };
+
+function roadmapSection(): HTMLElement {
+  const cols = h("div", { class: "grid md:grid-cols-2 xl:grid-cols-5 gap-3 [&>*]:min-w-0" });
+  for (const hz of roadmap.horizons) {
+    cols.append(h("div", { class: "card p-4 flex flex-col gap-3" },
+      h("div", {}, h("h3", { class: "font-semibold" }, hz.label), h("div", { class: "text-xs muted" }, hz.window)),
+      h("ul", { class: "flex flex-col gap-2" }, ...hz.items.map((it) => h("li", { class: "rounded-md p-2 text-sm", style: "background:var(--surface-2)" },
+        h("div", { class: "state", style: `color:${STATUS_STYLE[it.status] ?? "var(--ink-2)"}` }, it.status === "done" ? "✓ Done" : it.status === "killed" ? "✕ Not planned" : it.status.replace("-", " ")),
+        h("div", { class: "mt-1" }, it.title),
+        (it.why || it.gate) ? h("div", { class: "text-xs muted mt-1" }, it.why ?? (it.status === "killed" ? it.gate : `Gate: ${it.gate}`)) : "",
+        h("div", { class: "text-xs mt-1" }, /\//.test(it.ref) ? h("a", { href: blob(it.ref) }, it.ref.split("/").pop() ?? it.ref) : h("span", { class: "font-mono muted" }, it.ref)))))));
+  }
+  return h("section", { class: "flex flex-col gap-4" },
+    sectionTitle("roadmap", "Roadmap", "Sequenced by the gaps that block the pilot and by each decision's reversal trigger, not by dates. A “done” item must point to a file in the repo, or the build fails."),
+    cols,
+    h("p", { class: "text-sm" }, h("a", { href: blob("product/roadmap.md") }, "Roadmap"), " · ", h("a", { href: blob("docs/GAPS.md") }, "Gaps, ranked")));
+}
+
 function pilotSection(): HTMLElement {
+  const statusOf = (n: string) => pilotStatus.bars.find((b) => String(b.n) === n);
+  const measured = pilotStatus.bars.filter((b) => b.observed !== null).length;
+  const t = h("table", { class: "data" });
+  t.append(h("thead", {}, h("tr", {}, ...["#", "Measure", "Pass bar", "Observed", "Status"].map((x) => h("th", { scope: "col" }, x)))));
+  const tb = h("tbody", {});
+  for (const b of passBars) {
+    const s = statusOf(b.n);
+    const st = s?.status ?? "not-started";
+    tb.append(h("tr", {}, h("td", {}, b.n), h("td", {}, b.measure, h("div", { class: "text-xs muted" }, `Fails means: ${b.fails}`)), h("td", { class: "tabnum" }, b.pass),
+      h("td", { class: "tabnum" }, s?.observed === null || s?.observed === undefined ? h("span", { class: "muted" }, "—") : String(s.observed)),
+      h("td", {}, h("span", { class: "state", style: `color:${st === "pass" ? "var(--good-ink)" : st === "fail" ? "var(--bad-ink)" : "var(--ink-2)"}` }, st === "pass" ? "✓ Pass" : st === "fail" ? "✕ Fail" : st === "measuring" ? "◐ Measuring" : "○ Not started"))));
+  }
+  t.append(tb);
   return h("section", {},
     sectionTitle("pilot", "Pilot", "UAE, 3 HYROX training clubs, 8 weeks, flexible-schedule athletes first. The pass bars were set before any data exists, so the result cannot be argued into a win."),
-    h("div", { class: "card p-5 overflow-x-auto" }, tableView(["#", "Measure", "Pass", "Fails means"], passBars.map((b) => [b.n, b.measure, b.pass, b.fails]))),
+    h("div", { class: "grid sm:grid-cols-3 gap-3 mb-3" },
+      statTile("Pass bars measured", `${measured} of ${pilotStatus.bars.length}`, "Filled only from pilot telemetry, with a source", "Tracker"),
+      statTile("Pilot state", pilotStatus.state === "not-started" ? "Not started" : pilotStatus.state, "Blocked by GAPS #12 and #6", "Tracker"),
+      statTile("Break-even hand-minutes", `${(modelOutput as unknown as { pilotReference: { breakEvenManualMinPerWeek: number } }).pilotReference.breakEvenManualMinPerWeek.toFixed(1)} / wk`, "Pass bar 2 must stay above this; CI checks it", "Model")),
+    h("div", { class: "card p-5 overflow-x-auto" }, t),
     h("p", { class: "text-sm mt-2" }, h("a", { href: blob("product/pilot-plan.md") }, "Pilot plan"), " · ", h("a", { href: blob("product/telemetry-plan.md") }, `Telemetry plan (${metrics.events.length} events, ${metrics.studies.length} studies)`)));
 }
 
@@ -336,8 +410,10 @@ app.append(
   h("main", { class: "max-w-6xl mx-auto px-4 py-8 flex flex-col gap-14" },
     overview(),
     h("section", { class: "flex flex-col gap-4" }, sectionTitle("engine", "Engine", "Change the athlete, then try a model proposal. The verdicts come from the same code CI tests."), engineDemo(), rulesTable()),
+    marketSection(),
     economics(),
     riskSection(),
+    roadmapSection(),
     pilotSection(),
     evidenceSection(),
     decisionsSection(),

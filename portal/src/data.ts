@@ -9,6 +9,16 @@ import hybrid from "../../evals/results/hybrid-latest.json";
 import decisionLog from "../../docs/10-decision-log.md?raw";
 import gapsMd from "../../docs/GAPS.md?raw";
 import pilotMd from "../../product/pilot-plan.md?raw";
+import competitorsFile from "../../product/data/competitors.json";
+import roadmapFile from "../../product/data/roadmap.json";
+import pilotStatusFile from "../../product/data/pilot-status.json";
+
+export type Cap = "yes" | "claimed" | "partial" | "no" | "unknown";
+export interface Competitor { name: string; category: string; buyer: string; price: string; interference: Cap; readiness: Cap; coachInLoop: Cap; auditable: Cap; evidence: string[]; note: string }
+export const competitors = competitorsFile as unknown as { asOf: string; method: string; finding: string; capabilities: Record<"interference" | "readiness" | "coachInLoop" | "auditable", { label: string; description: string }>; competitors: Competitor[] };
+export interface RoadmapItem { title: string; ref: string; status: string; why?: string; gate?: string }
+export const roadmap = roadmapFile as unknown as { rule: string; horizons: { id: string; label: string; window: string; items: RoadmapItem[] }[] };
+export const pilotStatus = pilotStatusFile as unknown as { state: string; note: string; bars: { n: number; status: string; observed: string | number | null; source: string | null }[] };
 
 export const REPO = "https://github.com/OssamaMokhtar/PolySync";
 export const blob = (path: string) => `${REPO}/blob/main/${path.replace(/^(\.\.\/)+/, "")}`;

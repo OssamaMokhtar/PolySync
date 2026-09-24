@@ -35,13 +35,14 @@ These are why-now signals, not the TAM. The penetration check in the [financial 
 
 | Category | Examples and observed price | What they do not do |
 |---|---|---|
-| Coach delivery platforms | TrainHeroic $74.99/month for 50 athletes; TrueCoach $136.99/month for 50 clients: **$1.50–2.74 per athlete-month** (PRC-001, PRC-002) | Deliver the plan a coach wrote. Scheduling logic is the coach's job |
-| Consumer AI training apps | Ladder $29.99/month; Strava + Runna bundle $149.99/year (PRC-003, PRC-004) | No coach in the loop; sold to the athlete, not the club |
+| Coach delivery platforms | TrainHeroic $74.99/month for 50 athletes; TrueCoach $136.99/month for 50 clients: **$1.50–2.74 per athlete-month** (PRC-001, PRC-002); Trainerize from ~$23/month plus add-ons (COM-004); FITR with "Fitr AI" (COM-005) | Deliver the plan a coach wrote. The strength-endurance trade-off is the coach's job, or a generic AI builder's |
+| Consumer hybrid AI planners | Hypla $10/month, HybridX $9/month, Athletica (COM-001 to COM-003) | Claim interference-aware scheduling, but sell to the athlete: no club buyer, no coach review of what the software cannot resolve, no published rules or safety evals |
+| Consumer training apps | Ladder $29.99/month; Strava + Runna bundle $149.99/year (PRC-003, PRC-004) | No hybrid scheduling; no coach in the loop |
 | **PolySync** | Hypothesis: **$8 (AED 29) per active athlete-month**, paid by the club | — |
 
-We compared these products on price only; their features were not audited. The point is structural: PolySync sits between delivery software and a consumer app, and it charges for coach capacity rather than seats.
+Vendor features are as the vendors state them; we did not use the products ([landscape](competitive-landscape.md)). **What changed on 24 Sep:** interference-aware scheduling is now claimed by consumer apps at $9–10 a month, so PolySync does not sell the scheduler. It sells the coach console and the audit trail to the club (ADR-009).
 
-**Positioning statement.** For clubs that coach hybrid athletes, PolySync is the programming engine that makes the strength-endurance trade-off for every athlete, every week, and sends the coach only the cases that need judgement. Delivery platforms leave the trade-off to the coach; consumer apps leave out the coach.
+**Positioning statement.** For clubs that coach hybrid athletes, PolySync is the coaching layer that makes the strength-endurance trade-off for every athlete, every week, sends the coach only the cases that need judgement, and shows the rule and evidence behind every plan. Delivery platforms leave the trade-off to the coach; consumer apps leave out the coach and the club.
 
 ## 5. Moat: what is copyable and what is not
 

@@ -1,0 +1,55 @@
+{
+  "asOf": "2026-09-24",
+  "state": "not-started",
+  "note": "The pilot has not started. Every observed value is empty until pilot telemetry reports; a status can only change with a value and its source.",
+  "bars": [
+    {
+      "n": 1,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    },
+    {
+      "n": 2,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    },
+    {
+      "n": 3,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    },
+    {
+      "n": 4,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    },
+    {
+      "n": 5,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    },
+    {
+      "n": 6,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    },
+    {
+      "n": 7,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    },
+    {
+      "n": 8,
+      "status": "not-started",
+      "observed": null,
+      "source": null
+    }
+  ]
+}
