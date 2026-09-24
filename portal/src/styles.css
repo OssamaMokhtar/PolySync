@@ -15,6 +15,7 @@
   --axis: #c3c2b7;
   --ring: rgba(11, 11, 11, 0.1);
   --accent: #2a78d6;
+  --link: #1d62b5; /* text links: 5.4:1 or better on every light surface; --accent stays for marks */
   --s1: #2a78d6; /* blue */
   --s2: #eb6834; /* orange */
   --s3: #1baf7a; /* aqua */
@@ -39,6 +40,8 @@
     --axis: #383835;
     --ring: rgba(255, 255, 255, 0.1);
     --accent: #3987e5;
+  --link: #6aa7f2;
+    --link: #6aa7f2;
     --s1: #3987e5;
     --s2: #d95926;
     --s3: #199e70;
@@ -75,7 +78,7 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-a { color: var(--accent); text-underline-offset: 2px; }
+a { color: var(--link); text-underline-offset: 2px; }
 a:hover { text-decoration: underline; }
 
 .card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; }
@@ -125,3 +128,21 @@ select, input[type="search"] {
 }
 .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 100vw); z-index: 70; background: var(--surface); border-left: 1px solid var(--ring); box-shadow: -8px 0 32px rgba(0,0,0,0.2); overflow-y: auto; }
 @media print { .no-print { display: none !important; } .card { break-inside: avoid; } }
+
+/* Primary action: one per view */
+.btn-primary { background: var(--ink); color: var(--page); border-color: var(--ink); }
+.btn-primary:hover, .btn-primary:focus-visible { background: color-mix(in oklab, var(--ink) 85%, var(--accent)); color: var(--page); }
+
+/* Market matrix */
+table.market { min-width: 860px; }
+table.market tbody th { text-align: left; font-weight: 400; color: var(--ink); font-size: 14px; padding: 8px; border-bottom: 1px solid var(--grid); vertical-align: top; position: sticky; left: 0; background: var(--surface); }
+table.market tr.ours th, table.market tr.ours td { background: color-mix(in oklab, var(--s1) 8%, var(--surface)); }
+table.market td.cap { white-space: nowrap; font-size: 13px; color: var(--ink-2); }
+table.market td.cap-yes { color: var(--ink); font-weight: 600; }
+table.market td.cap-yes span { color: var(--good-ink); }
+
+/* Touch: 44 x 44 pt minimum hit targets (Apple HIG; WCAG 2.5.5) */
+@media (pointer: coarse) {
+  header nav a, header a, .btn, .chip, select { min-height: 44px; display: inline-flex; align-items: center; }
+  header nav { gap: 0 12px; }
+}
