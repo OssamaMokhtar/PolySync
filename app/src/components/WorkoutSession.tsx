@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { EXERCISE_BY_ID } from '../ExerciseLibrary';
+import { EXERCISE_BY_ID } from '../../../engine/ExerciseLibrary';
 import { Sparkles } from 'lucide-react';
 import { FormCueButton } from './FormCueButton';
 

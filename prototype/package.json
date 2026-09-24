@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.4.0",
   "type": "module",
-  "description": "PolySync high-fidelity prototype (design Phase 4). Runs the production engine from app/src/engine unchanged; styled only with @polysync design tokens.",
+  "description": "PolySync high-fidelity prototype (design Phase 4). Runs the production engine from engine unchanged; styled only with @polysync design tokens.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

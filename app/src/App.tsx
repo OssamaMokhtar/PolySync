@@ -9,7 +9,7 @@ import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { FitnessProfile, WeeklyPlan, WorkoutLogEntry, SupportedLanguage, LANGUAGE_CONFIG, ChatResponse } from './types';
-import { EXERCISE_BY_ID } from './ExerciseLibrary';
+import { EXERCISE_BY_ID } from '../../engine/ExerciseLibrary';
 import { CoachChat } from './components/CoachingChat';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RecoveryDashboard } from './components/RecoveryDashboard';
@@ -791,7 +791,7 @@ export default function App() {
           <p className="leading-relaxed">
             AI Fitness Coach Platform · Version 1.0<br />
             Built with React + Firebase + Gemini AI<br />
-            <a href="https://github.com/OssamaMokhtar/PolyVerses" className="text-[#00A3FF] hover:underline" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/OssamaMokhtar/PolySync" className="text-[#00A3FF] hover:underline" target="_blank" rel="noopener noreferrer">
               View on GitHub →
             </a>
           </p>

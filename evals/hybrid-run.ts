@@ -1,4 +1,4 @@
-// PolySync eval runner: hybrid scheduling layer (doc 12, app/src/engine/hybrid.ts).
+// PolySync eval runner: hybrid scheduling layer (doc 12, engine/hybrid.ts).
 //
 // Scope, stated up front: deterministic checks of the hybrid engine and its
 // rules against themselves and against adversarial proposals. They show the
@@ -21,8 +21,8 @@ import {
   type HybridRuleId,
   type HybridWeek,
   type Quality,
-} from "../app/src/engine/hybrid";
-import type { Level } from "../app/src/engine/types";
+} from "../engine/hybrid";
+import type { Level } from "../engine/types";
 
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 

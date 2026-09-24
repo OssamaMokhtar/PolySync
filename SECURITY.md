@@ -8,7 +8,7 @@ The PolySync safety architecture is documented in [docs/04-ai-architecture.md](d
 
 1. **Deterministic programming engine** owns every load prescription. The LLM cannot change training load.
 2. **LLM orchestrator** proposes adaptations as structured deltas only.
-3. **Bounds checker** validates every proposed delta against safe bounds before it reaches an athlete. (enforced) [`app/src/engine/boundsChecker.ts`](app/src/engine/boundsChecker.ts), evaluated on every push by [`evals/run.ts`](evals/run.ts).
+3. **Bounds checker** validates every proposed delta against safe bounds before it reaches an athlete. (enforced) [`engine/boundsChecker.ts`](engine/boundsChecker.ts), evaluated on every push by [`evals/run.ts`](evals/run.ts).
 4. **Escalation pipeline** sends out-of-bounds proposals to a named human coach as a draft.
 
 **Consequences:**
@@ -19,7 +19,7 @@ The PolySync safety architecture is documented in [docs/04-ai-architecture.md](d
 ## API Key Protection
 
 - The Gemini API key is held server-side only.
-- (enforced) `app/scripts/check-bundle.mjs` fails CI if the client bundle references the Gemini API or contains the key. The Firebase web `apiKey` in `app/firebase-applet-config.json` is a public identifier by design; Firestore access is governed by [`app/firestore.rules`](app/firestore.rules) (model: [`app/security_spec.md`](app/security_spec.md)).
+- (enforced) `app/scripts/check-bundle.mjs` fails CI if the client bundle references the Gemini API or contains the key. The Firebase web `apiKey` in `app/firebase-applet-config.json` is a public identifier by design; Firestore access is governed by [`app/firestore.rules`](app/firestore.rules).
 - The key is never exposed to the browser.
 
 ## Data Classification

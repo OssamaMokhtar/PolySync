@@ -40,7 +40,7 @@ Each rule is a protocol in the library with an ID, an owning coach and a version
 
 ## 3a. What is built (v1, 24 Sep 2026)
 
-The sequencing, priority, load-progression, acute:chronic and readiness families are now code in [`app/src/engine/hybrid.ts`](../app/src/engine/hybrid.ts). Parameters come from the literature, with each rule citing its evidence id in [`product/data/evidence.json`](../product/data/evidence.json). **They are not coach-signed (GAPS #4).**
+The sequencing, priority, load-progression, acute:chronic and readiness families are now code in [`engine/hybrid.ts`](../engine/hybrid.ts). Parameters come from the literature, with each rule citing its evidence id in [`product/data/evidence.json`](../product/data/evidence.json). **They are not coach-signed (GAPS #4).**
 
 | Rule | Family | Parameter | Severity | Evidence |
 |---|---|---|---|---|
@@ -64,7 +64,7 @@ Not built yet: the boundary between weeks (a Sunday-evening session and the next
 
 > Athlete: 34, training age 6 y. Goal: half-marathon in 9 weeks *and* hold a 1.5×BW back squat. Current block: endurance-primary. Wednesday: threshold run prescribed. Tuesday delivered: heavy lower-body session, RPE 9, HRV down, sleep 5 h 20 m.
 
-Engine trace (reproduced by `adaptDay()`; see the test "daily adaptation" in [`hybrid.test.ts`](../app/src/engine/__tests__/hybrid.test.ts)):
+Engine trace (reproduced by `adaptDay()`; see the test "daily adaptation" in [`hybrid.test.ts`](../engine/__tests__/hybrid.test.ts)):
 
 | Step | Rule | Outcome |
 |---|---|---|

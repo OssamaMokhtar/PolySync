@@ -19,7 +19,7 @@
 
 ## What runs today: the hybrid layer
 
-`evals/hybrid-run.ts` tests the hybrid scheduling engine (`app/src/engine/hybrid.ts`): rules H1–H9, routing in `prescribeHybrid()`, and daily adaptation. Latest results: [`results/hybrid-latest.json`](results/hybrid-latest.json).
+`evals/hybrid-run.ts` tests the hybrid scheduling engine (`engine/hybrid.ts`): rules H1–H9, routing in `prescribeHybrid()`, and daily adaptation. Latest results: [`results/hybrid-latest.json`](results/hybrid-latest.json).
 
 | Set | n | Result | Gate |
 |---|---|---|---|

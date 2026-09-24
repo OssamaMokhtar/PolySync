@@ -1,4 +1,4 @@
-// PolyVerses AI Fitness Coach — Type Definitions
+// PolySync — Type Definitions
 // Extends the architecture with fitness-domain types
 
 // Allow flexible goal strings (server uses both "build_muscle" style and "strength" style)
@@ -479,7 +479,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, string[]> = {
 
 // ─── Legacy / Server-Compatibility Types ────────────────────────────
 // These support the server.ts endpoint signatures and
-// PolyVerses-era code paths in components.
+// older code paths in components.
 
 export interface ServerCompatibilityPlanOutputV0 {
   weekNumber: number;

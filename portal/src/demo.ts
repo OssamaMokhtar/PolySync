@@ -1,4 +1,4 @@
-// Interactive proof: this imports the production engine (app/src/engine/hybrid.ts)
+// Interactive proof: this imports the production engine (engine/hybrid.ts)
 // unchanged. Every verdict on screen is computed by the same code CI tests.
 import {
   adaptDay,
@@ -13,7 +13,7 @@ import {
   type HybridWeek,
   type Modality,
   type Quality,
-} from "../../app/src/engine/hybrid";
+} from "../../engine/hybrid";
 import { h } from "./charts";
 import { evidenceChip } from "./evidence";
 
@@ -277,7 +277,7 @@ export function engineDemo(): HTMLElement {
   return h("section", { class: "card p-5", id: "demo" },
     h("div", { class: "flex flex-wrap items-baseline justify-between gap-2" },
       h("h3", { class: "font-semibold" }, "Run the engine"),
-      h("span", { class: "state" }, "Built · runs app/src/engine/hybrid.ts in your browser")),
+      h("span", { class: "state" }, "Built · runs engine/hybrid.ts in your browser")),
     h("p", { class: "text-sm ink-2 mt-1" }, `The engine places sessions; the model can only propose. Every proposal passes rules H1–H9 (≥ ${HYBRID_PARAMS.minSeparationHours} h between conflicting sessions, no power within ${HYBRID_PARAMS.powerAfterEnduranceHours} h after endurance, load limit +${HYBRID_PARAMS.maxWeeklyLoadIncrease * 100}%…) before it can reach an athlete.`),
     h("div", { class: "grid lg:grid-cols-[300px_minmax(0,1fr)] gap-6 mt-4" }, controls, h("div", { class: "flex flex-col gap-3 min-w-0" }, summary, board)),
     h("div", { class: "mt-5 flex flex-col gap-3" },

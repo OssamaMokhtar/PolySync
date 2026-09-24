@@ -1,6 +1,6 @@
 # PolySync prototype (design Phase 4)
 
-A high-fidelity, clickable prototype of the athlete app. It runs the **production engine** (`app/src/engine`, compiled in unchanged) and is styled only with the **PolySync design tokens** (copied from `polysync-design-system@9057396`). It exists to run the Phase 2 usability test and to prove the design against the real engine before any React Native code is written.
+A high-fidelity, clickable prototype of the athlete app. It runs the **production engine** (`engine`, compiled in unchanged) and is styled only with the **PolySync design tokens** (copied from `polysync-design-system@9057396`). It exists to run the Phase 2 usability test and to prove the design against the real engine before any React Native code is written.
 
 ![Twelve prototype screens: welcome, days, safety questions, your week, the session player, the pain report, Today after a low check-in, the plan, the load map, the coach thread, a safety card, and Today in the light theme](../docs/media/prototype-flow.png)
 
@@ -17,7 +17,7 @@ A high-fidelity, clickable prototype of the athlete app. It runs the **productio
 | Today: 3-tap check-in, "What changed" with rules, "Why this?", "Not up for it today?" (E5) | `components/readiness.md`, `why-this-sheet.md` | `adaptDay` (moved / downgraded / escalated) |
 | Missed session (E2): "Pick up here" → moved or let go, never crammed | ai-coach E2 | production checker gates the move |
 | Plan: the week, move a session (the rules decide), change history | IA, `session-card.md` | `prescribeHybrid` |
-| Recover: load map front/back, region list (table view), week balance, H5 limit | Body Impact review (docs/13 §7) | `sessionLoad`, `portal/src/bodymodel.ts` |
+| Recover: load map front/back, region list (table view), week balance, H5 limit | Body Impact review (docs/13 §7) | `sessionLoad`, `engine/bodymodel.ts` |
 | Coach: AI thread with proposals, E3 nutrition boundary, E4 equipment, E5 motivation; human coach thread (club) | `components/chat.md` | safety detector first; `prescribeHybrid` decides proposals |
 | Safety cards S-1 to S-4 with region numbers (UAE, US, EU) | `patterns/safety-guardrails.md` | `src/lib/safety.ts` (layer 1 detector) |
 | You: Memory (forget, undo, forget all), subscription (2-tap cancel), theme, reduce motion, text size to 225%, haptics, region, data export and delete | IA, accessibility checklist | — |

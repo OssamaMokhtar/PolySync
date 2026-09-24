@@ -4,11 +4,11 @@
 
 **[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · **[Athlete app prototype](https://ossamamokhtar.github.io/PolySync/prototype/)** · [Design case study](https://github.com/OssamaMokhtar/polysync-design-system/blob/main/case-study/README.md) · [One-page PRD](product/prd.md) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Competitive landscape](product/competitive-landscape.md) · [Roadmap](product/roadmap.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
 
-**Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [hybrid engine](docs/12-hybrid-athlete-programming-engine.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [UX review](docs/13-ux-review.md) · [gaps](docs/GAPS.md)
+**Architecture docs:** [repo architecture](ARCHITECTURE.md) · [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [hybrid engine](docs/12-hybrid-athlete-programming-engine.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [UX review](docs/13-ux-review.md) · [gaps](docs/GAPS.md)
 
 ![ProjectOS walkthrough: a prompt injection and a cross-midnight spacing attack are blocked, a safe edit is accepted, and an amber day is handled with and without doubles](docs/media/projectos-walkthrough.gif)
 
-*32 seconds of [ProjectOS](https://ossamamokhtar.github.io/PolySync/), which runs [`app/src/engine/hybrid.ts`](app/src/engine/hybrid.ts) unchanged in the browser. [Full 70-second walkthrough (MP4)](docs/media/projectos-walkthrough.mp4) covers the market finding, live economics, roadmap and pilot tracker.*
+*32 seconds of [ProjectOS](https://ossamamokhtar.github.io/PolySync/), which runs [`engine/hybrid.ts`](engine/hybrid.ts) unchanged in the browser. [Full 70-second walkthrough (MP4)](docs/media/projectos-walkthrough.mp4) covers the market finding, live economics, roadmap and pilot tracker.*
 
 ## The load-bearing decision
 
@@ -107,27 +107,34 @@ flowchart LR
 ## Run it
 
 ```bash
-cd app && npm install
-npm test                 # 53 tests: engine, hybrid rules, routing, auth, input validation, rate limit, session content
-npm run eval             # safety-layer + hybrid-layer evals (non-zero exit on any breach)
+cd engine && npm install
+npm run typecheck && npm test   # strict engine typecheck; 31 engine tests (plans, hybrid rules, bounds, routing)
+npm run eval                    # safety-layer + hybrid-layer evals (non-zero exit on any breach)
+cd ../app && npm install
+npm test                        # 22 tests: auth, input validation, rate limit, session content
 npm run build && npm run boot-check
-node ../product/scripts/build.mjs --check      # product layer
-cd ../portal && npm install && npm run dev     # ProjectOS on localhost
-cd ../prototype && npm install && npm run dev  # athlete app prototype
+node ../scripts/check-boundaries.mjs            # architecture gate
+node ../product/scripts/build.mjs --check       # product layer
+cd ../portal && npm install && npm run dev      # ProjectOS on localhost
+cd ../prototype && npm install && npm run dev   # athlete app prototype
 ```
 
 ## Repository layout
 
+One product per repo; what each folder may depend on is in [ARCHITECTURE.md](ARCHITECTURE.md) and checked in CI.
+
 | Path | What |
 |---|---|
-| `docs/` | Design authority: architecture, ADRs, evaluation, gaps |
-| `app/` | Runtime: React + Express + Firebase + Gemini; engine in `app/src/engine/` |
+| `engine/` | Deterministic core: plans, hybrid rules H1–H9, bounds B1–B9, adaptation, exercise library. No runtime dependencies |
+| `app/` | Runtime: React + Express + Firebase + Gemini; calls `engine/` |
 | `evals/` | Safety-layer and hybrid-layer eval runners and results |
-| `product/` | Strategy, evidence, model, risks, telemetry, pilot, case study |
-| `portal/` | ProjectOS: one self-contained HTML file, deployed to GitHub Pages |
 | `prototype/` | Athlete app prototype (React, one HTML file) on the production engine and the PolySync design tokens; deployed at `/prototype/` |
+| `product/` | Strategy, evidence, model, risks, telemetry, pilot, validation, case study |
+| `portal/` | ProjectOS: one self-contained HTML file, deployed to GitHub Pages |
+| `docs/` | Design authority: architecture, ADRs, evaluation, gaps |
+| `scripts/` | Repo-wide gates (architecture boundaries) |
 
-CI: [`ci.yml`](.github/workflows/ci.yml) (strict engine typecheck, type-error ratchet, tests, evals, build, boot check, bundle and identity checks, portal build, prototype tests + build + end-to-end accessibility run) · [`docs.yml`](.github/workflows/docs.yml) (links, Mermaid, status lines, product layer) · [`pages.yml`](.github/workflows/pages.yml) (ProjectOS deploy).
+CI: [`ci.yml`](.github/workflows/ci.yml) (architecture boundaries; engine strict typecheck, tests and evals; app type-error ratchet, tests, build, boot check, bundle and identity checks; portal build; prototype tests, build and end-to-end accessibility run) · [`docs.yml`](.github/workflows/docs.yml) (links, Mermaid, status lines, product layer) · [`pages.yml`](.github/workflows/pages.yml) (ProjectOS deploy) · [`codeql.yml`](.github/workflows/codeql.yml).
 
 ---
 

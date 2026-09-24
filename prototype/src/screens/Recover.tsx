@@ -1,7 +1,7 @@
 // Recover: the load map (polished "Body Impact"), from minutes × RPE only. Region list is the
 // accessible table view; upper body is marked "not programmed yet" instead of invented.
 import { useState } from "react";
-import { BODY, REGION_LABEL, regionLoads, type Region } from "../../../portal/src/bodymodel";
+import { BODY, REGION_LABEL, regionLoads, type Region } from "../../../engine/bodymodel";
 import { ChipGroup, Sheet, Tile } from "../components/ui";
 import { DAYS, HYBRID_PARAMS, MOD_LABEL, sessionLoad, weekLoad, type Modality } from "../lib/engine";
 import { useApp } from "../state";

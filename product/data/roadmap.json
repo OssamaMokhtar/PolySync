@@ -9,12 +9,12 @@
       "items": [
         {
           "title": "Hybrid engine: rules H1-H9, move / make easy / escalate",
-          "ref": "app/src/engine/hybrid.ts",
+          "ref": "engine/hybrid.ts",
           "status": "done"
         },
         {
           "title": "The model proposes, the engine prescribes (ADR-004), enforced on both plan routes",
-          "ref": "app/src/engine/boundsChecker.ts",
+          "ref": "engine/boundsChecker.ts",
           "status": "done"
         },
         {

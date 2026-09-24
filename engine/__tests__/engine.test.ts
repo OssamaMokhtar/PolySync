@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { generatePlan } from "../planEngine";
 import { checkPlan, prescribe } from "../boundsChecker";
 import { contraindicatedBy } from "../contraindications";
-import { EXERCISE_LIBRARY } from "../../ExerciseLibrary";
+import { EXERCISE_LIBRARY } from "../ExerciseLibrary";
 import type { EngineProfile } from "../types";
 
 const NOW = new Date("2026-09-21T00:00:00Z");

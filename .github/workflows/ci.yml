@@ -1,6 +1,6 @@
 name: CI
 
-# app/ holds the runtime (moved here from PolyVerses on 2026-09-23).
+# app/ holds the runtime; engine/ holds the deterministic engine (docs/ARCHITECTURE.md).
 # Every step is a gate: nothing here is allowed to pass on failure.
 
 on:
@@ -14,6 +14,52 @@ defaults:
     working-directory: app
 
 jobs:
+  boundaries:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: "Architecture: allowed imports per area; one product per repo (ADR-012)"
+        run: node scripts/check-boundaries.mjs
+
+  engine:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: engine/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Engine typecheck (strict, zero errors)
+        run: npm run typecheck
+
+      - name: Unit tests (plans, hybrid rules H1-H9, bounds checker, routing)
+        run: npm test
+
+      - name: "Evals: safety layer + hybrid layer (hard gates, results reported with n)"
+        run: WRITE_RESULTS=1 npm run eval
+
+      - name: Committed eval results match this run (only the timestamp may differ)
+        working-directory: .
+        run: |
+          if ! git diff --exit-code -I '"ranAt"' -- evals/results/; then
+            echo "::error::evals/results/ is stale; run 'WRITE_RESULTS=1 npm run eval' in engine/ and commit"; exit 1
+          fi
+
   app:
     runs-on: ubuntu-latest
     steps:
@@ -28,24 +74,11 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Engine typecheck (strict, zero errors)
-        run: npm run typecheck:engine
-
       - name: App typecheck ratchet (fails if type errors increase)
         run: npm run typecheck:ratchet
 
-      - name: Unit tests (engine, hybrid rules H1-H9, bounds checker, routing, auth, input validation, rate limit)
+      - name: Unit tests (auth, input validation, rate limit, session content)
         run: npm test
-
-      - name: "Evals: safety layer + hybrid layer (hard gates, results reported with n)"
-        run: WRITE_RESULTS=1 npm run eval
-
-      - name: Committed eval results match this run (only the timestamp may differ)
-        working-directory: .
-        run: |
-          if ! git diff --exit-code -I '"ranAt"' -- evals/results/; then
-            echo "::error::evals/results/ is stale; run 'WRITE_RESULTS=1 npm run eval' in app/ and commit"; exit 1
-          fi
 
       - name: Build
         run: npm run build

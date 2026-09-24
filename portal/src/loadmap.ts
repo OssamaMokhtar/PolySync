@@ -1,6 +1,6 @@
 // Athlete screen: "Load". Polished from the Claude Design "Body Impact"
 // exploration (docs/13 §7). Every number comes from the production engine
-// (app/src/engine/hybrid.ts): the week it generates, minutes × RPE per
+// (engine/hybrid.ts): the week it generates, minutes × RPE per
 // session, and adaptDay() for a low-readiness day. Nothing is typed in.
 import {
   adaptDay,
@@ -12,9 +12,9 @@ import {
   type HybridSession,
   type HybridWeek,
   type Modality,
-} from "../../app/src/engine/hybrid";
+} from "../../engine/hybrid";
 import { h } from "./charts";
-import { BODY, REGION_LABEL, regionLoads, type Region } from "./bodymodel";
+import { BODY, REGION_LABEL, regionLoads, type Region } from "../../engine/bodymodel";
 
 const NS = "http://www.w3.org/2000/svg";
 const svg = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number> = {}, ...kids: SVGElement[]) => {

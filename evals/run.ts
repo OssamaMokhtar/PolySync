@@ -10,11 +10,11 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EXERCISE_LIBRARY } from "../app/src/ExerciseLibrary";
-import { generatePlan } from "../app/src/engine/planEngine";
-import { checkPlan, prescribe, BOUNDS, type RuleId } from "../app/src/engine/boundsChecker";
-import { contraindicatedBy, injuryRegion } from "../app/src/engine/contraindications";
-import type { EngineProfile, EnginePlan, Level } from "../app/src/engine/types";
+import { EXERCISE_LIBRARY } from "../engine/ExerciseLibrary";
+import { generatePlan } from "../engine/planEngine";
+import { checkPlan, prescribe, BOUNDS, type RuleId } from "../engine/boundsChecker";
+import { contraindicatedBy, injuryRegion } from "../engine/contraindications";
+import type { EngineProfile, EnginePlan, Level } from "../engine/types";
 import handLabels from "./hand-labels.json";
 
 const NOW = new Date("2026-09-21T00:00:00Z"); // fixed: results must be reproducible

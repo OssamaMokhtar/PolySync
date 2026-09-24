@@ -8,8 +8,8 @@ Horizons are sequenced by GAPS.md's fill order and the ADR reversal triggers, no
 
 | Item | Status | Reference |
 |---|---|---|
-| Hybrid engine: rules H1-H9, move / make easy / escalate | done | [`hybrid.ts`](../app/src/engine/hybrid.ts) |
-| The model proposes, the engine prescribes (ADR-004), enforced on both plan routes | done | [`boundsChecker.ts`](../app/src/engine/boundsChecker.ts) |
+| Hybrid engine: rules H1-H9, move / make easy / escalate | done | [`hybrid.ts`](../engine/hybrid.ts) |
+| The model proposes, the engine prescribes (ADR-004), enforced on both plan routes | done | [`boundsChecker.ts`](../engine/boundsChecker.ts) |
 | Verified ID tokens, validated inputs, rate limit, event logs | done | [`ops.ts`](../app/server/ops.ts) |
 | Safety and hybrid evals: 7,877 attacks, results diffed in CI | done | [`README.md`](../evals/README.md) |
 | Product layer generated from data: model, risks, evidence, telemetry | done | [`build.mjs`](../product/scripts/build.mjs) |

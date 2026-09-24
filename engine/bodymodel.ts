@@ -1,6 +1,6 @@
-// Body model shared by the ProjectOS Load screen and the prototype (prototype/):
+// Body model shared by the ProjectOS Load screen (portal/) and the prototype (prototype/):
 // which regions a session loads, and the 2D body geometry. Display model only.
-import { sessionLoad, type HybridSession, type HybridWeek, type Modality } from "../../app/src/engine/hybrid";
+import { sessionLoad, type HybridSession, type HybridWeek, type Modality } from "./hybrid";
 
 // ── Region model ────────────────────────────────────────────────────────────
 // Mapping v1: how a session's load (minutes × RPE) is shared across regions.

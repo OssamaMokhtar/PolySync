@@ -1,6 +1,6 @@
 import "./styles.css";
 import { computeUnit, marketWage, segmentOutcomes } from "../../product/scripts/model-core.mjs";
-import { HYBRID_PARAMS, RULE_EVIDENCE, type HybridRuleId } from "../../app/src/engine/hybrid";
+import { HYBRID_PARAMS, RULE_EVIDENCE, type HybridRuleId } from "../../engine/hybrid";
 import { adrs, blob, outcomeTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, competitors, roadmap, pilotStatus, validation, type Cap, type Risk } from "./data";
 import { chartCard, groupedColumns, h, legend, tableView, tornado } from "./charts";
 import { engineDemo } from "./demo";

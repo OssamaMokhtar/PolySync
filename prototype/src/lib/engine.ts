@@ -1,6 +1,6 @@
 // Adapters between the prototype UI and the production engine.
 //
-// Everything that decides training comes from app/src/engine unchanged:
+// Everything that decides training comes from engine unchanged:
 // generateHybridWeek, adaptDay, applyReadiness, checkHybridWeek, prescribeHybrid
 // (hybrid path) and generatePlan / eligibleExercises (strength path).
 //
@@ -31,10 +31,10 @@ import {
   type Quality,
   type Readiness,
   type Slot,
-} from "../../../app/src/engine/hybrid";
-import { eligibleExercises, generatePlan } from "../../../app/src/engine/planEngine";
-import type { EngineProfile, Level, PlanExercise } from "../../../app/src/engine/types";
-import { EXERCISE_BY_ID } from "../../../app/src/ExerciseLibrary";
+} from "../../../engine/hybrid";
+import { eligibleExercises, generatePlan } from "../../../engine/planEngine";
+import type { EngineProfile, Level, PlanExercise } from "../../../engine/types";
+import { EXERCISE_BY_ID } from "../../../engine/ExerciseLibrary";
 
 export { sessionLoad, HYBRID_PARAMS, RULE_EVIDENCE };
 export type { Modality, Readiness, Level, PlanExercise, HybridFinding };

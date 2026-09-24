@@ -2,8 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
-// One self-contained HTML file. The engine is compiled from ../app/src/engine
-// and the body model from ../portal/src/bodymodel.ts, unchanged, so the
+// One self-contained HTML file. The engine is compiled from ../engine
+// and the body model from ../engine/bodymodel.ts, unchanged, so the
 // prototype can't drift from what CI tests.
 export default defineConfig({
   base: "./",

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Type-error ratchet. The runtime came from PolyVerses with 206 type errors
+// Type-error ratchet. The runtime arrived with 206 type errors
 // behind a CI step that could not fail (`|| echo`). The audit pass brought it
 // to the number in typecheck-baseline.json. This gate fails if the count goes
 // UP; when it goes down, lower the baseline in the same PR.
-// The engine (src/engine) is separately checked under strict mode with 0 errors.
+// The engine (../engine) is checked separately under strict mode with 0 errors.
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 

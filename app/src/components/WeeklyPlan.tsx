@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EXERCISE_LIBRARY } from '../ExerciseLibrary';
+import { EXERCISE_LIBRARY } from '../../../engine/ExerciseLibrary';
 
 interface WeeklyPlanProps {
   plan: {

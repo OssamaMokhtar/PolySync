@@ -4,7 +4,7 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 
 // One self-contained HTML file: no third-party script or style at runtime.
 // Data is read at build time from ../product, ../evals and ../docs, and the
-// engine is compiled from ../app/src/engine, so the portal cannot drift from
+// engine is compiled from ../engine, so the portal cannot drift from
 // the repo.
 export default defineConfig({
   base: "./",

@@ -2,7 +2,7 @@
 // prescription). Pure function of the profile and a date: same input, same plan.
 // No network, no model, no randomness.
 
-import { EXERCISE_LIBRARY, type Exercise } from "../ExerciseLibrary";
+import { EXERCISE_LIBRARY, type Exercise } from "./ExerciseLibrary";
 import { contraindicatedBy } from "./contraindications";
 import { BOUNDS } from "./boundsChecker";
 import type { EngineProfile, EnginePlan, Level, PlanDay, PlanExercise } from "./types";

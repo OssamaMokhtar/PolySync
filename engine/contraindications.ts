@@ -6,7 +6,7 @@
 // names (`"right_knee"` vs `["quadriceps", ...]`), which never matched, so a
 // knee injury did not remove squats or lunges.
 
-import type { Exercise } from "../ExerciseLibrary";
+import type { Exercise } from "./ExerciseLibrary";
 
 export interface ContraRule {
   region: string;

@@ -23,13 +23,13 @@ import {
   PlanExercise, PlanWorkout, PlanDay, DailyWorkday as DailyWorkout, Exercise, ModifiedExercise,
   WearableDataPoint, RecoveryFactor, HealthDataConsent
 } from "./src/types";
-import { generatePlan } from "./src/engine/planEngine";
-import { prescribe, checkPlan } from "./src/engine/boundsChecker";
-import type { EngineProfile } from "./src/engine/types";
-import { generateHybridWeek, prescribeHybrid, adaptDay, type HybridProfile, type HybridWeek } from "./src/engine/hybrid";
+import { generatePlan } from "../engine/planEngine";
+import { prescribe, checkPlan } from "../engine/boundsChecker";
+import type { EngineProfile } from "../engine/types";
+import { generateHybridWeek, prescribeHybrid, adaptDay, type HybridProfile, type HybridWeek } from "../engine/hybrid";
 import { parseHybridProfile, parseSignal, parseWeek } from "./server/hybridInput";
 import { logEvent, rateLimit } from "./server/ops";
-import { EXERCISE_LIBRARY, getSubstituteExercises } from "./src/ExerciseLibrary";
+import { EXERCISE_LIBRARY, getSubstituteExercises } from "../engine/ExerciseLibrary";
 
 // Week, date formatting helpers
 function getWeekNumber(date: Date): number {

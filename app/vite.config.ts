@@ -12,8 +12,10 @@ export default defineConfig(() => {
       },
     },
     server: {
+      // The deterministic engine lives in ../engine (see ARCHITECTURE.md).
+      fs: { allow: [__dirname, path.resolve(__dirname, '..', 'engine')] },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+      // Do not modify: file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},

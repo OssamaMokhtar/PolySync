@@ -1,7 +1,7 @@
 // Validation for hybrid-engine requests. The engine trusts its inputs, so the
 // API must not: every field is typed and bounded here.
-import { weekStructureError, type DailySignal, type HybridProfile, type HybridWeek, type Modality, type Quality } from "../src/engine/hybrid";
-import type { Level } from "../src/engine/types";
+import { weekStructureError, type DailySignal, type HybridProfile, type HybridWeek, type Modality, type Quality } from "../../engine/hybrid";
+import type { Level } from "../../engine/types";
 
 const LEVELS: Level[] = ["beginner", "intermediate", "advanced"];
 const QUALITIES: Quality[] = ["endurance", "strength", "power"];

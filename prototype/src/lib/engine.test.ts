@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkHybridWeek } from "../../../app/src/engine/hybrid";
+import { checkHybridWeek } from "../../../engine/hybrid";
 import { adaptToday, buildPlan, checkProposal, DEFAULT_ANSWERS, readinessFrom, repairMissed, sessionsOn, starterSession, swapOptions, type Answers } from "./engine";
 
 const hybrid: Answers = { ...DEFAULT_ANSWERS, goal: "hyrox", days: [0, 1, 2, 3, 5], doubles: true, minutes: 60, level: "intermediate" };

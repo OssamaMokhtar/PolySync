@@ -1,4 +1,4 @@
-// Exercise Library — 220+ exercises with metadata for the PolyVerses AI Fitness Coach
+// Exercise Library — 220+ exercises with metadata for PolySync
 // Structure: { id, name, category, muscles (primary + secondary), equipment,
 //             difficulty, instructions, commonMistakes, substitutions, videoRef }
 

@@ -2,7 +2,7 @@
 // can reach an athlete. Rules are v0 and NOT coach-signed (GAPS #4): each
 // violation names its rule so a coach can review the rule, not just the case.
 
-import { EXERCISE_LIBRARY } from "../ExerciseLibrary";
+import { EXERCISE_LIBRARY } from "./ExerciseLibrary";
 import { contraindicatedBy } from "./contraindications";
 import type { EngineProfile, EnginePlan, Level } from "./types";
 

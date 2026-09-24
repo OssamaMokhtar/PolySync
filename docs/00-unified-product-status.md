@@ -12,7 +12,7 @@
 |---|---|---|
 | This repo — docs, design intent, decision log | `github.com/OssamaMokhtar/PolySync` | **Canonical source of truth for design** |
 | Design artifacts (screens, flows) | Claude Design / designer of record | Linked from README where relevant |
-| Code implementing the runtime | [`app/`](../app/) in this repo (moved from PolyVerses main with history, 2026-09-23) | **Builds and runs locally; not deployed** |
+| Code implementing the runtime | [`app/`](../app/) in this repo (boundaries in [ARCHITECTURE.md](../ARCHITECTURE.md)) | **Builds and runs locally; not deployed** |
 
 **Update 2026-09-24.** Reading the code against the docs found four more gaps, now fixed:
 
@@ -23,7 +23,7 @@
 
 Still open before a pilot: server data access (GAPS #12), a DPIA (#6), the athlete UI on the hybrid engine (#13), and coach sign-off (#4).
 
-**Update 2026-09-23.** Code and docs now live in one repo. Moving the code in exposed a real contradiction: the runtime saved Gemini's JSON directly as the athlete's plan, the opposite of ADR-004. That is fixed: `app/src/engine/` prescribes, and Gemini output is a proposal gated by the bounds checker (rules B1–B9). Design screens are still in Claude Design (GAPS #8).
+**Update 2026-09-23.** Code and docs now live in one repo. Moving the code in exposed a real contradiction: the runtime saved Gemini's JSON directly as the athlete's plan, the opposite of ADR-004. That is fixed: `engine/` prescribes, and Gemini output is a proposal gated by the bounds checker (rules B1–B9). Design screens are still in Claude Design (GAPS #8).
 
 ---
 

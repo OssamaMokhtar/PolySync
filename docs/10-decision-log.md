@@ -225,6 +225,31 @@ Each ADR states what was rejected and the measurable condition that would revers
 
 ---
 
+## ADR-012: One product per repo; the engine is its own package
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar · Boundaries: [ARCHITECTURE.md](../ARCHITECTURE.md)
+
+**Context.** The PolySync runtime was first built inside PolyVerses, an agentic product-management workbench, and moved here on 2026-09-23 with its full history. That history carried 187 commits of Product Leadership OS (PLOS) skills and the PolyVerses workbench, and the tree kept leftovers: PolyVerses planning docs, a PM onboarding screen, a Firestore blueprint for workbench documents and PolyVerses copy in the app. The engine sat inside the app (`app/src/engine`) while the evals, the prototype and ProjectOS imported it from there, and the prototype imported code from ProjectOS.
+
+**Decision.**
+1. This repo holds PolySync only. PolyVerses and PLOS stay in their own repositories. The PolySync branch is rebuilt on the squashed `main` history, so its commits contain no PolyVerses or PLOS work.
+2. The leftovers are removed: PolyVerses-era docs in `app/docs`, the unused PM onboarding screen, the workbench Firestore blueprint and security spec, and PolyVerses copy and links.
+3. The engine moves to a top-level `engine/` package with no runtime dependencies; the exercise library and the body-load display model move with it. `app/`, `evals/`, `prototype/` and `portal/` import it; nothing imports the leaves.
+4. `scripts/check-boundaries.mjs` gates both rules in CI: allowed imports per area, and no PolyVerses or PLOS names, agents, skills or orchestration components outside a short allow-list.
+
+**Rejected.**
+- Keeping the imported history for provenance: it made PLOS look like part of PolySync on every branch and pull request. Provenance is recorded here instead.
+- A monorepo with npm workspaces: one shared package does not justify workspace tooling; relative imports plus the gate give the same guarantee.
+- Renaming the Firestore database: it predates the split and renaming it means a data migration for no user benefit.
+
+**Consequences.**
+- Branch and pull-request history no longer shows PolyVerses or PLOS commits. One file (`AthenaCodeStore.ts`) remains in the history of the squash commit that merged PR #3 on `main`; old pull-request refs keep their commits until GitHub removes them.
+- CI gains `engine` and `boundaries` jobs; the app job no longer runs the engine's tests or evals.
+
+**Reversal trigger.** A second product needs the engine: then publish `engine/` as a versioned package rather than sharing the repo.
+
+---
+
 ## Operating decisions
 
 | Decision | Owner | Date |
