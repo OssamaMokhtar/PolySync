@@ -1,6 +1,6 @@
 # Security
 
-> Status: Active build — documentation-complete, code-level security posture TBD (codebase not in this repo).
+> Status: AUTHORED · Updated 2026-09-23 — the runtime now lives in [`app/`](app/); controls below marked (enforced) are checked in CI.
 
 ## Architecture Safety Model (from docs)
 
@@ -8,18 +8,18 @@ The PolySync safety architecture is documented in [docs/04-ai-architecture.md](d
 
 1. **Deterministic programming engine** owns every load prescription. The LLM cannot change training load.
 2. **LLM orchestrator** proposes adaptations as structured deltas only.
-3. **Bounds checker** validates every proposed delta against safe bounds before it reaches an athlete.
+3. **Bounds checker** validates every proposed delta against safe bounds before it reaches an athlete. (enforced) [`app/src/engine/boundsChecker.ts`](app/src/engine/boundsChecker.ts), evaluated on every push by [`evals/run.ts`](evals/run.ts).
 4. **Escalation pipeline** sends out-of-bounds proposals to a named human coach as a draft.
 
 **Consequences:**
-- Prompt injection cannot change training load (the LLM has no write path to the programming engine).
+- The LLM has no write path to the programming engine. Its output, including any injected instructions, reaches an athlete only as a plan that passes every rule (B1–B9, H1–H9); anything else is blocked and the engine's plan stands. The rules bound a proposal; they do not judge its quality.
 - A model provider outage degrades the explanation, not the training.
 - Eval gates are meaningful because prescription is reproducible.
 
 ## API Key Protection
 
 - The Gemini API key is held server-side only.
-- A build-time check asserts the key cannot appear in the client bundle.
+- (enforced) `app/scripts/check-bundle.mjs` fails CI if the client bundle references the Gemini API or contains the key. The Firebase web `apiKey` in `app/firebase-applet-config.json` is a public identifier by design; Firestore access is governed by [`app/firestore.rules`](app/firestore.rules) (model: [`app/security_spec.md`](app/security_spec.md)).
 - The key is never exposed to the browser.
 
 ## Data Classification

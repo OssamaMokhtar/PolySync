@@ -1,0 +1,622 @@
+{
+  "asOf": "2026-09-24",
+  "generatedBy": "product/scripts/build.mjs",
+  "provenance": {
+    "drivers": 24,
+    "evidenceBacked": 3,
+    "hypotheses": 19,
+    "decisions": 2,
+    "evidenceGrades": {
+      "A": 17,
+      "B": 5,
+      "C": 4,
+      "D": 0
+    }
+  },
+  "unitEconomics": {
+    "UAE/flexible": {
+      "keptRate": 0.765,
+      "downgradeRate": 0.235,
+      "escalationRate": 0,
+      "lostSessionsPerAthleteMonth": 0.563,
+      "escalationsPerAthleteMonth": 0.95,
+      "coachMinutesWith": 11.137,
+      "coachMinutesManual": 64.95,
+      "coachMinutesSaved": 53.813,
+      "coachHourlyUsd": 13.957,
+      "clubValueUsd": 12.517,
+      "clubRoi": 1.565,
+      "athletesPerCoachManual": 40,
+      "athletesPerCoachWith": 233.267,
+      "inferenceUsd": 0.202,
+      "softwareGrossMargin": 0.926,
+      "managedCoachCostUsd": 2.591,
+      "managedBreakEvenPriceUsd": 10.897
+    },
+    "UAE/standard": {
+      "keptRate": 0.427,
+      "downgradeRate": 0.573,
+      "escalationRate": 0,
+      "lostSessionsPerAthleteMonth": 1.375,
+      "escalationsPerAthleteMonth": 0.95,
+      "coachMinutesWith": 12.355,
+      "coachMinutesManual": 64.95,
+      "coachMinutesSaved": 52.595,
+      "coachHourlyUsd": 13.957,
+      "clubValueUsd": 12.234,
+      "clubRoi": 1.529,
+      "athletesPerCoachManual": 40,
+      "athletesPerCoachWith": 210.28,
+      "inferenceUsd": 0.202,
+      "softwareGrossMargin": 0.926,
+      "managedCoachCostUsd": 2.874,
+      "managedBreakEvenPriceUsd": 11.946
+    },
+    "UAE/rigid": {
+      "keptRate": 0.057,
+      "downgradeRate": 0.943,
+      "escalationRate": 0,
+      "lostSessionsPerAthleteMonth": 2.263,
+      "escalationsPerAthleteMonth": 0.95,
+      "coachMinutesWith": 13.688,
+      "coachMinutesManual": 64.95,
+      "coachMinutesSaved": 51.262,
+      "coachHourlyUsd": 13.957,
+      "clubValueUsd": 11.924,
+      "clubRoi": 1.491,
+      "athletesPerCoachManual": 40,
+      "athletesPerCoachWith": 189.803,
+      "inferenceUsd": 0.202,
+      "softwareGrossMargin": 0.926,
+      "managedCoachCostUsd": 3.184,
+      "managedBreakEvenPriceUsd": 13.095
+    },
+    "US/flexible": {
+      "keptRate": 0.765,
+      "downgradeRate": 0.235,
+      "escalationRate": 0,
+      "lostSessionsPerAthleteMonth": 0.563,
+      "escalationsPerAthleteMonth": 0.95,
+      "coachMinutesWith": 11.137,
+      "coachMinutesManual": 64.95,
+      "coachMinutesSaved": 53.813,
+      "coachHourlyUsd": 44.207,
+      "clubValueUsd": 39.648,
+      "clubRoi": 4.956,
+      "athletesPerCoachManual": 40,
+      "athletesPerCoachWith": 233.267,
+      "inferenceUsd": 0.202,
+      "softwareGrossMargin": 0.926,
+      "managedCoachCostUsd": 8.206,
+      "managedBreakEvenPriceUsd": 31.694
+    },
+    "US/standard": {
+      "keptRate": 0.427,
+      "downgradeRate": 0.573,
+      "escalationRate": 0,
+      "lostSessionsPerAthleteMonth": 1.375,
+      "escalationsPerAthleteMonth": 0.95,
+      "coachMinutesWith": 12.355,
+      "coachMinutesManual": 64.95,
+      "coachMinutesSaved": 52.595,
+      "coachHourlyUsd": 44.207,
+      "clubValueUsd": 38.751,
+      "clubRoi": 4.844,
+      "athletesPerCoachManual": 40,
+      "athletesPerCoachWith": 210.28,
+      "inferenceUsd": 0.202,
+      "softwareGrossMargin": 0.926,
+      "managedCoachCostUsd": 9.103,
+      "managedBreakEvenPriceUsd": 35.016
+    },
+    "US/rigid": {
+      "keptRate": 0.057,
+      "downgradeRate": 0.943,
+      "escalationRate": 0,
+      "lostSessionsPerAthleteMonth": 2.263,
+      "escalationsPerAthleteMonth": 0.95,
+      "coachMinutesWith": 13.688,
+      "coachMinutesManual": 64.95,
+      "coachMinutesSaved": 51.262,
+      "coachHourlyUsd": 44.207,
+      "clubValueUsd": 37.769,
+      "clubRoi": 4.721,
+      "athletesPerCoachManual": 40,
+      "athletesPerCoachWith": 189.803,
+      "inferenceUsd": 0.202,
+      "softwareGrossMargin": 0.926,
+      "managedCoachCostUsd": 10.085,
+      "managedBreakEvenPriceUsd": 38.654
+    }
+  },
+  "sensitivity": {
+    "referenceCase": "UAE / standard",
+    "clubRoi": {
+      "metric": "clubRoi",
+      "base": 1.529,
+      "bear": -0.241,
+      "bull": 11.351,
+      "tornado": [
+        {
+          "driver": "manualMinutesPerAthleteWeek",
+          "label": "Coach minutes per athlete-week programming hybrid athletes by hand (baseline)",
+          "low": 0.648,
+          "high": 3.418,
+          "swing": 2.77
+        },
+        {
+          "driver": "specialistPremium",
+          "label": "Hybrid/HYROX specialist premium over median trainer wage",
+          "low": 1.02,
+          "high": 2.549,
+          "swing": 1.529
+        },
+        {
+          "driver": "pricePerAthleteMonthUsd",
+          "label": "Price to the club per active athlete-month",
+          "low": 2.447,
+          "high": 1.02,
+          "swing": 1.427
+        },
+        {
+          "driver": "coachLoading",
+          "label": "Employer on-cost multiplier on base wage",
+          "low": 1.412,
+          "high": 1.765,
+          "swing": 0.353
+        },
+        {
+          "driver": "triageMinutesPerAthleteWeek",
+          "label": "Coach weekly triage per athlete with PolySync",
+          "low": 1.655,
+          "high": 1.34,
+          "swing": 0.315
+        },
+        {
+          "driver": "minutesPerEscalation",
+          "label": "Coach minutes per escalation (pain flag, blocked proposal, or no safe adaptation)",
+          "low": 1.584,
+          "high": 1.419,
+          "swing": 0.166
+        },
+        {
+          "driver": "minutesPerLostSession",
+          "label": "Coach minutes to review a hard session the engine made easy",
+          "low": 1.569,
+          "high": 1.429,
+          "swing": 0.14
+        },
+        {
+          "driver": "proposalRejectRate",
+          "label": "Share of model proposals the rules block (each needs coach review)",
+          "low": 1.58,
+          "high": 1.454,
+          "swing": 0.126
+        }
+      ]
+    },
+    "softwareGrossMargin": {
+      "metric": "softwareGrossMargin",
+      "base": 0.926,
+      "bear": 0.648,
+      "bull": 0.972,
+      "tornado": [
+        {
+          "driver": "infraPerAthleteMonthUsd",
+          "label": "Hosting, database, logs per athlete-month",
+          "low": 0.939,
+          "high": 0.882,
+          "swing": 0.056
+        },
+        {
+          "driver": "llmCallsPerAthleteMonth",
+          "label": "Model calls per athlete-month (proposals + explanations + chat)",
+          "low": 0.939,
+          "high": 0.888,
+          "swing": 0.05
+        },
+        {
+          "driver": "pricePerAthleteMonthUsd",
+          "label": "Price to the club per active athlete-month",
+          "low": 0.9,
+          "high": 0.941,
+          "swing": 0.041
+        },
+        {
+          "driver": "paymentFeeRate",
+          "label": "Payment and invoicing fees",
+          "low": 0.936,
+          "high": 0.906,
+          "swing": 0.03
+        },
+        {
+          "driver": "llmTokensOutPerProposal",
+          "label": "Output tokens per model call",
+          "low": 0.934,
+          "high": 0.91,
+          "swing": 0.024
+        },
+        {
+          "driver": "llmTokensInPerProposal",
+          "label": "Input tokens per model call",
+          "low": 0.931,
+          "high": 0.917,
+          "swing": 0.013
+        },
+        {
+          "driver": "amberDaysPerAthleteMonth",
+          "label": "Amber-readiness days per athlete-month",
+          "low": 0.926,
+          "high": 0.926,
+          "swing": 0
+        },
+        {
+          "driver": "hardShareOnAmber",
+          "label": "Share of amber days with a hard session scheduled",
+          "low": 0.926,
+          "high": 0.926,
+          "swing": 0
+        }
+      ]
+    },
+    "managedBreakEvenPriceUsd": {
+      "metric": "managedBreakEvenPriceUsd",
+      "base": 11.946,
+      "bear": 104.153,
+      "bull": 1.906,
+      "tornado": [
+        {
+          "driver": "specialistPremium",
+          "label": "Hybrid/HYROX specialist premium over median trainer wage",
+          "low": 8.398,
+          "high": 19.042,
+          "swing": 10.644
+        },
+        {
+          "driver": "triageMinutesPerAthleteWeek",
+          "label": "Coach weekly triage per athlete with PolySync",
+          "low": 8.216,
+          "high": 17.542,
+          "swing": 9.326
+        },
+        {
+          "driver": "minutesPerEscalation",
+          "label": "Coach minutes per escalation (pain flag, blocked proposal, or no safe adaptation)",
+          "low": 10.31,
+          "high": 15.218,
+          "swing": 4.908
+        },
+        {
+          "driver": "minutesPerLostSession",
+          "label": "Coach minutes to review a hard session the engine made easy",
+          "low": 10.762,
+          "high": 14.907,
+          "swing": 4.145
+        },
+        {
+          "driver": "proposalRejectRate",
+          "label": "Share of model proposals the rules block (each needs coach review)",
+          "low": 10.454,
+          "high": 14.185,
+          "swing": 3.73
+        },
+        {
+          "driver": "amberDaysPerAthleteMonth",
+          "label": "Amber-readiness days per athlete-month",
+          "low": 11.058,
+          "high": 13.723,
+          "swing": 2.665
+        },
+        {
+          "driver": "coachLoading",
+          "label": "Employer on-cost multiplier on base wage",
+          "low": 11.128,
+          "high": 13.584,
+          "swing": 2.456
+        },
+        {
+          "driver": "painFlagsPerAthleteMonth",
+          "label": "Pain or illness flags per athlete-month (always escalate)",
+          "low": 11.257,
+          "high": 13.669,
+          "swing": 2.412
+        }
+      ]
+    }
+  },
+  "penetration": {
+    "arrTargetUsd": 1000000,
+    "athletes": 10417,
+    "clubs": 347,
+    "shareOfHyroxGyms": 0.023,
+    "hyroxGymsEvidence": "MKT-003",
+    "hyroxGymsGrade": "C"
+  },
+  "safety": {
+    "contraindicationLeaks": 0,
+    "plans": 8640,
+    "unsafeBlocked": 2067,
+    "unsafeTotal": 2067,
+    "safeAccepted": 194,
+    "safeTotal": 194
+  },
+  "headline": {
+    "unsafeTotal": 7877,
+    "unsafeBlocked": 7877,
+    "safeTotal": 657,
+    "safeAccepted": 657,
+    "attackTypes": 21
+  },
+  "pilotReference": {
+    "breakEvenManualMinPerWeek": 10.796,
+    "modelledCoachMinPerMonth": 12.355
+  },
+  "hybrid": {
+    "engineWeeksValid": {
+      "n_profiles": 3240,
+      "passed": 3240,
+      "gate": "all"
+    },
+    "adversarial": {
+      "n": 5810,
+      "blocked": 5810
+    },
+    "safeAccepted": {
+      "n": 463,
+      "accepted": 463,
+      "gate": "all"
+    },
+    "amberAdaptation": {
+      "n": 13674,
+      "moved": 6015,
+      "downgraded": 7659,
+      "escalated": 0,
+      "adapted_but_invalid": 0,
+      "gate": "0 invalid (every moved or downgraded week passes H1-H9 incl. H5 vs the week it replaces); escalation is an allowed outcome"
+    },
+    "painFlags": {
+      "n": 2263,
+      "escalated": 2263,
+      "gate": "all"
+    },
+    "deliveredWeekValid": {
+      "n": 4628,
+      "invalid": 0,
+      "gate": "0 (engine week after amber/red readiness passes the rules; red always flags a coach)"
+    },
+    "amberOutcomesBySchedule": {
+      "3d-doubles": {
+        "n": 1416,
+        "moved": 423,
+        "downgraded": 993,
+        "escalated": 0,
+        "kept_rate": 0.299,
+        "coach_rate": 0.701
+      },
+      "3d-singles": {
+        "n": 954,
+        "moved": 0,
+        "downgraded": 954,
+        "escalated": 0,
+        "kept_rate": 0,
+        "coach_rate": 1
+      },
+      "4d-doubles": {
+        "n": 1458,
+        "moved": 936,
+        "downgraded": 522,
+        "escalated": 0,
+        "kept_rate": 0.642,
+        "coach_rate": 0.358
+      },
+      "4d-singles": {
+        "n": 1206,
+        "moved": 45,
+        "downgraded": 1161,
+        "escalated": 0,
+        "kept_rate": 0.037,
+        "coach_rate": 0.963
+      },
+      "5d-doubles": {
+        "n": 1458,
+        "moved": 1098,
+        "downgraded": 360,
+        "escalated": 0,
+        "kept_rate": 0.753,
+        "coach_rate": 0.247
+      },
+      "5d-singles": {
+        "n": 1368,
+        "moved": 156,
+        "downgraded": 1212,
+        "escalated": 0,
+        "kept_rate": 0.114,
+        "coach_rate": 0.886
+      },
+      "6d-doubles": {
+        "n": 1458,
+        "moved": 1152,
+        "downgraded": 306,
+        "escalated": 0,
+        "kept_rate": 0.79,
+        "coach_rate": 0.21
+      },
+      "6d-singles": {
+        "n": 1440,
+        "moved": 432,
+        "downgraded": 1008,
+        "escalated": 0,
+        "kept_rate": 0.3,
+        "coach_rate": 0.7
+      },
+      "7d-doubles": {
+        "n": 1458,
+        "moved": 1098,
+        "downgraded": 360,
+        "escalated": 0,
+        "kept_rate": 0.753,
+        "coach_rate": 0.247
+      },
+      "7d-singles": {
+        "n": 1458,
+        "moved": 675,
+        "downgraded": 783,
+        "escalated": 0,
+        "kept_rate": 0.463,
+        "coach_rate": 0.537
+      }
+    }
+  },
+  "risks": [
+    {
+      "id": "ENG-01",
+      "category": "engineering",
+      "risk": "Server data layer cannot work in production: Firestore client SDK without credentials against owner-only rules",
+      "score": 25,
+      "residual": 25,
+      "likelihood": 5,
+      "impact": 5,
+      "mitigated": false
+    },
+    {
+      "id": "REG-01",
+      "category": "regulatory",
+      "risk": "Collecting physical-condition data in the UAE without a DPIA",
+      "score": 20,
+      "residual": 15,
+      "likelihood": 4,
+      "impact": 5,
+      "mitigated": true
+    },
+    {
+      "id": "SAF-03",
+      "category": "safety",
+      "risk": "A pain or illness signal written in free text is missed",
+      "score": 15,
+      "residual": 15,
+      "likelihood": 3,
+      "impact": 5,
+      "mitigated": true
+    },
+    {
+      "id": "OPS-02",
+      "category": "operational",
+      "risk": "Bus factor of 1: a solo builder is the only person who can run, fix or explain the system",
+      "score": 16,
+      "residual": 12,
+      "likelihood": 4,
+      "impact": 4,
+      "mitigated": true
+    },
+    {
+      "id": "MKT-01",
+      "category": "market",
+      "risk": "Clubs will not pay a price above coach-software anchors ($1.50-2.74 per athlete-month)",
+      "score": 15,
+      "residual": 12,
+      "likelihood": 3,
+      "impact": 5,
+      "mitigated": true
+    },
+    {
+      "id": "OPS-01",
+      "category": "operational",
+      "risk": "Coach review load (lost sessions, escalations) exceeds capacity in rigid-schedule rosters",
+      "score": 12,
+      "residual": 8,
+      "likelihood": 3,
+      "impact": 4,
+      "mitigated": true
+    },
+    {
+      "id": "AI-01",
+      "category": "ai",
+      "risk": "Model proposals are poor, so rules block many of them and the coach queue floods",
+      "score": 12,
+      "residual": 9,
+      "likelihood": 3,
+      "impact": 4,
+      "mitigated": true
+    },
+    {
+      "id": "MKT-03",
+      "category": "market",
+      "risk": "A funded competitor ships hybrid scheduling (running apps adding strength, or coach platforms adding AI)",
+      "score": 12,
+      "residual": 9,
+      "likelihood": 3,
+      "impact": 4,
+      "mitigated": true
+    },
+    {
+      "id": "SAF-02",
+      "category": "safety",
+      "risk": "Literature-default rules are wrong for a specific athlete",
+      "score": 9,
+      "residual": 6,
+      "likelihood": 3,
+      "impact": 3,
+      "mitigated": true
+    },
+    {
+      "id": "AI-03",
+      "category": "ai",
+      "risk": "Pinned model is retired or repriced",
+      "score": 9,
+      "residual": 6,
+      "likelihood": 3,
+      "impact": 3,
+      "mitigated": true
+    },
+    {
+      "id": "SAF-01",
+      "category": "safety",
+      "risk": "A contraindicated exercise reaches an injured athlete",
+      "score": 10,
+      "residual": 5,
+      "likelihood": 2,
+      "impact": 5,
+      "mitigated": true
+    },
+    {
+      "id": "SEC-02",
+      "category": "security",
+      "risk": "Prompt injection changes training load",
+      "score": 10,
+      "residual": 5,
+      "likelihood": 2,
+      "impact": 5,
+      "mitigated": true
+    },
+    {
+      "id": "REG-02",
+      "category": "regulatory",
+      "risk": "Marketing claims injury prevention the evidence does not support",
+      "score": 8,
+      "residual": 4,
+      "likelihood": 2,
+      "impact": 4,
+      "mitigated": true
+    },
+    {
+      "id": "SEC-01",
+      "category": "security",
+      "risk": "A caller impersonates another athlete",
+      "score": 5,
+      "residual": 5,
+      "likelihood": 1,
+      "impact": 5,
+      "mitigated": true
+    },
+    {
+      "id": "MKT-02",
+      "category": "market",
+      "risk": "HYROX growth (the why-now) stalls; the numbers are company-reported",
+      "score": 6,
+      "residual": 4,
+      "likelihood": 2,
+      "impact": 3,
+      "mitigated": true
+    }
+  ]
+}

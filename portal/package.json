@@ -1,0 +1,19 @@
+{
+  "name": "polysync-projectos",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ProjectOS portal for PolySync: runs the real engine in the browser and renders the product layer from product/data and CI results.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

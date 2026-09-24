@@ -1,68 +1,95 @@
 name: CI
 
+# app/ holds the runtime (moved here from PolyVerses on 2026-09-23).
+# Every step is a gate: nothing here is allowed to pass on failure.
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
-# PolySync is a documentation-first repo (docs/ directory with Markdown).
-# The codebase is not in this repository — this workflow validates the
-# documentation structure and provides the roadmap for the code pipeline.
+defaults:
+  run:
+    working-directory: app
 
 jobs:
-  validate:
+  app:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Validate documentation structure
-        run: |
-          echo "Checking required files..."
-          test -f README.md && echo "✓ README.md"
-          test -f LICENSE && echo "✓ LICENSE"
-          test -f SECURITY.md && echo "✓ SECURITY.md"
-          test -f PRIVACY.md && echo "✓ PRIVACY.md"
-          test -f CONTRIBUTING.md && echo "✓ CONTRIBUTING.md"
-          echo ""
-          echo "Checking docs/ directory..."
-          for f in docs/*.md; do
-            test -f "$f" && echo "✓ $(basename $f)"
-          done
-          echo ""
-          echo "Documentation structure validated."
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
 
-      - name: Check for sensitive data
+      - name: Install
+        run: npm ci
+
+      - name: Engine typecheck (strict, zero errors)
+        run: npm run typecheck:engine
+
+      - name: App typecheck ratchet (fails if type errors increase)
+        run: npm run typecheck:ratchet
+
+      - name: Unit tests (engine, hybrid rules H1-H9, bounds checker, routing, auth, input validation, rate limit)
+        run: npm test
+
+      - name: "Evals: safety layer + hybrid layer (hard gates, results reported with n)"
+        run: WRITE_RESULTS=1 npm run eval
+
+      - name: Committed eval results match this run (only the timestamp may differ)
+        working-directory: .
         run: |
-          echo "Scanning for potential secrets..."
-          if grep -r "AIza" . --include="*.md" 2>/dev/null; then
-            echo "⚠ WARNING: Potential Google API key found — review immediately"
-            exit 1
+          if ! git diff --exit-code -I '"ranAt"' -- evals/results/; then
+            echo "::error::evals/results/ is stale; run 'WRITE_RESULTS=1 npm run eval' in app/ and commit"; exit 1
           fi
-          echo "✓ No obvious secrets detected."
 
-      - name: Lint markdown
-        run: |
-          echo "Linting markdown files..."
-          # Basic markdown lint: check for common issues
-          for f in docs/*.md README.md SECURITY.md PRIVACY.md CONTRIBUTING.md; do
-            if [ -f "$f" ]; then
-              # Check for lines longer than 120 chars (warning only)
-              if grep -nE '.{121}' "$f" > /dev/null 2>&1; then
-                echo "⚠ $f: some lines exceed 120 characters"
-              fi
-            fi
-          done
-          echo "✓ Markdown lint complete."
+      - name: Build
+        run: npm run build
 
-      - name: Document roadmap
+      - name: Client bundle carries no Gemini client or key
+        run: npm run check-bundle
+
+      - name: Production bundle boots; anonymous and x-user-id requests get 401; unknown API paths get a JSON 404
+        run: npm run boot-check
+
+      - name: Client never asserts its own identity (ID token only)
         run: |
-          echo ""
-          echo "=== CI Roadmap ==="
-          echo "Current: Documentation structure validation + markdown lint"
-          echo "Next: Add npm/TypeScript pipeline when codebase is added to this repo"
-          echo "Future: npm ci, lint, build, test, npm audit"
-          echo ""
-          echo "See improvement plan at Obsidian/Portfolio-Due-Diligence/01-Improvement-Plan-PolySync.md"
+          if grep -rni "x-user-id" src; then
+            echo "::error::client code sends x-user-id; use apiFetch (Firebase ID token)"; exit 1
+          fi
+
+      - name: Dependency audit (high and critical fail the build)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: No secrets in the repo
+        working-directory: .
+        run: |
+          if git grep -nE 'AIza[0-9A-Za-z_-]{35}' -- ':!app/firebase-applet-config.json'; then
+            echo "::error::possible Google API key committed"; exit 1
+          fi
+
+  portal:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: portal/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Typecheck and build ProjectOS (compiles the production engine into the page)
+        run: npm run build
+      - name: Single self-contained file, no third-party scripts
+        run: |
+          test -f dist/index.html
+          if grep -oE '<script[^>]+src="https?://' dist/index.html; then echo "::error::external script in portal"; exit 1; fi
+

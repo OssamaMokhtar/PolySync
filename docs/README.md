@@ -24,3 +24,5 @@ No measured metric in this set is invented. Every results cell is `TBD` until an
 | 11 | [Metrics and unit economics](11-metrics-and-unit-economics.md) | North star, guardrails, coach-minutes economics |
 | 12 | [Hybrid programming engine](12-hybrid-athlete-programming-engine.md) | The domain logic that makes this defensible |
 | — | [Gaps](GAPS.md) | Everything unresolved, ranked by credibility damage |
+
+**Product layer:** [product/](../product/README.md) holds strategy, evidence, financial model, pilot plan, risk register, telemetry plan and case study. They are generated from validated data, and the [ProjectOS portal](https://ossamamokhtar.github.io/PolySync/) renders the same data.

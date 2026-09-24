@@ -1,0 +1,360 @@
+{
+  "asOf": "2026-09-24",
+  "purpose": "Unit economics for PolySync per athlete-month, by market and schedule-flexibility segment. Every driver cites evidence (product/data/evidence.json) or is an explicit hypothesis with the pilot metric that will replace it.",
+  "structure": {
+    "note": "B2B2C (ADR-001): the club's own coaches review escalations, so coach time is the club's cost and PolySync's value is coach leverage. A managed variant (PolySync employs the coaches) is modelled separately to answer the software-vs-services question from doc 11.",
+    "views": [
+      "clubRoi",
+      "polysyncSoftwareMargin",
+      "managedServiceBreakEven",
+      "requiredPenetration"
+    ]
+  },
+  "markets": [
+    {
+      "id": "UAE",
+      "label": "UAE (pilot, ADR-006)",
+      "coachBaseHourlyUsd": {
+        "formula": "CST-002 AED/month / 173.33 h / CST-004",
+        "evidence": [
+          "CST-002",
+          "CST-004"
+        ]
+      }
+    },
+    {
+      "id": "US",
+      "label": "US (scale, ADR-005)",
+      "coachBaseHourlyUsd": {
+        "value": 22.67,
+        "evidence": [
+          "CST-001"
+        ]
+      }
+    }
+  ],
+  "segments": [
+    {
+      "id": "flexible",
+      "label": "Flexible: doubles OK, 5-7 days",
+      "scheduleKeys": [
+        "5d-doubles",
+        "6d-doubles",
+        "7d-doubles"
+      ]
+    },
+    {
+      "id": "standard",
+      "label": "Standard: doubles OK on 3-4 days, or 6-7 single-session days",
+      "scheduleKeys": [
+        "3d-doubles",
+        "4d-doubles",
+        "6d-singles",
+        "7d-singles"
+      ]
+    },
+    {
+      "id": "rigid",
+      "label": "Rigid: one session a day, 3-5 days",
+      "scheduleKeys": [
+        "3d-singles",
+        "4d-singles",
+        "5d-singles"
+      ]
+    }
+  ],
+  "escalationRateSource": {
+    "evidence": [
+      "OWN-002"
+    ],
+    "file": "evals/results/hybrid-latest.json",
+    "path": "sets.amber_outcomes_by_schedule.byDaysAndDoubles"
+  },
+  "drivers": [
+    {
+      "id": "amberDaysPerAthleteMonth",
+      "label": "Amber-readiness days per athlete-month",
+      "unit": "days",
+      "base": 4,
+      "low": 2,
+      "high": 8,
+      "hypothesis": {
+        "pilotMetric": "readiness_band_recorded{band=amber} per athlete-month",
+        "measuredBy": "event:readiness_band_recorded"
+      }
+    },
+    {
+      "id": "hardShareOnAmber",
+      "label": "Share of amber days with a hard session scheduled",
+      "unit": "ratio",
+      "base": 0.6,
+      "low": 0.4,
+      "high": 0.8,
+      "hypothesis": {
+        "pilotMetric": "adaptation_requested / readiness_band_recorded{amber}",
+        "measuredBy": "event:adaptation_requested"
+      }
+    },
+    {
+      "id": "painFlagsPerAthleteMonth",
+      "label": "Pain or illness flags per athlete-month (always escalate)",
+      "unit": "flags",
+      "base": 0.3,
+      "low": 0.1,
+      "high": 0.8,
+      "hypothesis": {
+        "pilotMetric": "pain_flag_raised per athlete-month",
+        "measuredBy": "event:pain_flag_raised"
+      }
+    },
+    {
+      "id": "llmProposalsPerAthleteMonth",
+      "label": "Model proposals per athlete-month",
+      "unit": "proposals",
+      "base": 4.33,
+      "low": 4.33,
+      "high": 8.66,
+      "hypothesis": {
+        "pilotMetric": "adaptation_proposed per athlete-month (design: weekly plan proposal)",
+        "measuredBy": "event:adaptation_proposed"
+      }
+    },
+    {
+      "id": "proposalRejectRate",
+      "label": "Share of model proposals the rules block (each needs coach review)",
+      "unit": "ratio",
+      "base": 0.15,
+      "low": 0.05,
+      "high": 0.3,
+      "hypothesis": {
+        "pilotMetric": "bounds_rejected / adaptation_proposed",
+        "measuredBy": "event:bounds_rejected"
+      }
+    },
+    {
+      "id": "minutesPerLostSession",
+      "label": "Coach minutes to review a hard session the engine made easy",
+      "unit": "min",
+      "base": 1.5,
+      "low": 0.5,
+      "high": 4,
+      "hypothesis": {
+        "pilotMetric": "coach_decision.latency_active_s / 60 where trigger = session_downgraded",
+        "measuredBy": "event:session_downgraded"
+      }
+    },
+    {
+      "id": "minutesPerEscalation",
+      "label": "Coach minutes per escalation (pain flag, blocked proposal, or no safe adaptation)",
+      "unit": "min",
+      "base": 4,
+      "low": 2,
+      "high": 8,
+      "hypothesis": {
+        "pilotMetric": "coach_decision.latency_active_s / 60 (active review time)",
+        "measuredBy": "event:coach_decision"
+      }
+    },
+    {
+      "id": "triageMinutesPerAthleteWeek",
+      "label": "Coach weekly triage per athlete with PolySync",
+      "unit": "min/week",
+      "base": 1.5,
+      "low": 0.5,
+      "high": 3,
+      "hypothesis": {
+        "pilotMetric": "coach_console_active_min / athletes / week",
+        "measuredBy": "event:coach_console_active_min"
+      }
+    },
+    {
+      "id": "manualMinutesPerAthleteWeek",
+      "label": "Coach minutes per athlete-week programming hybrid athletes by hand (baseline)",
+      "unit": "min/week",
+      "base": 15,
+      "low": 8,
+      "high": 30,
+      "hypothesis": {
+        "pilotMetric": "pre-pilot coach time diary, 2 weeks, 3 clubs",
+        "measuredBy": "study:coach-time-diary"
+      }
+    },
+    {
+      "id": "coachLoading",
+      "label": "Employer on-cost multiplier on base wage",
+      "unit": "x",
+      "base": 1.3,
+      "low": 1.2,
+      "high": 1.5,
+      "hypothesis": {
+        "pilotMetric": "club payroll data (confidential, ranges only)",
+        "measuredBy": "study:payroll-ranges"
+      }
+    },
+    {
+      "id": "specialistPremium",
+      "label": "Hybrid/HYROX specialist premium over median trainer wage",
+      "unit": "x",
+      "base": 1.5,
+      "low": 1.0,
+      "high": 2.5,
+      "hypothesis": {
+        "pilotMetric": "coach interviews: effective hourly rate",
+        "measuredBy": "study:coach-interviews"
+      }
+    },
+    {
+      "id": "coachProgrammingHoursPerWeek",
+      "label": "Coach hours per week available for programming and review",
+      "unit": "h/week",
+      "base": 10,
+      "low": 6,
+      "high": 15,
+      "hypothesis": {
+        "pilotMetric": "coach interviews",
+        "measuredBy": "study:coach-interviews"
+      }
+    },
+    {
+      "id": "llmTokensInPerProposal",
+      "label": "Input tokens per model call",
+      "unit": "tokens",
+      "base": 2000,
+      "low": 1000,
+      "high": 4000,
+      "hypothesis": {
+        "pilotMetric": "llm_call.tokens_in (logged)",
+        "measuredBy": "event:llm_call"
+      }
+    },
+    {
+      "id": "llmTokensOutPerProposal",
+      "label": "Output tokens per model call",
+      "unit": "tokens",
+      "base": 600,
+      "low": 300,
+      "high": 1200,
+      "hypothesis": {
+        "pilotMetric": "llm_call.tokens_out (logged)",
+        "measuredBy": "event:llm_call"
+      }
+    },
+    {
+      "id": "llmCallsPerAthleteMonth",
+      "label": "Model calls per athlete-month (proposals + explanations + chat)",
+      "unit": "calls",
+      "base": 24,
+      "low": 12,
+      "high": 60,
+      "hypothesis": {
+        "pilotMetric": "llm_call count per athlete-month",
+        "measuredBy": "event:llm_call"
+      }
+    },
+    {
+      "id": "priceInPer1M",
+      "label": "Gemini 3.5 Flash input price",
+      "unit": "USD/1M tokens",
+      "base": 1.5,
+      "low": 1.5,
+      "high": 1.5,
+      "evidence": [
+        "CST-003"
+      ]
+    },
+    {
+      "id": "priceOutPer1M",
+      "label": "Gemini 3.5 Flash output price",
+      "unit": "USD/1M tokens",
+      "base": 9.0,
+      "low": 9.0,
+      "high": 9.0,
+      "evidence": [
+        "CST-003"
+      ]
+    },
+    {
+      "id": "infraPerAthleteMonthUsd",
+      "label": "Hosting, database, logs per athlete-month",
+      "unit": "USD",
+      "base": 0.15,
+      "low": 0.05,
+      "high": 0.5,
+      "hypothesis": {
+        "pilotMetric": "cloud bill / active athletes",
+        "measuredBy": "study:cloud-bill"
+      }
+    },
+    {
+      "id": "pricePerAthleteMonthUsd",
+      "label": "Price to the club per active athlete-month",
+      "unit": "USD",
+      "base": 8,
+      "low": 5,
+      "high": 12,
+      "anchors": [
+        "PRC-001",
+        "PRC-002",
+        "PRC-003",
+        "PRC-004"
+      ],
+      "hypothesis": {
+        "pilotMetric": "pilot LOI price accepted by >= 2 of 3 clubs",
+        "measuredBy": "study:pilot-loi"
+      }
+    },
+    {
+      "id": "paymentFeeRate",
+      "label": "Payment and invoicing fees",
+      "unit": "ratio of price",
+      "base": 0.03,
+      "low": 0.02,
+      "high": 0.05,
+      "hypothesis": {
+        "pilotMetric": "processor statements",
+        "measuredBy": "study:processor-statements"
+      }
+    },
+    {
+      "id": "athletesPerClub",
+      "label": "Active PolySync athletes per club",
+      "unit": "athletes",
+      "base": 30,
+      "low": 15,
+      "high": 60,
+      "hypothesis": {
+        "pilotMetric": "pilot roster activation at day 30",
+        "measuredBy": "event:roster_activated"
+      }
+    },
+    {
+      "id": "hyroxGyms",
+      "label": "HYROX-affiliated gyms worldwide (penetration denominator)",
+      "unit": "gyms",
+      "base": 15000,
+      "low": 15000,
+      "high": 24000,
+      "evidence": [
+        "MKT-003"
+      ]
+    },
+    {
+      "id": "targetGrossMargin",
+      "label": "Gross-margin line for 'this is software'",
+      "unit": "ratio",
+      "base": 0.7,
+      "low": 0.7,
+      "high": 0.7,
+      "decision": "Product target, not a benchmark claim"
+    },
+    {
+      "id": "arrTargetUsd",
+      "label": "ARR milestone for the penetration check",
+      "unit": "USD",
+      "base": 1000000,
+      "low": 1000000,
+      "high": 1000000,
+      "decision": "Milestone chosen for scale, not a forecast"
+    }
+  ]
+}

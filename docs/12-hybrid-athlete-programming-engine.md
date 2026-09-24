@@ -1,6 +1,6 @@
 # PolySync — Hybrid Athlete Programming Engine
 
-> Status: AUTHORED (domain framing) · TBD (your actual parameters) · Owner: Ossama Mokhtar
+> Status: AUTHORED (domain framing) · BUILT (v1 scheduling rules, literature parameters, 2026-09-24) · Owner: Ossama Mokhtar
 
 **Purpose.** The domain logic that makes PolySync defensible. Everything else in this repo is delivery; this is the product. Fill the parameters from your own protocol library — the structure is the contribution, the numbers must be yours and your coaches'.
 
@@ -38,11 +38,33 @@ Each rule is a protocol in the library with an ID, an owning coach and a version
 
 **The bounds checker** (doc 01) enforces load progression, ACWR and readiness rules on every delta, whoever proposed it — LLM, athlete or coach.
 
+## 3a. What is built (v1, 24 Sep 2026)
+
+The sequencing, priority, load-progression, acute:chronic and readiness families are now code in [`app/src/engine/hybrid.ts`](../app/src/engine/hybrid.ts). Parameters come from the literature, with each rule citing its evidence id in [`product/data/evidence.json`](../product/data/evidence.json). **They are not coach-signed (GAPS #4).**
+
+| Rule | Family | Parameter | Severity | Evidence |
+|---|---|---|---|---|
+| H1 | Sequencing | ≥ 6 h rest between conflicting hard sessions, measured from the end of one to the start of the next, across midnight | Block | SCI-004, SCI-005 |
+| H2 | Sequencing | No power work within 3 h after any endurance session ends | Block | SCI-003, SCI-004 |
+| H3 | Priority | On a shared day, the athlete's block priority goes first (from the profile; a proposal cannot relabel it) | Block | SCI-005 |
+| H4 | Sequencing | Conflicting hard sessions < 24 h apart | Coach attention | SCI-005 |
+| H5 | Load progression | Weekly load (minutes × RPE) > +10% over last week, or over the engine's own week when there is no history | Block → coach | SCI-006 (a product limit, **not** an injury claim; ADR-007) |
+| H6 | Acute:chronic | Ratio > 1.5 | Coach attention only | SCI-007 (no protective sweet spot; ADR-007) |
+| H7 | Readiness | Red: nothing autonomous. Amber: no hard session | Block → coach | — |
+| H8 | Availability | Sessions only on available days | Block | — |
+| H9 | Integrity | Not a physically possible week: bad types, duplicate ids, two sessions in one slot, overlapping sessions, minutes outside 10–240, RPE outside the modality's band (so heavy work cannot be labelled easy) | Block | — |
+
+**Why power gets its own rule.** The largest recent meta-analysis (Schumann et al., *Sports Medicine* 2022; 43 studies, 1,090 participants) found no significant interference on maximal strength (SMD −0.06) or hypertrophy (−0.01), but a significant one on explosive strength (−0.28). The effect was driven by same-session training and disappeared with ≥ 3 h separation. So the engine spends its constraints on protecting power and on separating sessions. It does not treat all concurrent training as harmful.
+
+**Amber-day adaptation**, in order: move the hard session to a later day if the moved week passes every rule; otherwise make every hard session that day easy in place (60% of the minutes) and tell the coach the session was lost; escalate only if neither passes. Red readiness or a pain flag always escalates. Whatever the athlete receives, including the engine's fallback week when a proposal is blocked, passes the rules for that day's readiness; the eval checks this on 4,628 cases.
+
+Not built yet: the boundary between weeks (a Sunday-evening session and the next Monday morning), macrocycle block sequencing, polarised or pyramidal intensity distribution, deload, taper and re-entry. They stay TBD until a coach signs the parameters.
+
 ## 4. Worked example
 
 > Athlete: 34, training age 6 y. Goal: half-marathon in 9 weeks *and* hold a 1.5×BW back squat. Current block: endurance-primary. Wednesday: threshold run prescribed. Tuesday delivered: heavy lower-body session, RPE 9, HRV down, sleep 5 h 20 m.
 
-Engine trace:
+Engine trace (reproduced by `adaptDay()`; see the test "daily adaptation" in [`hybrid.test.ts`](../app/src/engine/__tests__/hybrid.test.ts)):
 
 | Step | Rule | Outcome |
 |---|---|---|

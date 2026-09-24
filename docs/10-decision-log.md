@@ -98,3 +98,71 @@ Each ADR states what was rejected and the measurable condition that would revers
 **Reversal trigger.** Beachhead segment saturated (TBD% penetration of reachable orgs) or a second region's inbound demand exceeds TBD% of pipeline unprompted.
 
 **Status note:** Beachhead named and the ADR is now complete. This closes gap #3 from GAPS.md (filled 2026-09-23).
+
+---
+
+## ADR-006: Validate in the UAE, scale in the US
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar · Closes GAPS #11
+
+**Context.** ADR-005 named US boutique hybrid gyms as the beachhead. The founder is in Dubai, the first pilot has to be run in person, and the UAE has a dense, fast-growing HYROX scene. HYROX Abu Dhabi sold out, and at least four UAE gym brands run HYROX prep classes, including GymNation, an official HYROX Performance Center and Training Club in four emirates ([evidence](../product/data/evidence.json) MKT-006, MKT-007).
+
+| Option | Pros | Cons | Verdict |
+|---|---|---|---|
+| US first (ADR-005 as written) | Largest market; simplest privacy regime | No in-person access for coach interviews and pilot support; slow first signal | Rejected for the pilot |
+| **UAE pilot, US scale** | Founder on site; HYROX clubs reachable directly; bilingual AR/EN is a real differentiator | UAE PDPL treats health and physical-condition data as sensitive (REG-001), so a DPIA comes before the pilot, not after | **Chosen** |
+| Both at once | Wider funnel | Two regimes, two DPIAs, split attention for a solo builder | Rejected |
+
+**Consequences.**
+- ADR-005's US segment stays the **scale** beachhead.
+- The pilot targets 3 UAE HYROX training clubs (see [pilot plan](../product/pilot-plan.md)).
+- A DPIA under the UAE PDPL is required before any athlete data is collected. Whether the health-data carve-out or a free-zone regime (DIFC, ADGM) applies needs legal review (GAPS #6).
+
+**Reversal trigger.** Fewer than 2 of 5 UAE club owners interviewed sign a pilot letter of intent within 6 weeks. Then run the same interview script with 5 US boutique gyms before building anything else.
+
+---
+
+## ADR-007: Claims we refuse to make
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar
+
+**Context.** Fitness products routinely claim injury prevention from load rules. We checked the evidence behind our own rules.
+- A 10%-per-week progression rule did not reduce injuries in a 532-runner RCT (SCI-006).
+- 27.5% of injuries in one elite cohort happened inside the ACWR "sweet spot" (SCI-007).
+
+**Decision.**
+- The weekly load limit (H5, B7) and the acute:chronic signal (H6) stay in the product as **conservative limits that route to a coach**. They are never marketed as injury prevention.
+- PolySync makes no claim it cannot measure. "Resolves the interference trade-off" is a claim about scheduling, which the evals check. "Reduces injuries" or "makes you faster" are outcome claims, and they wait for pilot data.
+
+**Rejected.** Using the ACWR sweet spot as a safety claim. It is easy to market and not supported.
+
+**Reversal trigger.** Pilot or published evidence showing a specific load rule changes injury incidence in hybrid athletes.
+
+---
+
+## ADR-008: Segment by schedule flexibility
+
+**Status:** Accepted 2026-09-24 · Revised 2026-09-24 after adversarial review · Owner: Ossama Mokhtar
+
+**Context.** The hybrid eval simulates an amber-readiness day for every hard session across 3,240 athlete schedules ([results](../evals/results/hybrid-latest.json), `amber_outcomes_by_schedule`). The engine moves the session to a later day if a move passes every rule; otherwise it makes the session easy in place and tells the coach a session was lost; it escalates only if neither passes. The share of hard sessions kept by moving them is 77% for athletes who accept doubles on 5–7 days, 43% in the middle segment, and 6% for athletes limited to one session a day on 3–5 days. Whether doubles are acceptable matters more than the number of days.
+
+**First version and why it changed.** The first version of this ADR said escalation fell from 90–100% (3–4 fixed days) to about 25% (6–7 days with doubles) and priced segments by coach cost. That engine could only move or escalate. An adversarial review showed the rates were an artifact of the missing make-easy option. With it, escalations in the grid are 0 and the coach-time gap between segments is about 2.6 minutes per athlete-month. The segment still matters, but for training quality, not cost.
+
+**Decision.**
+1. Onboarding asks whether the athlete can train twice on some days, then which days, before anything else.
+2. The pilot recruits flexible athletes first ([pilot plan](../product/pilot-plan.md)).
+3. Rigid athletes are told at onboarding that on low-readiness days most hard sessions will be made easy, not moved.
+4. The [financial model](../product/financial-model.md) keeps segment-level coach minutes, and one blended price.
+
+**Rejected.** Pricing by segment. The cost difference is too small to justify the complexity. Revisit if pilot rates differ.
+
+**Reversal trigger.** In the pilot, the share of amber-day hard sessions kept differs from the simulation by more than 15 points in any segment (pass bar 4). Then re-fit the model to observed rates.
+
+---
+
+## Operating decisions
+
+| Decision | Owner | Date |
+|---|---|---|
+| Rollback decision owner (doc 08 §4) | Ossama Mokhtar | 2026-09-24 |
+| Data ownership on offboarding: org owns roster and programme data; athlete owns and can export personal physiological data ([doc 02 decision](02-data-ownership-decision.md)) | Ossama Mokhtar | 2026-09-23 |
