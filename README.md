@@ -2,7 +2,7 @@
 
 **AI coaching for hybrid athletes, where the model can propose but never prescribe.** B2B2C: clubs buy coach capacity; a human coach handles what the engine cannot resolve.
 
-**[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · **[Athlete app prototype](https://ossamamokhtar.github.io/PolySync/prototype/)** · [One-page PRD](product/prd.md) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Competitive landscape](product/competitive-landscape.md) · [Roadmap](product/roadmap.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
+**[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · **[Athlete app prototype](https://ossamamokhtar.github.io/PolySync/prototype/)** · [Design case study](https://github.com/OssamaMokhtar/polysync-design-system/blob/main/case-study/README.md) · [One-page PRD](product/prd.md) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Competitive landscape](product/competitive-landscape.md) · [Roadmap](product/roadmap.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
 
 **Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [hybrid engine](docs/12-hybrid-athlete-programming-engine.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [UX review](docs/13-ux-review.md) · [gaps](docs/GAPS.md)
 
