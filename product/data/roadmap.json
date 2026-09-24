@@ -46,6 +46,11 @@
           "title": "UX/UI baseline review and design brief",
           "ref": "docs/13-ux-review.md",
           "status": "done"
+        },
+        {
+          "title": "Athlete Load screen prototype on the engine (polished from Claude Design)",
+          "ref": "portal/src/loadmap.ts",
+          "status": "done"
         }
       ]
     },
@@ -114,6 +119,12 @@
           "ref": "docs/07-evaluation-and-evidence.md",
           "status": "planned",
           "why": "Known failure mode"
+        },
+        {
+          "title": "Upper-body programming (sled, row, wall balls, carries) with coach input",
+          "ref": "GAPS #17",
+          "status": "planned",
+          "why": "The Load screen shows the upper body as not programmed"
         }
       ]
     },

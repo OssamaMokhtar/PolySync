@@ -16,6 +16,7 @@ Horizons are sequenced by GAPS.md's fill order and the ADR reversal triggers, no
 | Beachhead, data ownership, rollback owner decided | done | [`10-decision-log.md`](../docs/10-decision-log.md) |
 | Adversarial review: 7 findings fixed | done | [`case-study.md`](../product/case-study.md) |
 | UX/UI baseline review and design brief | done | [`13-ux-review.md`](../docs/13-ux-review.md) |
+| Athlete Load screen prototype on the engine (polished from Claude Design) | done | [`loadmap.ts`](../portal/src/loadmap.ts) |
 
 ## Now · 0-6 weeks: unblock the pilot
 
@@ -35,6 +36,7 @@ Horizons are sequenced by GAPS.md's fill order and the ADR reversal triggers, no
 | 3 UAE HYROX clubs, 8 weeks, flexible athletes first | planned | [`pilot-plan.md`](../product/pilot-plan.md) | Measures coach minutes and amber-day outcomes (GAPS #2, #14) |
 | Model-in-the-loop evals: live injection set and golden athlete-weeks | planned | GAPS #1 | The largest unmeasured claim |
 | Rules across the week boundary (Sunday evening to Monday morning) | planned | [`07-evaluation-and-evidence.md`](../docs/07-evaluation-and-evidence.md) | Known failure mode |
+| Upper-body programming (sled, row, wall balls, carries) with coach input | planned | GAPS #17 | The Load screen shows the upper body as not programmed |
 
 ## Later · 4-9 months: after pass bars
 

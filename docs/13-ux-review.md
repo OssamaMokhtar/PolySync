@@ -87,3 +87,33 @@ Each screen is accepted only if it meets its criteria, plus the global ones.
 Everything marked "Onboarding rebuild" or "Design merge" waits for the Claude Design screens.
 
 Current ProjectOS screens: [overview](screens/projectos-overview.png) · [engine blocks an injection](screens/engine-blocks-injection.png) · [amber-day adaptation](screens/engine-adapts-amber-day.png) · [economics](screens/economics-dashboard.png) · [walkthrough video](media/projectos-walkthrough.mp4).
+
+## 7. Review: Claude Design "Body Impact"
+
+> Reviewed 2026-09-24 from the Claude Design project (PolySync Body Impact page and its saved captures). The project's source is not in this repo. The polished version is built on the real engine in [ProjectOS](../portal/src/loadmap.ts) (section "Athlete app: Load").
+
+**Verdict.** Keep the ambition: a body you can read at a glance, a timeframe, and a plain-language "what changed". Drop what the product cannot back. As designed, the screen would fail this review's global criteria and two decision records.
+
+| # | Severity | In the design | Breaks | Polished version |
+|---|---|---|---|---|
+| D1 | **Critical** | "Injury Risk" summary card; "reduced injury risk · −15%" insight | ADR-007 (claims we refuse), risk REG-02 | Removed. The footer says the screen is not an injury prediction |
+| D2 | **Critical** | "LIVE · All sources synced", VO2 Max, Overall Fitness 82, "endurance up 18%" | §5 global: every number comes from the engine or telemetry. No wearable integration exists | Only engine data: sessions, minutes × effort, readiness, adaptations |
+| D3 | **High** | "AI Coach Insights" as the voice | ADR-004; U8 (the engine and the coach are the actors) | "What changed": the outcome (moved / made easy / coach decides), the rule, the named coach |
+| D4 | **High** | Red = "peak adaptation" (a good thing); state carried by colour alone on the body | WCAG 1.4.1; red reserved for risk | One-hue sequential ramp for load; readiness as icon + word; every region also listed as text |
+| D5 | **High** | Hero is a WebGL mannequin loaded from a CDN. It is blank in 2 of the project's 5 saved captures, and was blank when reviewed in a background browser tab | HIG: launch fast, never blank the primary content | 2D SVG front / back map: instant, offline, screen-reader labelled, 44 pt tappable regions |
+| D6 | **High** | All regions coloured, including chest, shoulders and arms | Honesty: the engine programmes lower-body sessions only (GAPS #17) | Upper body hatched: "Not programmed yet" |
+| D7 | Medium | 7 filters × 5 timelines × 3 views = 105 states; overlapping filters (Muscles / Strength / Performance) | Doc 09: one decision per screen | One lens (load), Front / Back, region list |
+| D8 | Medium | Desktop dashboard; mobile "not yet built" | §5: 390 pt, 44 pt targets | Phone layout: large title, segmented controls, tab bar |
+| D9 | Low | "Front" stays selected while the model is rotated to the side (02-body-check) | State must match the control | View is a radio group bound to the rendered view |
+| D10 | Low | Tagline "Where training is changing you" | ADR-007: no measured outcome yet | "Where this week's training lands" |
+
+**What the design got right, and the polish keeps:**
+- a dark, high-contrast sports look with one accent colour;
+- a legend always visible;
+- insights tagged with region and timeframe (provenance instinct);
+- summary tiles with a delta against a baseline;
+- a segmented timeframe control.
+
+**Region mapping v1.** Region load is estimated by sharing each session's minutes × RPE across regions by session type (`REGION_SHARE` in `portal/src/loadmap.ts`; every row sums to 1). It is a display estimate, labelled as such on screen, and goes to the coaches with the rule sheet (GAPS #4).
+
+Screens: [front](screens/app-load-front.png) · [amber day, session moved](screens/app-load-amber.png). To polish the original in Claude Design, paste [this prompt](design/claude-design-polish-prompt.md).

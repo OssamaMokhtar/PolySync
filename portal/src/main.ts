@@ -4,6 +4,7 @@ import { HYBRID_PARAMS, RULE_EVIDENCE, type HybridRuleId } from "../../app/src/e
 import { adrs, blob, outcomeTable, evidence, evidenceById, gaps, gradeRubric, hybridResults, model, modelOutput, passBars, risks, safetyResults, metrics, competitors, roadmap, pilotStatus, type Cap, type Risk } from "./data";
 import { chartCard, groupedColumns, h, legend, tableView, tornado } from "./charts";
 import { engineDemo } from "./demo";
+import { BEFORE_AFTER, loadMapScreen } from "./loadmap";
 import { evidenceChip } from "./evidence";
 
 const app = document.getElementById("app")!;
@@ -36,6 +37,7 @@ try {
 const NAV = [
   ["overview", "Overview"],
   ["engine", "Engine"],
+  ["athlete", "App"],
   ["market", "Market"],
   ["economics", "Economics"],
   ["risks", "Risks"],
@@ -286,6 +288,22 @@ const CAP_LABEL: Record<Cap, [string, string]> = {
   unknown: ["?", "Not stated"],
 };
 
+function appSection(): HTMLElement {
+  const t = h("table", { class: "data" });
+  t.append(h("thead", {}, h("tr", {}, ...["Claude Design exploration", "Polished", "Why"].map((x) => h("th", { scope: "col" }, x)))));
+  t.append(h("tbody", {}, ...BEFORE_AFTER.map(([a, b, c]) => h("tr", {}, h("td", { class: "ink-2" }, a), h("td", {}, b), h("td", { class: "text-sm ink-2" }, c)))));
+  return h("section", { class: "flex flex-col gap-4" },
+    sectionTitle("athlete", "Athlete app: Load", "Polished from the “Body Impact” exploration in Claude Design. It runs the same engine as the demo above: tap a day to lower readiness and watch the week, the body map and “What changed” update."),
+    h("div", { class: "grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)] gap-6 items-start [&>*]:min-w-0" },
+      loadMapScreen(),
+      h("div", { class: "flex flex-col gap-4" },
+        h("div", { class: "card p-5" },
+          h("div", { class: "state" }, "Design review · docs/13 §7"),
+          h("p", { class: "mt-2 font-semibold max-w-3xl" }, "The exploration had a strong look and the right instinct (show the body, explain the change). It also showed numbers the product cannot know and made claims PolySync refuses to make."),
+          h("div", { class: "overflow-x-auto mt-3" }, t)),
+        h("p", { class: "text-sm" }, h("a", { href: `${blob("docs/13-ux-review.md")}#7-review-claude-design-body-impact` }, "Full review and acceptance checklist"), " · ", h("span", { class: "muted" }, "Region shares follow mapping v1, a display estimate, not coach-signed")))));
+}
+
 function marketSection(): HTMLElement {
   const caps = Object.entries(competitors.capabilities) as [keyof typeof competitors.capabilities, { label: string; description: string }][];
   const t = h("table", { class: "data market" });
@@ -410,6 +428,7 @@ app.append(
   h("main", { class: "max-w-6xl mx-auto px-4 py-8 flex flex-col gap-14" },
     overview(),
     h("section", { class: "flex flex-col gap-4" }, sectionTitle("engine", "Engine", "Change the athlete, then try a model proposal. The verdicts come from the same code CI tests."), engineDemo(), rulesTable()),
+    appSection(),
     marketSection(),
     economics(),
     riskSection(),

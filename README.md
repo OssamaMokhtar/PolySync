@@ -100,7 +100,7 @@ flowchart LR
 | Engine: single-modality plans + bounds checker (B1–B9) | **Built**, enforced on the plan route |
 | Engine: hybrid scheduling (H1–H9), adaptation (move, make easy, escalate), API (`/api/hybrid/week`, `/adapt`) | **Built** 24 Sep 2026; literature parameters, **not coach-signed** |
 | API: verified Firebase ID tokens, validated inputs, per-user rate limit, JSON event logs; production boot check | **Built** 24 Sep 2026 (the server used to trust a client header and crashed on boot) |
-| Coach console; athlete app on the hybrid engine | **Not yet** (GAPS #13, #16). Acceptance criteria in the [UX review](docs/13-ux-review.md); the engine runs in [ProjectOS](https://ossamamokhtar.github.io/PolySync/) |
+| Coach console; athlete app on the hybrid engine | **Not yet** in `app/` (GAPS #13, #16). First athlete screen (Load, polished from Claude Design) runs on the engine in [ProjectOS](https://ossamamokhtar.github.io/PolySync/); acceptance criteria in the [UX review](docs/13-ux-review.md) |
 | Server data access in production | **Blocked**: client SDK without credentials (GAPS #12, P0 before the pilot) |
 | Model-in-the-loop evals, coach minutes, users | **Not measured**; the [pilot](product/pilot-plan.md) measures coach minutes and users |
 
