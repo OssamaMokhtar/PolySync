@@ -42,14 +42,45 @@
 | **C** · Coach marketplace beyond clubs | Wait | Only after 20+ coaches actively use the console | Coaches will not list, or athlete-coach pairs leave the platform |
 | **X** · Social-video scraping, body-fat from photos, a named player's likeness, five regions at once | Don't build | — | — |
 
-## The vision, if the gates pass
+## Claim repair plan
 
-| Stage | What PolySync becomes | Gate |
-|---|---|---|
-| 1 · Now | The coach console and athlete app on the hybrid engine, in UAE HYROX clubs | Pilot pass bars |
-| 2 · If A passes | Technique drills for slow skills, scored by the club's coach with the camera as an aid, not a judge | Concierge test: 30%+ willing to pay; coaches agree on scores |
-| 3 · If B passes | An academy product for youth football, with consent, licensed data and no named-player likeness | One academy co-designs and pays |
-| 4 · When the console has 20+ active coaches | Coaches outside clubs can list; ranking by credentials and risk-adjusted outcomes | Coach and athlete retention on-platform |
+Every claim has a repair path. Restating a claim does not validate it: a repaired claim counts as validated only when its evidence exists or its proof is observed. Tests decide; if a repair's proof fails, that line of the vision stops.
+
+**Before repair:** 1 unverified, 1 misread, 1 contradicted, 1 not-feasible, 1 plausible, 1 misused, 1 folklore, 2 red-line, 1 real-constraint, 1 thin-margin. **After repair, before any test:** 2 validated, 9 plausible. No claim is left wrong or over a red line; nine still need their proof.
+
+**Repair types.** **restate**: Say what the evidence supports. **narrow**: Keep the idea, shrink it to what works. **new-method**: Keep the goal, change how it is done. **resequence**: Keep it, do it later or one step at a time. **reprice**: Keep it, change the economics.
+
+| # | Before | Repair | Type | Repaired claim | After | Proof that would validate it | Stage |
+|---|---|---|---|---|---|---|---|
+| N1a | ? unverified | Replace the unsourced search figure with demand signals that can be proved: HYROX participation, a dated Google Trends export run and archived by us, and pilot waitlist sign-ups | restate | Hybrid racing participation is growing, including in the UAE ([MKT-001](data/evidence.json), [MKT-005](data/evidence.json), [MKT-006](data/evidence.json)) | ✓ **validated** | Waitlist sign-up rate in the UAE pilot clubs | 1 |
+| N1b | ✕ misread | State the science accurately: strength and endurance are mostly compatible, except explosive power and hard sessions close together. That is the engine's reason to exist | restate | Concurrent training is mostly compatible, except power and session timing, which the engine manages ([SCI-001](data/evidence.json), [SCI-002](data/evidence.json), [SCI-003](data/evidence.json), [SCI-004](data/evidence.json)) | ✓ **validated** | Already sourced; engine rules H1 and H2 enforce it in CI | 1 |
+| N2a | ✕ contradicted | Drop the 0% figure. The gap is trust, not absence: AI martial-arts apps exist, and reviews say their camera feedback feels wrong | restate | AI martial-arts apps exist; the unmet need is feedback people trust ([COM-007](data/evidence.json), [COM-008](data/evidence.json), [COM-010](data/evidence.json)) | ◐ **plausible** | Review mining of the existing apps (the trust theme counted, as in the Phase 1 synthesis) | 2 |
+| N2b | ✕ not-feasible | Score slow skills only (stances, guard, forms), with the club coach as the judge and the camera as an aid. Fast strikes wait for a second camera or a wearable motion sensor | narrow | A club coach scores slow techniques from phone video, assisted by pose overlays | ◐ **plausible** | Option A concierge test: 30%+ of 20 athletes would pay, and two coaches agree on the same clip | 2 |
+| N3 | ◐ plausible | Seed supply from coaches already on the console; charge a SaaS fee plus a booking fee to limit leakage; rank by outcomes adjusted for each athlete's starting level, not raw results | resequence | Console coaches can take athletes outside their club, ranked by credentials and risk-adjusted outcomes ([MKT-008](data/evidence.json)) | ◐ **plausible** | 20+ active console coaches; athlete-coach pairs stay on-platform | 4 |
+| N4 | ✕ misused | Ask the tier at onboarding; update it from logged training volume and competition level, which the app already records. Delete the invented population table | narrow | Athletes self-report a McKay tier; the app suggests changes from logged volume and competition level ([SCI-009](data/evidence.json)) | ◐ **plausible** | Self-reported tier matches the coach's assessment for most pilot athletes | 2 |
+| N5 | ? folklore | Drop the named player and the statistic. Academy coaches teach defensive positioning principles, with licensed event data and consent owned by the academy | new-method | An academy product that helps coaches teach positioning, with consent, licensed data and no named-player likeness ([COM-009](data/evidence.json)) | ◐ **plausible** | Option B: one academy co-designs and pays | 3 |
+| N6 | ⛔ red-line | Adults only; photos never leave the device and are shown only as a private side-by-side, with no numbers; progress numbers come from measured inputs (tape, smart scale). Never children | new-method | Adults can keep private, on-device progress photos without any estimated numbers | ◐ **plausible** | Clinician sign-off on the flow; no rise in eating-disorder safety flags in a limited release | 5 |
+| N7 | ⛔ red-line | Licensed datasets, footage captured with consent at partner clubs, and a creator programme with paid, opt-in licences | new-method | Technique models are trained only on licensed or consented footage ([REG-004](data/evidence.json)) | ◐ **plausible** | A signed data licence and a consent log that survives an audit | 2 |
+| N8 | ! real-constraint | One region per gate: UAE first with in-country hosting or on-device processing, then KSA, then the EU, then the US | resequence | PolySync launches in the UAE with health data kept in-country, and adds regions one at a time ([REG-003](data/evidence.json), [REG-001](data/evidence.json)) | ◐ **plausible** | Counsel's opinion on Federal Law 2/2019 for a wellness app; UAE-region hosting in place before the pilot | 1 |
+| N9 | ◐ thin-margin | Voice becomes pre-recorded cues or on-device speech; revenue leads with the club tier, where acquisition cost is near zero | reprice | Club-led pricing with low-cost voice keeps gross margin healthy | ◐ **plausible** | Gross margin at pilot volume against a 70% target (our target, a hypothesis) | 1 |
+
+## The repaired vision
+
+Each stage pays for the next and produces the data it needs. A stage starts only when its gate passes.
+
+| Stage | What PolySync becomes | Claims repaired here | Gate |
+|---|---|---|---|
+| 1 · Core (now) | The coach console and athlete app on the hybrid engine, in UAE HYROX clubs, with health data kept in-country and club-led pricing | N1a, N1b, N8, N9 | Pilot pass bars |
+| 2 · Technique layer | Technique drills for slow skills, scored by the club's coach with the camera as an aid; self-reported athlete tiers; a consented, licensed footage dataset | N2a, N2b, N4, N7 | Option A: 30%+ willing to pay; coaches agree on scores |
+| 3 · Academies | An academy product for youth football, with consent, licensed data and no named-player likeness | N5 | Option B: one academy co-designs and pays |
+| 4 · Network | Console coaches can list beyond their club, ranked by credentials and risk-adjusted outcomes; KSA, then the EU | N3 | Option C: 20+ active console coaches; pairs stay on-platform |
+| 5 · Body progress | Adults-only, on-device progress photos with no estimated numbers | N6 | Clinician sign-off; no rise in eating-disorder flags |
+
+## Where this could go wrong
+
+- Motivated reasoning: repairing claims to fit a vision decided in advance. The repair proofs are set before any data, and a failed proof stops that stage.
+- Capacity, not claims, is the binding limit: the repaired vision is still five businesses for one engineer. Stages run in sequence unless funding adds a team.
+- Body progress comes last on purpose: highest harm, lowest differentiation.
 
 ## Corrections to the input narrative
 

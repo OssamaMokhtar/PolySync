@@ -219,6 +219,7 @@ Each ADR states what was rejected and the measurable condition that would revers
 **Consequences.**
 - The roadmap gains three gated items and three "not planned" items.
 - UAE Federal Law 2/2019 (health data localisation) joins the pilot's counsel questions (risk REG-03).
+- Every claim has a repair path ([claim repair plan](../product/idea-validation-vision.md#claim-repair-plan)): 2 restated claims are validated by existing evidence; 9 are testable and each names the proof that would validate it. The repaired vision runs in five gated stages; a failed proof stops its stage.
 
 **Reversal trigger.** An option's test passes its bar (A: 30%+ of 20 concierge athletes would pay and coaches agree on scores; B: an academy co-designs and pays; C: 20+ active console coaches). Then it gets its own ADR and build plan.
 

@@ -399,11 +399,65 @@ function validationSection(): HTMLElement {
       o.kill !== "—" ? h("div", { class: "text-xs" }, h("span", { class: "muted" }, "Kill if: "), o.kill) : "",
       h("div", { class: "text-xs mt-auto" }, refLink(o.ref)))));
 
-  const vision = h("ol", { class: "grid md:grid-cols-4 gap-3 [&>*]:min-w-0" }, ...validation.vision.map((v, i) =>
-    h("li", { class: "card p-4 flex flex-col gap-2", style: i === 0 ? "border-left:4px solid var(--good-ink)" : "" },
+  const vision = h("ol", { class: "grid md:grid-cols-3 xl:grid-cols-5 gap-3 [&>*]:min-w-0" }, ...validation.vision.map((v, i) => {
+    const ids = validation.claims.filter((c) => c.repair.stage === i + 1).map((c) => c.id);
+    return h("li", { class: "card p-4 flex flex-col gap-2", style: i === 0 ? "border-left:4px solid var(--good-ink)" : "" },
       h("div", { class: "state" }, v.stage),
       h("div", { class: "text-sm" }, v.what),
-      h("div", { class: "text-xs mt-auto" }, h("span", { class: "muted" }, "Gate: "), v.gate))));
+      ids.length ? h("div", { class: "text-xs" }, h("span", { class: "muted" }, "Repairs: "), h("span", { class: "font-mono" }, ids.join(" · "))) : "",
+      h("div", { class: "text-xs mt-auto" }, h("span", { class: "muted" }, "Gate: "), v.gate));
+  }));
+
+  // ── Claim repair plan ──
+  // [glyph, label, glyph colour (text-safe), bar fill (status palette)]
+  const GROUP_LABEL: Record<string, [string, string, string, string]> = {
+    holds: ["✓", "Holds", "var(--good-ink)", "var(--good)"],
+    test: ["◐", "Needs its proof", "var(--ink-2)", "var(--muted)"],
+    weak: ["✕", "Wrong or unsupported", "var(--bad-ink)", "var(--warning)"],
+    stop: ["⛔", "Red line", "var(--bad-ink)", "var(--critical)"],
+  };
+  const dist = (pick: (c: typeof validation.claims[number]) => string) => {
+    const m: Record<string, number> = { holds: 0, test: 0, weak: 0, stop: 0 };
+    for (const c of validation.claims) m[VERDICT[pick(c)]?.[2] ?? "test"]++;
+    return m;
+  };
+  const bar = (label: string, m: Record<string, number>) => {
+    const total = validation.claims.length;
+    const segs = h("div", { class: "flex gap-[2px] h-6 w-full", role: "img", "aria-label": `${label}: ${Object.entries(m).filter(([, n]) => n).map(([k, n]) => `${n} ${GROUP_LABEL[k][1].toLowerCase()}`).join(", ")}` },
+      ...Object.entries(m).filter(([, n]) => n).map(([k, n], i, arr) => h("div", {
+        title: `${GROUP_LABEL[k][1]}: ${n} of ${total}`,
+        style: `flex:${n};background:${GROUP_LABEL[k][3]};border-radius:${i === 0 ? "4px" : "0"} ${i === arr.length - 1 ? "4px 4px" : "0 0"} ${i === 0 ? "4px" : "0"}`,
+      })));
+    return h("div", { class: "flex flex-col gap-1" },
+      h("div", { class: "flex justify-between text-sm" }, h("span", { class: "font-semibold" }, label), h("span", { class: "muted text-xs" }, `${total} claims`)),
+      segs,
+      h("div", { class: "flex flex-wrap gap-x-4 text-xs ink-2" }, ...Object.entries(m).filter(([, n]) => n).map(([k, n]) => h("span", {}, h("span", { "aria-hidden": "true", style: `color:${GROUP_LABEL[k][2]}` }, GROUP_LABEL[k][0]), ` ${n} ${GROUP_LABEL[k][1].toLowerCase()}`))));
+  };
+  const repairRows = h("tbody", {});
+  for (const c of validation.claims) {
+    const r = c.repair;
+    const ev = h("div", { class: "mt-1" });
+    r.evidence.forEach((id) => ev.append(evidenceChip(id), " "));
+    repairRows.append(h("tr", {},
+      h("th", { scope: "row", class: "font-mono text-xs" }, c.id),
+      h("td", { "data-label": "Before → after" }, h("div", {}, verdictTag(c.verdict)), h("div", { "aria-hidden": "true", class: "muted text-xs" }, "↓"), h("div", {}, verdictTag(r.after))),
+      h("td", { "data-label": "Repair" }, h("div", { class: "state", title: validation.repairTypes[r.type] ?? "" }, r.type.replace("-", " ")), h("div", { class: "mt-1" }, r.fix)),
+      h("td", { "data-label": "Repaired claim" }, r.restated, r.evidence.length ? ev : ""),
+      h("td", { "data-label": "Proof that would validate it" }, r.proof, h("div", { class: "text-xs muted mt-1" }, `Stage ${r.stage}`))));
+  }
+  const repairTable = h("table", { class: "data vtable" },
+    h("thead", {}, h("tr", {}, ...["#", "Before → after", "Repair", "Repaired claim", "Proof that would validate it"].map((x) => h("th", { scope: "col" }, x)))),
+    repairRows);
+  const repair = h("div", { class: "flex flex-col gap-3" },
+    h("h3", { class: "font-semibold" }, "Claim repair plan"),
+    h("div", { class: "card p-5 flex flex-col gap-4" },
+      h("p", { class: "max-w-4xl" }, h("span", { class: "font-semibold" }, "Rule. "), validation.repairRule),
+      h("div", { class: "grid md:grid-cols-2 gap-5" }, bar("Before repair", dist((c) => c.verdict)), bar("After repair, before any test", dist((c) => c.repair.after))),
+      h("div", { class: "flex flex-wrap gap-x-5 gap-y-1 text-xs ink-2" }, ...Object.entries(validation.repairTypes).map(([k, v]) => h("span", {}, h("span", { class: "state" }, k.replace("-", " ")), ` ${v}`)))),
+    h("div", { class: "card p-5 overflow-x-auto" }, repairTable));
+  const pushback = h("div", { class: "card p-5", style: "border-left:4px solid var(--bad-ink)" },
+    h("h3", { class: "font-semibold mb-2" }, "Where this could go wrong"),
+    h("ul", { class: "flex flex-col gap-2 text-sm list-disc pl-5" }, ...validation.pushback.map((p) => h("li", {}, p))));
 
   const validated = h("ul", { class: "flex flex-col gap-2 text-sm" }, ...validation.validated.map((v) => {
     const src = h("span", {});
@@ -412,7 +466,7 @@ function validationSection(): HTMLElement {
   }));
 
   return h("section", { class: "flex flex-col gap-4" },
-    sectionTitle("validation", "Idea validation", `An expanded “super-app” narrative for PolySync, checked claim by claim against primary sources on ${validation.asOf}. Treated as hypotheses, not evidence.`),
+    sectionTitle("validation", "Idea validation", `An expanded “super-app” narrative for PolySync, checked claim by claim against primary sources on ${validation.asOf}, then repaired: each claim restated, narrowed or re-sequenced until it is testable. Treated as hypotheses, not evidence.`),
     h("div", { class: "card p-5", style: "border-left:4px solid var(--s1)" },
       h("div", { class: "state" }, "The verdict · ADR-011"),
       h("p", { class: "mt-2 text-lg font-semibold max-w-4xl leading-snug" }, validation.verdict.headline),
@@ -427,8 +481,10 @@ function validationSection(): HTMLElement {
       h("div", { class: "card p-5" }, h("h3", { class: "font-semibold mb-3" }, "What is validated"), validated),
       h("div", { class: "card p-5" }, h("h3", { class: "font-semibold mb-3" }, "Corrections to the narrative"), h("ul", { class: "flex flex-col gap-2 text-sm list-disc pl-5" }, ...validation.corrections.map((c) => h("li", {}, c))))),
     h("div", { class: "flex flex-col gap-2" }, h("h3", { class: "font-semibold" }, "One wedge, three gated options"), h("p", { class: "text-sm ink-2 max-w-3xl" }, "Each option has a cheap test and a kill criterion set before any data. Nothing moves to build until its test passes."), options),
-    h("div", { class: "flex flex-col gap-2" }, h("h3", { class: "font-semibold" }, "The vision, if the gates pass"), vision),
-    h("p", { class: "text-sm" }, h("a", { href: blob("product/idea-validation-vision.md") }, "Idea validation vision (full)"), " · ", h("a", { href: `${blob("docs/10-decision-log.md")}#adr-011-one-wedge-three-gated-options-the-super-app-expansion-is-not-the-plan` }, "ADR-011"), " · ", h("a", { href: blob("product/risk-register.md") }, "Risk REG-03 (UAE health-data localisation)")));
+    repair,
+    h("div", { class: "flex flex-col gap-2" }, h("h3", { class: "font-semibold" }, "The repaired vision"), h("p", { class: "text-sm ink-2 max-w-3xl" }, "Each stage pays for the next and produces the data it needs. A stage starts only when its gate passes."), vision),
+    pushback,
+    h("p", { class: "text-sm" }, h("a", { href: blob("product/idea-validation-vision.md") }, "Idea validation vision (full)"), " · ", h("a", { href: `${blob("product/idea-validation-vision.md")}#claim-repair-plan` }, "Claim repair plan"), " · ", h("a", { href: `${blob("docs/10-decision-log.md")}#adr-011-one-wedge-three-gated-options-the-super-app-expansion-is-not-the-plan` }, "ADR-011"), " · ", h("a", { href: blob("product/risk-register.md") }, "Risk REG-03 (UAE health-data localisation)")));
 }
 
 const STATUS_STYLE: Record<string, string> = { done: "var(--good-ink)", "in-progress": "var(--s1)", next: "var(--ink)", planned: "var(--ink-2)", gated: "var(--ink-2)", killed: "var(--bad-ink)" };

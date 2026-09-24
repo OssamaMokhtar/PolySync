@@ -20,41 +20,373 @@
     "red-line": "Legal or safety line; do not build"
   },
   "claims": [
-    { "id": "N1a", "narrative": "Hybrid athlete trend", "claim": "Google searches for 'hybrid athlete' tripled between Dec 2025 and Apr 2026", "check": "No source found for the figure", "verdict": "unverified", "evidence": [], "implication": "Drop it from any pitch. HYROX participation (MKT-001, MKT-005) is the verified demand signal." },
-    { "id": "N1b", "narrative": "Hybrid athlete trend", "claim": "The interference dogma is overturned: concurrent training doesn't impair strength or muscle", "check": "The 2022 meta-analysis (43 studies) finds no loss of hypertrophy or maximal strength, but explosive strength is attenuated (SMD -0.28), more so when both are trained in the same session", "verdict": "misread", "evidence": ["SCI-001", "SCI-002", "SCI-003", "SCI-004"], "implication": "This framing argues against PolySync. The accurate version, 'mostly compatible except power and timing', is why the engine exists (rules H1, H2)." },
-    { "id": "N2a", "narrative": "Martial-arts AI shadowing", "claim": "No app has solved martial-arts coaching; 0% of martial-arts gyms coach online", "check": "The 0% figure is not in the source it points to. Several AI martial-arts and boxing apps are already on the stores", "verdict": "contradicted", "evidence": ["COM-007"], "implication": "The gap is not that nobody built it; it is that it does not work well yet." },
-    { "id": "N2b", "narrative": "Martial-arts AI shadowing", "claim": "A phone camera scores a user's technique against elite practitioners in real time", "check": "A review of five AI boxing apps found identical feedback across different videos and about 10 of 70 punches tracked; a single camera cannot see weight transfer (reviewer sells a rival app). A review of Zing found its camera claims misleading", "verdict": "not-feasible", "evidence": ["COM-008", "COM-010"], "implication": "Camera scores that feel wrong widen the trust gap that is PolySync's differentiator. Test slow techniques (stances, forms, guard) before fast strikes." },
-    { "id": "N3", "narrative": "Global coach marketplace", "claim": "AI does 80% of coaching; a worldwide marketplace ranks coaches by credentials and outcomes", "check": "Market size and commission figures were not verified. Only 10% of fitness participants prefer an AI-created workout to a human-led one. Two-sided marketplaces face cold start and off-platform leakage; ranking by outcomes rewards picking easy clients", "verdict": "plausible", "evidence": ["MKT-008"], "implication": "It conflicts with ADR-009: the club is PolySync's coach supply. A global marketplace is a different company; sequence it after the console has active coaches." },
-    { "id": "N4", "narrative": "McKay athlete tiers", "claim": "Six scientific tiers (with population shares), assigned and updated automatically from performance data", "check": "The framework is real. The population table is invented and contradicts itself (Tier 5 is 'top 0.0006%' and '~0.5%'). Tiers are defined by training volume and competition level, which a camera cannot observe", "verdict": "misused", "evidence": ["SCI-009"], "implication": "Use it as a self-reported onboarding question. Drop the population table and camera-assigned tiers." },
-    { "id": "N5", "narrative": "Youth football 'golden ratio'", "claim": "Maldini averaged 0.56 challenges per game over his career; a Maldini-derived model tells a child '1.2 m too far from your mark'", "check": "Event-level tackle data covers at most the end of a 1985-2009 career, so a career average cannot have been measured. The 'Golden Index' is a team-statistics z-score, not a golden ratio. A single phone camera cannot measure distance to a mark in play. Camera-based youth football apps already exist", "verdict": "folklore", "evidence": ["COM-009"], "implication": "Separate buyer (parents and academies), separate data, separate law: children's privacy and a named player's image rights. Not part of PolySync's launch." },
-    { "id": "N6", "narrative": "Body-progress photos", "claim": "Users, including children, upload body photos for AI body-fat estimates and muscle grades", "check": "Body-fat numbers from photos are unmeasured numbers, and body-composition feedback is an eating-disorder risk. Children's photos add children's-privacy law", "verdict": "red-line", "evidence": [], "implication": "Conflicts with two product principles already shipped: never show an unmeasured number; eating-disorder topics are hard-blocked. Adults only, photos on device, no body-fat numbers, if ever." },
-    { "id": "N7", "narrative": "Vision model trained on social video", "claim": "Collect YouTube, Instagram and TikTok videos to train pose and technique models", "check": "YouTube's terms prohibit scraping; third-party AI training is off by default unless each creator opts in. Academic datasets do not grant commercial rights", "verdict": "red-line", "evidence": ["REG-004"], "implication": "License datasets or capture consented footage with partner clubs." },
-    { "id": "N8", "narrative": "Five-region launch", "claim": "Launch across the Gulf, USA, EU, LatAm and Asia with local compliance; UAE health data must stay in the UAE", "check": "The UAE law is real: Article 13 keeps health data in-country unless the health authority approves. Whether it reaches a wellness app is unsettled. Five regimes at once contradicts ADR-005 and ADR-006", "verdict": "real-constraint", "evidence": ["REG-003", "REG-001"], "implication": "Blind spot in our own plan: add Federal Law 2/2019 to the pilot's counsel questions (risk REG-03); plan UAE-region hosting or on-device processing." },
-    { "id": "N9", "narrative": "Unit economics", "claim": "$19.99/month consumer price with event-triggered voice coaching at about $6 per user per month", "check": "On the narrative's own numbers, voice alone is about 30% of the price, before app-store fees (15-30%), model calls and cloud GPUs for 3D replays", "verdict": "thin-margin", "evidence": [], "implication": "At the 2.9% download-to-paid median (ADR-010), acquisition cost must be near zero. Voice stays a later feature." }
+    {
+      "id": "N1a",
+      "narrative": "Hybrid athlete trend",
+      "claim": "Google searches for 'hybrid athlete' tripled between Dec 2025 and Apr 2026",
+      "check": "No source found for the figure",
+      "verdict": "unverified",
+      "evidence": [],
+      "implication": "Drop it from any pitch. HYROX participation (MKT-001, MKT-005) is the verified demand signal.",
+      "repair": {
+        "type": "restate",
+        "stage": 1,
+        "fix": "Replace the unsourced search figure with demand signals that can be proved: HYROX participation, a dated Google Trends export run and archived by us, and pilot waitlist sign-ups",
+        "restated": "Hybrid racing participation is growing, including in the UAE",
+        "after": "validated",
+        "evidence": [
+          "MKT-001",
+          "MKT-005",
+          "MKT-006"
+        ],
+        "proof": "Waitlist sign-up rate in the UAE pilot clubs"
+      }
+    },
+    {
+      "id": "N1b",
+      "narrative": "Hybrid athlete trend",
+      "claim": "The interference dogma is overturned: concurrent training doesn't impair strength or muscle",
+      "check": "The 2022 meta-analysis (43 studies) finds no loss of hypertrophy or maximal strength, but explosive strength is attenuated (SMD -0.28), more so when both are trained in the same session",
+      "verdict": "misread",
+      "evidence": [
+        "SCI-001",
+        "SCI-002",
+        "SCI-003",
+        "SCI-004"
+      ],
+      "implication": "This framing argues against PolySync. The accurate version, 'mostly compatible except power and timing', is why the engine exists (rules H1, H2).",
+      "repair": {
+        "type": "restate",
+        "stage": 1,
+        "fix": "State the science accurately: strength and endurance are mostly compatible, except explosive power and hard sessions close together. That is the engine's reason to exist",
+        "restated": "Concurrent training is mostly compatible, except power and session timing, which the engine manages",
+        "after": "validated",
+        "evidence": [
+          "SCI-001",
+          "SCI-002",
+          "SCI-003",
+          "SCI-004"
+        ],
+        "proof": "Already sourced; engine rules H1 and H2 enforce it in CI"
+      }
+    },
+    {
+      "id": "N2a",
+      "narrative": "Martial-arts AI shadowing",
+      "claim": "No app has solved martial-arts coaching; 0% of martial-arts gyms coach online",
+      "check": "The 0% figure is not in the source it points to. Several AI martial-arts and boxing apps are already on the stores",
+      "verdict": "contradicted",
+      "evidence": [
+        "COM-007"
+      ],
+      "implication": "The gap is not that nobody built it; it is that it does not work well yet.",
+      "repair": {
+        "type": "restate",
+        "stage": 2,
+        "fix": "Drop the 0% figure. The gap is trust, not absence: AI martial-arts apps exist, and reviews say their camera feedback feels wrong",
+        "restated": "AI martial-arts apps exist; the unmet need is feedback people trust",
+        "after": "plausible",
+        "evidence": [
+          "COM-007",
+          "COM-008",
+          "COM-010"
+        ],
+        "proof": "Review mining of the existing apps (the trust theme counted, as in the Phase 1 synthesis)"
+      }
+    },
+    {
+      "id": "N2b",
+      "narrative": "Martial-arts AI shadowing",
+      "claim": "A phone camera scores a user's technique against elite practitioners in real time",
+      "check": "A review of five AI boxing apps found identical feedback across different videos and about 10 of 70 punches tracked; a single camera cannot see weight transfer (reviewer sells a rival app). A review of Zing found its camera claims misleading",
+      "verdict": "not-feasible",
+      "evidence": [
+        "COM-008",
+        "COM-010"
+      ],
+      "implication": "Camera scores that feel wrong widen the trust gap that is PolySync's differentiator. Test slow techniques (stances, forms, guard) before fast strikes.",
+      "repair": {
+        "type": "narrow",
+        "stage": 2,
+        "fix": "Score slow skills only (stances, guard, forms), with the club coach as the judge and the camera as an aid. Fast strikes wait for a second camera or a wearable motion sensor",
+        "restated": "A club coach scores slow techniques from phone video, assisted by pose overlays",
+        "after": "plausible",
+        "evidence": [],
+        "proof": "Option A concierge test: 30%+ of 20 athletes would pay, and two coaches agree on the same clip"
+      }
+    },
+    {
+      "id": "N3",
+      "narrative": "Global coach marketplace",
+      "claim": "AI does 80% of coaching; a worldwide marketplace ranks coaches by credentials and outcomes",
+      "check": "Market size and commission figures were not verified. Only 10% of fitness participants prefer an AI-created workout to a human-led one. Two-sided marketplaces face cold start and off-platform leakage; ranking by outcomes rewards picking easy clients",
+      "verdict": "plausible",
+      "evidence": [
+        "MKT-008"
+      ],
+      "implication": "It conflicts with ADR-009: the club is PolySync's coach supply. A global marketplace is a different company; sequence it after the console has active coaches.",
+      "repair": {
+        "type": "resequence",
+        "stage": 4,
+        "fix": "Seed supply from coaches already on the console; charge a SaaS fee plus a booking fee to limit leakage; rank by outcomes adjusted for each athlete's starting level, not raw results",
+        "restated": "Console coaches can take athletes outside their club, ranked by credentials and risk-adjusted outcomes",
+        "after": "plausible",
+        "evidence": [
+          "MKT-008"
+        ],
+        "proof": "20+ active console coaches; athlete-coach pairs stay on-platform"
+      }
+    },
+    {
+      "id": "N4",
+      "narrative": "McKay athlete tiers",
+      "claim": "Six scientific tiers (with population shares), assigned and updated automatically from performance data",
+      "check": "The framework is real. The population table is invented and contradicts itself (Tier 5 is 'top 0.0006%' and '~0.5%'). Tiers are defined by training volume and competition level, which a camera cannot observe",
+      "verdict": "misused",
+      "evidence": [
+        "SCI-009"
+      ],
+      "implication": "Use it as a self-reported onboarding question. Drop the population table and camera-assigned tiers.",
+      "repair": {
+        "type": "narrow",
+        "stage": 2,
+        "fix": "Ask the tier at onboarding; update it from logged training volume and competition level, which the app already records. Delete the invented population table",
+        "restated": "Athletes self-report a McKay tier; the app suggests changes from logged volume and competition level",
+        "after": "plausible",
+        "evidence": [
+          "SCI-009"
+        ],
+        "proof": "Self-reported tier matches the coach's assessment for most pilot athletes"
+      }
+    },
+    {
+      "id": "N5",
+      "narrative": "Youth football 'golden ratio'",
+      "claim": "Maldini averaged 0.56 challenges per game over his career; a Maldini-derived model tells a child '1.2 m too far from your mark'",
+      "check": "Event-level tackle data covers at most the end of a 1985-2009 career, so a career average cannot have been measured. The 'Golden Index' is a team-statistics z-score, not a golden ratio. A single phone camera cannot measure distance to a mark in play. Camera-based youth football apps already exist",
+      "verdict": "folklore",
+      "evidence": [
+        "COM-009"
+      ],
+      "implication": "Separate buyer (parents and academies), separate data, separate law: children's privacy and a named player's image rights. Not part of PolySync's launch.",
+      "repair": {
+        "type": "new-method",
+        "stage": 3,
+        "fix": "Drop the named player and the statistic. Academy coaches teach defensive positioning principles, with licensed event data and consent owned by the academy",
+        "restated": "An academy product that helps coaches teach positioning, with consent, licensed data and no named-player likeness",
+        "after": "plausible",
+        "evidence": [
+          "COM-009"
+        ],
+        "proof": "Option B: one academy co-designs and pays"
+      }
+    },
+    {
+      "id": "N6",
+      "narrative": "Body-progress photos",
+      "claim": "Users, including children, upload body photos for AI body-fat estimates and muscle grades",
+      "check": "Body-fat numbers from photos are unmeasured numbers, and body-composition feedback is an eating-disorder risk. Children's photos add children's-privacy law",
+      "verdict": "red-line",
+      "evidence": [],
+      "implication": "Conflicts with two product principles already shipped: never show an unmeasured number; eating-disorder topics are hard-blocked. Adults only, photos on device, no body-fat numbers, if ever.",
+      "repair": {
+        "type": "new-method",
+        "stage": 5,
+        "fix": "Adults only; photos never leave the device and are shown only as a private side-by-side, with no numbers; progress numbers come from measured inputs (tape, smart scale). Never children",
+        "restated": "Adults can keep private, on-device progress photos without any estimated numbers",
+        "after": "plausible",
+        "evidence": [],
+        "proof": "Clinician sign-off on the flow; no rise in eating-disorder safety flags in a limited release"
+      }
+    },
+    {
+      "id": "N7",
+      "narrative": "Vision model trained on social video",
+      "claim": "Collect YouTube, Instagram and TikTok videos to train pose and technique models",
+      "check": "YouTube's terms prohibit scraping; third-party AI training is off by default unless each creator opts in. Academic datasets do not grant commercial rights",
+      "verdict": "red-line",
+      "evidence": [
+        "REG-004"
+      ],
+      "implication": "License datasets or capture consented footage with partner clubs.",
+      "repair": {
+        "type": "new-method",
+        "stage": 2,
+        "fix": "Licensed datasets, footage captured with consent at partner clubs, and a creator programme with paid, opt-in licences",
+        "restated": "Technique models are trained only on licensed or consented footage",
+        "after": "plausible",
+        "evidence": [
+          "REG-004"
+        ],
+        "proof": "A signed data licence and a consent log that survives an audit"
+      }
+    },
+    {
+      "id": "N8",
+      "narrative": "Five-region launch",
+      "claim": "Launch across the Gulf, USA, EU, LatAm and Asia with local compliance; UAE health data must stay in the UAE",
+      "check": "The UAE law is real: Article 13 keeps health data in-country unless the health authority approves. Whether it reaches a wellness app is unsettled. Five regimes at once contradicts ADR-005 and ADR-006",
+      "verdict": "real-constraint",
+      "evidence": [
+        "REG-003",
+        "REG-001"
+      ],
+      "implication": "Blind spot in our own plan: add Federal Law 2/2019 to the pilot's counsel questions (risk REG-03); plan UAE-region hosting or on-device processing.",
+      "repair": {
+        "type": "resequence",
+        "stage": 1,
+        "fix": "One region per gate: UAE first with in-country hosting or on-device processing, then KSA, then the EU, then the US",
+        "restated": "PolySync launches in the UAE with health data kept in-country, and adds regions one at a time",
+        "after": "plausible",
+        "evidence": [
+          "REG-003",
+          "REG-001"
+        ],
+        "proof": "Counsel's opinion on Federal Law 2/2019 for a wellness app; UAE-region hosting in place before the pilot"
+      }
+    },
+    {
+      "id": "N9",
+      "narrative": "Unit economics",
+      "claim": "$19.99/month consumer price with event-triggered voice coaching at about $6 per user per month",
+      "check": "On the narrative's own numbers, voice alone is about 30% of the price, before app-store fees (15-30%), model calls and cloud GPUs for 3D replays",
+      "verdict": "thin-margin",
+      "evidence": [],
+      "implication": "At the 2.9% download-to-paid median (ADR-010), acquisition cost must be near zero. Voice stays a later feature.",
+      "repair": {
+        "type": "reprice",
+        "stage": 1,
+        "fix": "Voice becomes pre-recorded cues or on-device speech; revenue leads with the club tier, where acquisition cost is near zero",
+        "restated": "Club-led pricing with low-cost voice keeps gross margin healthy",
+        "after": "plausible",
+        "evidence": [],
+        "proof": "Gross margin at pilot volume against a 70% target (our target, a hypothesis)"
+      }
+    }
   ],
   "validated": [
-    { "finding": "Strength and endurance interfere where it matters for athletes: power, and hard sessions close together", "evidence": ["SCI-003", "SCI-004", "SCI-005"] },
-    { "finding": "The engine blocks every unsafe plan in the eval set (7,877 of 7,877) and routes it to a coach", "evidence": ["OWN-001"] },
-    { "finding": "People want humans in their training: only 10% prefer an AI-created workout", "evidence": ["MKT-008"] },
-    { "finding": "Demand for hybrid racing is real and growing, including in the UAE", "evidence": ["MKT-001", "MKT-005", "MKT-006"] },
-    { "finding": "Consumer hybrid schedulers already exist at $9-10 a month, so the scheduler is not the moat", "evidence": ["COM-001", "COM-002", "COM-003"] }
+    {
+      "finding": "Strength and endurance interfere where it matters for athletes: power, and hard sessions close together",
+      "evidence": [
+        "SCI-003",
+        "SCI-004",
+        "SCI-005"
+      ]
+    },
+    {
+      "finding": "The engine blocks every unsafe plan in the eval set (7,877 of 7,877) and routes it to a coach",
+      "evidence": [
+        "OWN-001"
+      ]
+    },
+    {
+      "finding": "People want humans in their training: only 10% prefer an AI-created workout",
+      "evidence": [
+        "MKT-008"
+      ]
+    },
+    {
+      "finding": "Demand for hybrid racing is real and growing, including in the UAE",
+      "evidence": [
+        "MKT-001",
+        "MKT-005",
+        "MKT-006"
+      ]
+    },
+    {
+      "finding": "Consumer hybrid schedulers already exist at $9-10 a month, so the scheduler is not the moat",
+      "evidence": [
+        "COM-001",
+        "COM-002",
+        "COM-003"
+      ]
+    }
   ],
   "options": [
-    { "id": "CORE", "track": "PolySync: hybrid engine + coach console, UAE pilot", "status": "build", "test": "The pilot as designed: 3 HYROX clubs, 8 weeks", "kill": "The pilot pass bars (checked in CI)", "ref": "product/pilot-plan.md" },
-    { "id": "A", "track": "Technique drills for slow skills (stances, forms, guard), delivered through club coaches", "status": "test", "test": "Two-week concierge test: 20 athletes film shadowing; a human coach scores it; then ask them to pay", "kill": "Fewer than 30% would pay, or two coaches disagree on the same clip", "ref": "ADR-011" },
-    { "id": "B", "track": "Youth football through academies (the academy handles consent, not the app)", "status": "test", "test": "Two academy interviews and a letter of intent", "kill": "No academy will co-design or pay", "ref": "ADR-011" },
-    { "id": "C", "track": "Coach marketplace beyond clubs", "status": "wait", "test": "Only after 20+ coaches actively use the console", "kill": "Coaches will not list, or athlete-coach pairs leave the platform", "ref": "ADR-011" },
-    { "id": "X", "track": "Social-video scraping, body-fat from photos, a named player's likeness, five regions at once", "status": "dont", "test": "—", "kill": "—", "ref": "ADR-011" }
+    {
+      "id": "CORE",
+      "track": "PolySync: hybrid engine + coach console, UAE pilot",
+      "status": "build",
+      "test": "The pilot as designed: 3 HYROX clubs, 8 weeks",
+      "kill": "The pilot pass bars (checked in CI)",
+      "ref": "product/pilot-plan.md"
+    },
+    {
+      "id": "A",
+      "track": "Technique drills for slow skills (stances, forms, guard), delivered through club coaches",
+      "status": "test",
+      "test": "Two-week concierge test: 20 athletes film shadowing; a human coach scores it; then ask them to pay",
+      "kill": "Fewer than 30% would pay, or two coaches disagree on the same clip",
+      "ref": "ADR-011"
+    },
+    {
+      "id": "B",
+      "track": "Youth football through academies (the academy handles consent, not the app)",
+      "status": "test",
+      "test": "Two academy interviews and a letter of intent",
+      "kill": "No academy will co-design or pay",
+      "ref": "ADR-011"
+    },
+    {
+      "id": "C",
+      "track": "Coach marketplace beyond clubs",
+      "status": "wait",
+      "test": "Only after 20+ coaches actively use the console",
+      "kill": "Coaches will not list, or athlete-coach pairs leave the platform",
+      "ref": "ADR-011"
+    },
+    {
+      "id": "X",
+      "track": "Social-video scraping, body-fat from photos, a named player's likeness, five regions at once",
+      "status": "dont",
+      "test": "—",
+      "kill": "—",
+      "ref": "ADR-011"
+    }
   ],
   "vision": [
-    { "stage": "1 · Now", "what": "The coach console and athlete app on the hybrid engine, in UAE HYROX clubs", "gate": "Pilot pass bars" },
-    { "stage": "2 · If A passes", "what": "Technique drills for slow skills, scored by the club's coach with the camera as an aid, not a judge", "gate": "Concierge test: 30%+ willing to pay; coaches agree on scores" },
-    { "stage": "3 · If B passes", "what": "An academy product for youth football, with consent, licensed data and no named-player likeness", "gate": "One academy co-designs and pays" },
-    { "stage": "4 · When the console has 20+ active coaches", "what": "Coaches outside clubs can list; ranking by credentials and risk-adjusted outcomes", "gate": "Coach and athlete retention on-platform" }
+    {
+      "stage": "1 · Core (now)",
+      "what": "The coach console and athlete app on the hybrid engine, in UAE HYROX clubs, with health data kept in-country and club-led pricing",
+      "gate": "Pilot pass bars"
+    },
+    {
+      "stage": "2 · Technique layer",
+      "what": "Technique drills for slow skills, scored by the club's coach with the camera as an aid; self-reported athlete tiers; a consented, licensed footage dataset",
+      "gate": "Option A: 30%+ willing to pay; coaches agree on scores"
+    },
+    {
+      "stage": "3 · Academies",
+      "what": "An academy product for youth football, with consent, licensed data and no named-player likeness",
+      "gate": "Option B: one academy co-designs and pays"
+    },
+    {
+      "stage": "4 · Network",
+      "what": "Console coaches can list beyond their club, ranked by credentials and risk-adjusted outcomes; KSA, then the EU",
+      "gate": "Option C: 20+ active console coaches; pairs stay on-platform"
+    },
+    {
+      "stage": "5 · Body progress",
+      "what": "Adults-only, on-device progress photos with no estimated numbers",
+      "gate": "Clinician sign-off; no rise in eating-disorder flags"
+    }
   ],
   "corrections": [
     "The product name is PolySync, not 'Polysynce'.",
     "HIPAA applies to covered entities and their business associates, not to health data in general; PolySync treats it as not applicable (operating decision, counsel to confirm).",
     "Race claims such as 'first' or 'only' need a source; several competitors exist in every vertical the narrative names."
+  ],
+  "repairRule": "Every claim has a repair path. Restating a claim does not validate it: a repaired claim counts as validated only when its evidence exists or its proof is observed. Tests decide; if a repair's proof fails, that line of the vision stops.",
+  "repairTypes": {
+    "restate": "Say what the evidence supports",
+    "narrow": "Keep the idea, shrink it to what works",
+    "new-method": "Keep the goal, change how it is done",
+    "resequence": "Keep it, do it later or one step at a time",
+    "reprice": "Keep it, change the economics"
+  },
+  "pushback": [
+    "Motivated reasoning: repairing claims to fit a vision decided in advance. The repair proofs are set before any data, and a failed proof stops that stage.",
+    "Capacity, not claims, is the binding limit: the repaired vision is still five businesses for one engineer. Stages run in sequence unless funding adds a team.",
+    "Body progress comes last on purpose: highest harm, lowest differentiation."
   ]
 }

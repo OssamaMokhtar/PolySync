@@ -21,7 +21,8 @@ export interface RoadmapItem { title: string; ref: string; status: string; why?:
 export const roadmap = roadmapFile as unknown as { rule: string; horizons: { id: string; label: string; window: string; items: RoadmapItem[] }[] };
 export const pilotStatus = pilotStatusFile as unknown as { state: string; note: string; bars: { n: number; status: string; observed: string | number | null; source: string | null }[] };
 
-export interface ValidationClaim { id: string; narrative: string; claim: string; check: string; verdict: string; evidence: string[]; implication: string }
+export interface ClaimRepair { type: string; stage: number; fix: string; restated: string; after: string; evidence: string[]; proof: string }
+export interface ValidationClaim { id: string; narrative: string; claim: string; check: string; verdict: string; evidence: string[]; implication: string; repair: ClaimRepair }
 export interface ValidationOption { id: string; track: string; status: "build" | "test" | "wait" | "dont"; test: string; kill: string; ref: string }
 export const validation = validationFile as unknown as {
   asOf: string; title: string; input: string;
@@ -32,6 +33,9 @@ export const validation = validationFile as unknown as {
   options: ValidationOption[];
   vision: { stage: string; what: string; gate: string }[];
   corrections: string[];
+  repairRule: string;
+  repairTypes: Record<string, string>;
+  pushback: string[];
 };
 
 export const REPO = "https://github.com/OssamaMokhtar/PolySync";

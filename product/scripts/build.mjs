@@ -153,6 +153,19 @@ for (const v of validation.validated) {
   if (!v.evidence.length) errors.push(`validation finding '${v.finding}': needs evidence`);
   for (const id of v.evidence) if (!E.has(id)) errors.push(`validation finding '${v.finding}': unknown evidence ${id}`);
 }
+const REPAIR_TYPES = Object.keys(validation.repairTypes ?? {});
+for (const c of validation.claims) {
+  const r = c.repair;
+  if (!r) { errors.push(`validation ${c.id}: every claim needs a repair path`); continue; }
+  if (!REPAIR_TYPES.includes(r.type)) errors.push(`validation ${c.id}: repair type '${r.type}' must be one of ${REPAIR_TYPES.join("/")}`);
+  if (!validation.verdictScale[r.after]) errors.push(`validation ${c.id}: repaired verdict '${r.after}' is not on the scale`);
+  if (!Number.isInteger(r.stage) || r.stage < 1 || r.stage > validation.vision.length) errors.push(`validation ${c.id}: repair stage ${r.stage} is not a vision stage`);
+  for (const id of r.evidence) if (!E.has(id)) errors.push(`validation ${c.id}: repair cites unknown evidence ${id}`);
+  // Restating a claim does not validate it: "validated" after repair needs evidence.
+  if (r.after === "validated" && r.evidence.length === 0) errors.push(`validation ${c.id}: a repaired claim marked validated needs evidence`);
+  if (["red-line", "unverified", "folklore", "contradicted", "not-feasible"].includes(r.after)) errors.push(`validation ${c.id}: a repair must leave a claim testable, not '${r.after}'`);
+  if (!r.proof) errors.push(`validation ${c.id}: a repair needs a proof that would validate it`);
+}
 for (const o of validation.options) {
   if (!OPTION_STATUS.includes(o.status)) errors.push(`validation option ${o.id}: status must be one of ${OPTION_STATUS.join("/")}`);
   if (!refOk(o.ref)) errors.push(`validation option ${o.id}: reference ${o.ref} does not resolve`);
@@ -351,7 +364,14 @@ iv += `\n**Verdict scale.** ${Object.entries(validation.verdictScale).map(([k, v
 iv += `## What is validated\n\n${validation.validated.map((v) => `- ${v.finding} (${src(v.evidence)})`).join("\n")}\n\n`;
 iv += `## One wedge, three gated options (ADR-011)\n\n| Track | Decision | Cheapest test before code | Kill criterion |\n|---|---|---|---|\n`;
 for (const o of validation.options) iv += `| **${o.id}** · ${o.track} | ${STATUS_WORD[o.status]} | ${o.test} | ${o.kill} |\n`;
-iv += `\n## The vision, if the gates pass\n\n| Stage | What PolySync becomes | Gate |\n|---|---|---|\n${validation.vision.map((v) => `| ${v.stage} | ${v.what} | ${v.gate} |`).join("\n")}\n\n`;
+const tally = (key) => Object.entries(validation.claims.reduce((m, c) => ((m[key(c)] = (m[key(c)] ?? 0) + 1), m), {})).map(([k, n]) => `${n} ${k}`).join(", ");
+iv += `\n## Claim repair plan\n\n${validation.repairRule}\n\n`;
+iv += `**Before repair:** ${tally((c) => c.verdict)}. **After repair, before any test:** ${tally((c) => c.repair.after)}. No claim is left wrong or over a red line; nine still need their proof.\n\n`;
+iv += `**Repair types.** ${Object.entries(validation.repairTypes).map(([k, v]) => `**${k}**: ${v}.`).join(" ")}\n\n`;
+iv += `| # | Before | Repair | Type | Repaired claim | After | Proof that would validate it | Stage |\n|---|---|---|---|---|---|---|---|\n`;
+for (const c of validation.claims) { const r = c.repair; iv += `| ${c.id} | ${VERDICT_MARK[c.verdict] ?? ""} ${c.verdict} | ${r.fix} | ${r.type} | ${r.restated}${r.evidence.length ? ` (${src(r.evidence)})` : ""} | ${VERDICT_MARK[r.after] ?? ""} **${r.after}** | ${r.proof} | ${r.stage} |\n`; }
+iv += `\n## The repaired vision\n\nEach stage pays for the next and produces the data it needs. A stage starts only when its gate passes.\n\n| Stage | What PolySync becomes | Claims repaired here | Gate |\n|---|---|---|---|\n${validation.vision.map((v, i) => `| ${v.stage} | ${v.what} | ${validation.claims.filter((c) => c.repair.stage === i + 1).map((c) => c.id).join(", ") || "—"} | ${v.gate} |`).join("\n")}\n\n`;
+iv += `## Where this could go wrong\n\n${validation.pushback.map((p) => `- ${p}`).join("\n")}\n\n`;
 iv += `## Corrections to the input narrative\n\n${validation.corrections.map((c) => `- ${c}`).join("\n")}\n\n`;
 iv += `## Where this lives\n\n- Data: [validation.json](data/validation.json) and new evidence in [evidence.json](data/evidence.json)\n- Decision: [ADR-011](../docs/10-decision-log.md#adr-011-one-wedge-three-gated-options-the-super-app-expansion-is-not-the-plan)\n- Risk: REG-03 in the [risk register](risk-register.md)\n- Roadmap: options and not-planned items in the [roadmap](roadmap.md)\n- ProjectOS: the Validation section\n`;
 
