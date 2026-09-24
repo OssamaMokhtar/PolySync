@@ -2,7 +2,7 @@ name: ProjectOS (GitHub Pages)
 
 # Builds portal/ (one self-contained HTML file generated from product/data,
 # evals/results and docs) and publishes it to
-# https://ossamamokhtar.github.io/PolySync/ . Requires Settings -> Pages ->
+# https://ossamamokhtar.github.io/PolySync/ , with the prototype at /prototype/ . Requires Settings -> Pages ->
 # Source: GitHub Actions.
 
 on:
@@ -37,6 +37,9 @@ jobs:
       - name: Build portal
         working-directory: portal
         run: npm ci && npm run build
+      - name: Build the prototype into /prototype/
+        working-directory: prototype
+        run: npm ci && npm run build && mkdir -p ../portal/dist/prototype && cp dist/index.html ../portal/dist/prototype/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

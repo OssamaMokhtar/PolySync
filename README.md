@@ -2,7 +2,7 @@
 
 **AI coaching for hybrid athletes, where the model can propose but never prescribe.** B2B2C: clubs buy coach capacity; a human coach handles what the engine cannot resolve.
 
-**[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · [One-page PRD](product/prd.md) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Competitive landscape](product/competitive-landscape.md) · [Roadmap](product/roadmap.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
+**[Open ProjectOS](https://ossamamokhtar.github.io/PolySync/)** (interactive: runs the real engine in your browser) · **[Athlete app prototype](https://ossamamokhtar.github.io/PolySync/prototype/)** · [One-page PRD](product/prd.md) · [Case study](product/case-study.md) · [Strategy](product/strategy.md) · [Competitive landscape](product/competitive-landscape.md) · [Roadmap](product/roadmap.md) · [Financial model](product/financial-model.md) · [Pilot plan](product/pilot-plan.md)
 
 **Architecture docs:** [full set](docs/README.md) · [status](docs/00-unified-product-status.md) · [system architecture](docs/01-system-architecture.md) · [AI architecture](docs/04-ai-architecture.md) · [hybrid engine](docs/12-hybrid-athlete-programming-engine.md) · [evaluation](docs/07-evaluation-and-evidence.md) · [security](docs/08-security-and-deployment.md) · [decision log](docs/10-decision-log.md) · [UX review](docs/13-ux-review.md) · [gaps](docs/GAPS.md)
 
@@ -100,7 +100,7 @@ flowchart LR
 | Engine: single-modality plans + bounds checker (B1–B9) | **Built**, enforced on the plan route |
 | Engine: hybrid scheduling (H1–H9), adaptation (move, make easy, escalate), API (`/api/hybrid/week`, `/adapt`) | **Built** 24 Sep 2026; literature parameters, **not coach-signed** |
 | API: verified Firebase ID tokens, validated inputs, per-user rate limit, JSON event logs; production boot check | **Built** 24 Sep 2026 (the server used to trust a client header and crashed on boot) |
-| Coach console; athlete app on the hybrid engine | **Not yet** in `app/` (GAPS #13, #16). First athlete screen (Load, polished from Claude Design) runs on the engine in [ProjectOS](https://ossamamokhtar.github.io/PolySync/); acceptance criteria in the [UX review](docs/13-ux-review.md) |
+| Coach console; athlete app on the hybrid engine | **Not yet** in `app/` (GAPS #13, #16, #18). The redesigned athlete app runs on the engine as a [high-fidelity prototype](prototype/README.md): onboarding to first set in 13 taps, the daily loop, the AI coach and the safety path, with axe WCAG 2.2 AA, 44 px targets and 200% text checked in CI |
 | Server data access in production | **Blocked**: client SDK without credentials (GAPS #12, P0 before the pilot) |
 | Model-in-the-loop evals, coach minutes, users | **Not measured**; the [pilot](product/pilot-plan.md) measures coach minutes and users |
 
@@ -113,6 +113,7 @@ npm run eval             # safety-layer + hybrid-layer evals (non-zero exit on a
 npm run build && npm run boot-check
 node ../product/scripts/build.mjs --check      # product layer
 cd ../portal && npm install && npm run dev     # ProjectOS on localhost
+cd ../prototype && npm install && npm run dev  # athlete app prototype
 ```
 
 ## Repository layout
@@ -124,8 +125,9 @@ cd ../portal && npm install && npm run dev     # ProjectOS on localhost
 | `evals/` | Safety-layer and hybrid-layer eval runners and results |
 | `product/` | Strategy, evidence, model, risks, telemetry, pilot, case study |
 | `portal/` | ProjectOS: one self-contained HTML file, deployed to GitHub Pages |
+| `prototype/` | Athlete app prototype (React, one HTML file) on the production engine and the PolySync design tokens; deployed at `/prototype/` |
 
-CI: [`ci.yml`](.github/workflows/ci.yml) (strict engine typecheck, type-error ratchet, tests, evals, build, boot check, bundle and identity checks, portal build) · [`docs.yml`](.github/workflows/docs.yml) (links, Mermaid, status lines, product layer) · [`pages.yml`](.github/workflows/pages.yml) (ProjectOS deploy).
+CI: [`ci.yml`](.github/workflows/ci.yml) (strict engine typecheck, type-error ratchet, tests, evals, build, boot check, bundle and identity checks, portal build, prototype tests + build + end-to-end accessibility run) · [`docs.yml`](.github/workflows/docs.yml) (links, Mermaid, status lines, product layer) · [`pages.yml`](.github/workflows/pages.yml) (ProjectOS deploy).
 
 ---
 

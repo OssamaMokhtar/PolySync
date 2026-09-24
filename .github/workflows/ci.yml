@@ -102,3 +102,30 @@ jobs:
           test -f dist/index.html
           if grep -oE '<script[^>]+src="https?://' dist/index.html; then echo "::error::external script in portal"; exit 1; fi
 
+
+  prototype:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prototype
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: prototype/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Adapter and safety-detector tests (G1–G7, engine invariants)
+        run: npm test
+      - name: Typecheck and build (compiles the production engine into one file)
+        run: npm run build
+      - name: Single self-contained file, no third-party scripts
+        run: |
+          test -f dist/index.html
+          if grep -oE '<script[^>]+src="https?://' dist/index.html; then echo "::error::external script in prototype"; exit 1; fi
+      - name: Install Chromium for the end-to-end run
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end acceptance (flows, axe WCAG 2.2 AA, 44 px targets, overflow; dark and light)
+        run: npm run e2e

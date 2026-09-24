@@ -294,6 +294,7 @@ function appSection(): HTMLElement {
   t.append(h("tbody", {}, ...BEFORE_AFTER.map(([a, b, c]) => h("tr", {}, h("td", { class: "ink-2" }, a), h("td", {}, b), h("td", { class: "text-sm ink-2" }, c)))));
   return h("section", { class: "flex flex-col gap-4" },
     sectionTitle("athlete", "Athlete app: Load", "Polished from the “Body Impact” exploration in Claude Design. It runs the same engine as the demo above: tap a day to lower readiness and watch the week, the body map and “What changed” update."),
+    h("p", { class: "text-sm" }, "The whole athlete app, from onboarding to first set, the daily loop, the AI coach and the safety path, is in the ", h("a", { href: "./prototype/" }, "high-fidelity prototype"), ", built on the same engine and the PolySync design tokens."),
     h("div", { class: "grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)] gap-6 items-start [&>*]:min-w-0" },
       loadMapScreen(),
       h("div", { class: "flex flex-col gap-4" },
