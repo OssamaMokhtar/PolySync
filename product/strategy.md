@@ -57,6 +57,7 @@ Vendor features are as the vendors state them; we did not use the products ([lan
 
 - **Unit:** per active athlete-month, billed to the club.
 - **Level:** $8 (AED 29) is a hypothesis, bounded by delivery software below and consumer apps above. The pilot LOIs test it (pass bar ≥ $5).
+- **Athlete tier (ADR-010):** freemium, sold directly. Price not set yet: it is designed against the $9–10 consumer hybrid apps (COM-001, COM-002) and must beat the 2.9% Health & Fitness download-to-paid median.
 - **Pitch by market** (model output, base case):
 
   | Market | Pitch | Club ROI | Coach capacity |
@@ -74,9 +75,9 @@ Vendor features are as the vendors state them; we did not use the products ([lan
 
 ## 8. Non-goals
 
-- A consumer app.
+- A consumer app with its own, lighter logic. The athlete tier (ADR-010) runs on the same engine and safety layer as the club tier.
 - Clinical or rehab populations.
-- General fitness plans.
+- Plans from outside the engine: every plan, in either tier, comes from the engine and passes the rules.
 - Wearable-first features.
 - Any injury-prevention or performance claim that has not been measured (ADR-007).
 

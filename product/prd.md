@@ -40,7 +40,7 @@ The engine prescribes; the model proposes and explains; the coach handles what n
 
 ## Non-goals
 
-A consumer tier, clinical or rehab populations, wearable-first features, any injury-prevention or performance claim not measured ([ADR-007](../docs/10-decision-log.md)), and a managed coaching service.
+The athlete tier in this pilot release (it follows under ADR-010), clinical or rehab populations, wearable-first features, any injury-prevention or performance claim not measured ([ADR-007](../docs/10-decision-log.md)), and a managed coaching service.
 
 ## Top risks
 

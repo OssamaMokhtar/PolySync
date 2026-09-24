@@ -58,7 +58,7 @@ An earlier cut of this finding said 62% of amber days escalate to a coach. An ad
 
 ## The market finding
 
-Three consumer apps at $9–10 a month already claim interference-aware hybrid scheduling ([landscape](product/competitive-landscape.md)). So PolySync does not sell the scheduler. It sells what none of the 11 products checked combine: a club buyer, a coach who reviews what the software cannot resolve, and rules plus safety evals a club can audit. The next build is the coach console ([ADR-009](docs/10-decision-log.md#adr-009-sell-the-coach-console-and-the-audit-trail-not-the-scheduler)).
+Three consumer apps at $9–10 a month already claim interference-aware hybrid scheduling ([landscape](product/competitive-landscape.md)). So PolySync does not sell the scheduler. It sells what none of the 11 products checked combine: a club buyer, a coach who reviews what the software cannot resolve, and rules plus safety evals a club can audit. The next build is the coach console ([ADR-009](docs/10-decision-log.md#adr-009-sell-the-coach-console-and-the-audit-trail-not-the-scheduler)). A freemium athlete app runs alongside the club tier on the same engine and safety layer, and competes on trust rather than scheduling ([ADR-010](docs/10-decision-log.md#adr-010-two-tiers-a-freemium-athlete-app-alongside-the-club-tier)).
 
 ## Product layer
 

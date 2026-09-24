@@ -18,6 +18,8 @@ Each ADR states what was rejected and the measurable condition that would revers
 
 **Consequences.** Makes coach console quality a revenue dependency, not a nice-to-have. Makes athlete engagement necessary but not sufficient — renewal is an org decision.
 
+**Amended by ADR-010 (2026-09-24):** a freemium athlete app now runs alongside the club tier, on the same engine and safety layer.
+
 **Reversal trigger.** Sales cycle exceeds TBD months at median, or org-level renewal falls below TBD% while athlete engagement holds — that combination means the value is landing on athletes and the wrong party is being asked to pay.
 
 ---
@@ -170,10 +172,32 @@ Each ADR states what was rejected and the measurable condition that would revers
 3. The scheduler stays open (rules and evals published). It earns trust; it is not the moat.
 
 **Rejected.**
-- A consumer tier to compete at $9–10: no coach, no club, no differentiation.
+- A consumer tier to compete at $9–10 *on scheduling*: no coach, no club, no differentiation. (ADR-010 later added an athlete tier that competes on trust and safety instead.)
 - Out-featuring consumer apps on scheduling: they ship faster and it does not change who pays.
 
 **Reversal trigger.** A coach platform ships interference-aware scheduling with coach review and published rules. Then the moat is only coach-signed protocols and outcome data (strategy §5), and the price must be re-tested.
+
+## ADR-010: Two tiers: a freemium athlete app alongside the club tier
+
+**Status:** Accepted 2026-09-24 · Owner: Ossama Mokhtar · Amends ADR-001 (direct-to-consumer was rejected) and ADR-009 (a consumer tier was rejected)
+
+**Context.** The design engagement ([polysync-design-system](https://github.com/OssamaMokhtar/polysync-design-system), Phase 1) set its KPIs as time to first workout, D7/D30 retention, AI trust and paywall conversion. The last three need a direct athlete relationship. The same research found that consumer AI coaches lose trust over invented data and surprise billing: on Trustpilot they sit 1.3–2.0 points below their App Store ratings. PolySync's engine, rules and CI-proven safety answer exactly that.
+
+**Decision.**
+1. Ship a freemium athlete app sold directly, built on the same engine, rules (H1–H9, B1–B9) and safety layer as the club tier. No separate "consumer" logic.
+2. The club tier (ADR-001, ADR-009) stays. Club members get the paid tier through their club, and the coach console remains the club's product.
+3. The athlete app competes on **trust and safety**, not on scheduling (ADR-009 still holds: the scheduler is not the moat). It never shows a number the system didn't measure; every change shows its rule; billing is transparent.
+4. Every plan, in either tier, comes from the engine and passes the rules. The model only explains and proposes (ADR-004).
+
+**Rejected.**
+- A consumer tier with its own lighter safety layer: that recreates the trust gap the research found.
+- Club-only: no direct funnel, and the retention and paywall KPIs can't be measured.
+
+**Consequences.**
+- Two funnels share one engineer. The coach console (GAPS #13) and athlete onboarding (GAPS #16) compete for the same capacity.
+- GDPR applies when the athlete app launches in the EU (ADR-006 sequence: UAE, then US and EU).
+
+**Reversal trigger.** Download-to-paid by day 35 stays below the Health & Fitness median (2.9%, RevenueCat 2026) after two paywall iterations. Then fold the athlete app back into club-only distribution.
 
 ---
 
@@ -182,4 +206,5 @@ Each ADR states what was rejected and the measurable condition that would revers
 | Decision | Owner | Date |
 |---|---|---|
 | Rollback decision owner (doc 08 §4) | Ossama Mokhtar | 2026-09-24 |
+| HIPAA treated as not applicable: PolySync is not a covered entity or a business associate of one. **Counsel to confirm** before any US health-system partnership. Health data is still handled as sensitive under UAE PDPL and, at EU launch, GDPR special-category rules | Ossama Mokhtar | 2026-09-24 |
 | Data ownership on offboarding: org owns roster and programme data; athlete owns and can export personal physiological data ([doc 02 decision](02-data-ownership-decision.md)) | Ossama Mokhtar | 2026-09-23 |
