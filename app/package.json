@@ -17,7 +17,7 @@
     "boot-check": "node scripts/boot-check.mjs"
   },
   "dependencies": {
-    "@google/genai": "^2.23.0",
+    "@google/genai": "^2.24.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^5.0.4",
     "d3": "^7.9.0",
@@ -44,7 +44,7 @@
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "vite": "^6.2.3",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.2"
   },
   "description": "PolySync — AI-powered personal fitness coach with adaptive workout plans, conversational coaching, wearable integration, and recovery analysis. Built on the PolyVerses multi-agent orchestration architecture.",
   "keywords": [
